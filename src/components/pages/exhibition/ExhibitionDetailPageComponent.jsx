@@ -19,33 +19,27 @@ import LoadingLayer from "@/components/animations/LoadingLayer";
 import ErrorState from "@/components/alerts/ErrorState";
 import FormAlert from "@/components/alerts/FormAlert";
 import NoDataInfo from "@/components/alerts/NoDataInfo";
-import useData from "@/hooks/useData";
 
 // Images
 import ImageZoomModal from "@/components/images/ImageZoomModal";
 
 // ============================================================
 // 🅰️  TEXT / TYPOGRAPHY CONFIG  — tune every piece of text here
-// ------------------------------------------------------------
-// Each block controls one text element on the page:
-//   role                              → which entry in lib/typography.js
-//                                        supplies the branded font FILE
-//                                        (via useFont(role)). Change the
-//                                        TYPEFACE for a role there; change
-//                                        its SIZE/weight/colour/gap here.
-//   fontSizeDesktop / fontSizeMobile  → responsive size
-//   fontWeight                        → 300–700 (CSS weight)
-//   color                             → null = follow the theme (colors.text,
-//                                        auto light/dark). Put a hex to override.
-//   opacity                           → 0–1
-//   letterSpacing / lineHeight        → CSS values
-//   marginBottom (px)                 → the GAP under this element
-//   italic / textAlign / textTransform→ optional extras
-//
-// BASE_COLOR recolours EVERY element at once (still overridable per block).
 // ============================================================
 const TEXT_CONFIG = {
-  BASE_COLOR: null, // e.g. "#111111" to force one colour on all text
+  BASE_COLOR: null,
+
+  NAV_TAB: {
+    role: "detailMetaLabel",
+    fontSizeDesktop: "13px",
+    fontSizeMobile: "12px",
+    fontWeight: 500,
+    color: null,
+    opacity: 0.55,
+    activeOpacity: 1,
+    letterSpacing: "0.02em",
+    lineHeight: 1.4,
+  },
 
   TITLE: {
     role: "detailTitle",
@@ -56,8 +50,32 @@ const TEXT_CONFIG = {
     opacity: 1,
     letterSpacing: "0.01em",
     lineHeight: 1.3,
-    marginBottom: 8,
-    italicizeBeforeColon: true, // italic on the part before ":"
+    marginBottom: 16,
+    italicizeBeforeColon: true,
+  },
+
+  ARTISTS_LINE: {
+    role: "detailMetaValue",
+    fontSizeDesktop: "14px",
+    fontSizeMobile: "13px",
+    fontWeight: 400,
+    color: null,
+    opacity: 0.85,
+    letterSpacing: "0em",
+    lineHeight: 1.6,
+    marginBottom: 4,
+  },
+
+  PREFACE_LINE: {
+    role: "detailMetaValue",
+    fontSizeDesktop: "14px",
+    fontSizeMobile: "13px",
+    fontWeight: 400,
+    color: null,
+    opacity: 0.85,
+    letterSpacing: "0em",
+    lineHeight: 1.6,
+    marginBottom: 0,
   },
 
   SUBTITLE: {
@@ -97,7 +115,6 @@ const TEXT_CONFIG = {
     marginBottom: 0,
   },
 
-  // Primary body text (introduction, or description when there is no introduction)
   INTRO: {
     role: "detailBody",
     fontSizeDesktop: "14px",
@@ -111,7 +128,6 @@ const TEXT_CONFIG = {
     marginBottom: 16,
   },
 
-  // Trailing body text (description shown after the introduction, if both exist)
   DESCRIPTION: {
     role: "detailBody",
     fontSizeDesktop: "14px",
@@ -125,20 +141,6 @@ const TEXT_CONFIG = {
     marginBottom: 16,
   },
 
-  IMAGE_CAPTION: {
-    role: "detailCaption",
-    fontSizeDesktop: "13px",
-    fontSizeMobile: "12px",
-    fontWeight: 400,
-    color: null,
-    opacity: 0.5,
-    letterSpacing: "0em",
-    lineHeight: 1.5,
-    italic: true,
-    marginTop: 12, // gap ABOVE the caption (sits under its image)
-  },
-
-  // Shared style for the "Works" / "Related Artists" section headings
   SECTION_HEADING: {
     role: "detailSectionHeading",
     fontSizeDesktop: "11px",
@@ -191,30 +193,79 @@ const TEXT_CONFIG = {
 // 🅱️  LAYOUT / SPACING CONFIG  — all gaps between sections (px)
 // ============================================================
 const LAYOUT_CONFIG = {
-  HEADER_MB_DESKTOP: 48, // gap under the title/subtitle/date block
-  HEADER_MB_MOBILE: 32,
+  NAV_MB_DESKTOP: 40,
+  NAV_MB_MOBILE: 28,
 
-  COVER_MB_DESKTOP: 64, // gap under the cover image
+  INSTALLATION_MB_DESKTOP: 56,
+  INSTALLATION_MB_MOBILE: 32,
+
+  HEADER_MB_DESKTOP: 40,
+  HEADER_MB_MOBILE: 28,
+
+  COVER_MB_DESKTOP: 64,
   COVER_MB_MOBILE: 40,
 
-  BODY_MT: 32, // gap above the body text
-  BODY_BLOCK_GAP: 32, // gap between each (paragraph + image) block
-  PARA_TO_IMAGE_GAP: 8, // gap between a paragraph and the image paired to it
+  BODY_MT: 8,
+  BODY_BLOCK_GAP: 32,
+  PARA_TO_IMAGE_GAP: 8,
+
+  DOWNLOAD_BUTTON_MT: 24,
 
   VIDEO_MT: 48,
   VIDEO_MB: 48,
 
-  RELATED_MT_DESKTOP: 48, // gap above the Works/Artists area
-  RELATED_MT_MOBILE: 48,
-  RELATED_SECTION_GAP: 48, // gap between the Works grid and the Artists list
+  WORKS_MT_DESKTOP: 72,
+  WORKS_MT_MOBILE: 56,
+  RELATED_ARTISTS_MT: 56,
 
   METADATA_MT_DESKTOP: 80,
   METADATA_MT_MOBILE: 64,
   METADATA_PT_DESKTOP: 40,
   METADATA_PT_MOBILE: 32,
-  METADATA_ROW_PY_DESKTOP: 20, // vertical padding inside each metadata row
+  METADATA_ROW_PY_DESKTOP: 20,
   METADATA_ROW_PY_MOBILE: 16,
-  METADATA_LABEL_MINWIDTH: 200, // width of the uppercase label column (desktop)
+  METADATA_LABEL_MINWIDTH: 200,
+};
+
+// ============================================================
+// 🅲️  INSTALLATION VIEWS ROW — up to 3 images shown at the very
+// top of the page (randomly picked from the gallery images each
+// time the exhibition's image set changes).
+// ============================================================
+const INSTALLATION_CONFIG = {
+  MAX_IMAGES: 3,
+  GAP_DESKTOP: 16,
+  GAP_MOBILE: 8,
+  ASPECT_RATIO: "4/3",
+  COLUMNS_MOBILE: 1,
+};
+
+// ============================================================
+// 🅳️  WORKS GRID — full matched-artwork grid at the bottom,
+// styled to match the "Related Artworks" grid on the artist
+// detail page: image, then artist name / italic title, year.
+// ============================================================
+const WORKS_GRID_CONFIG = {
+  GRID_MODE_DESKTOP: "fixed",
+  GRID_COLUMNS_DESKTOP: 4,
+  GRID_MIN_COLUMN_WIDTH_DESKTOP: 250,
+
+  GRID_MODE_MOBILE: "fixed",
+  GRID_COLUMNS_MOBILE: 2,
+  GRID_MIN_COLUMN_WIDTH_MOBILE: 150,
+
+  GRID_GAP: 14,
+  GRID_ROW_GAP: null,
+  GRID_COLUMN_GAP: null,
+
+  IMAGE_TO_TEXT_GAP: "12px",
+  CARD_FONT_SIZE_DESKTOP: "12px",
+  CARD_FONT_SIZE_MOBILE: "11px",
+  CARD_LETTER_SPACING: "0.02em",
+  CARD_LINE_HEIGHT: 1.5,
+  CARD_META_OPACITY: 0.5,
+  HOVER_SCALE: 1.03,
+  UNDERLINE_DURATION: 0.25,
 };
 
 // ============================================================
@@ -222,25 +273,20 @@ const LAYOUT_CONFIG = {
 // ============================================================
 const FALLBACK_IMAGE = "/no-image.png";
 
-// Helper to format date
 function formatSimpleDateRange(start, end) {
   if (!start && !end) return "";
   if (start && end) return `${start} – ${end}`;
   return start || end;
 }
 
-// Split a string OR array-of-strings into clean paragraph strings.
-// Handles: plain string with \n / \n\n breaks (e.g. `description: String?`),
-// and arrays whose individual items may themselves contain embedded newlines
-// (e.g. `introduction: String[]`, `press_release: String[]`).
 function extractParagraphs(content) {
   if (!content) return [];
 
   const splitLines = (str) =>
     str
-      .split(/\r?\n+/) // Split on newlines
-      .map((s) => s.trim()) // Trim whitespace
-      .filter(Boolean); // Remove empty strings
+      .split(/\r?\n+/)
+      .map((s) => s.trim())
+      .filter(Boolean);
 
   if (Array.isArray(content)) {
     return content.flatMap((item) =>
@@ -255,8 +301,6 @@ function extractParagraphs(content) {
   return [];
 }
 
-// Pick a responsive value from a config block that exposes
-// `<key>Desktop` / `<key>Mobile`, falling back to a plain `<key>`.
 function pickResponsive(cfg, isMobile, key = "fontSize") {
   const d = cfg[`${key}Desktop`];
   const m = cfg[`${key}Mobile`];
@@ -266,19 +310,14 @@ function pickResponsive(cfg, isMobile, key = "fontSize") {
   return cfg[key];
 }
 
-// Resolve a text colour: per-block override → global BASE_COLOR → theme text.
 function resolveColor(cfg, themeText) {
   return cfg.color || TEXT_CONFIG.BASE_COLOR || themeText;
 }
 
-// Resolve the branded font FILE for a block from the per-role fonts map
-// (populated by useFont(role) in the component). Falls back to detailBody.
 function resolveFont(cfg, fonts) {
   return (cfg.role && fonts[cfg.role]) || fonts.detailBody;
 }
 
-// Build an MUI `sx` object from a TEXT_CONFIG block. `ctx` carries the
-// runtime bits (isMobile / fonts map / theme text colour).
 function textSx(cfg, ctx) {
   const sx = {
     fontFamily: resolveFont(cfg, ctx.fonts),
@@ -295,68 +334,37 @@ function textSx(cfg, ctx) {
   return sx;
 }
 
-// Metadata labels
+// Deterministic-per-render random sample (Fisher–Yates), capped at `n`.
+// Callers memoize this against a stable dependency (e.g. the image id
+// list) so the picked set doesn't reshuffle on every re-render.
+function sampleRandom(arr, n) {
+  const pool = [...arr];
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  return pool.slice(0, n);
+}
+
+const makeSlug = (t = "") =>
+  t
+    .toString()
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "_")
+    .replace(/[^\p{L}\p{N}_-]/gu, "");
+
 const METADATA_LABELS = {
   venue: { en: "Venue", cn: "场馆" },
   location: { en: "Location", cn: "地点" },
-  curator: { en: "Curator", cn: "策展人" },
   organiser: { en: "Organiser", cn: "主办方" },
-  participating_artists: { en: "Participating Artists", cn: "参展艺术家" },
   language: { en: "Language", cn: "语言" },
 };
 
-const METADATA_ORDER = [
-  "venue",
-  "location",
-  "curator",
-  "organiser",
-  "participating_artists",
-  // "language" intentionally omitted — not shown on the exhibition detail page
-];
-
-// ============================================================
-// 🎨 MATCHED ARTWORKS GRID — image-only grid at the bottom of the
-// exhibition detail page, styled to match the "Related Artworks" grid
-// on the artist detail page. No text renders below the image — images only.
-// (Heading styling lives in TEXT_CONFIG.SECTION_HEADING, shared with the
-// Related Artists heading, so both stay in sync.)
-//
-// Two grid modes, set independently for DESKTOP and MOBILE:
-//   "fixed" → an exact column count (GRID_COLUMNS_*).
-//   "auto"  → browser fits as many columns ≥ GRID_MIN_COLUMN_WIDTH_* as it can.
-// ============================================================
-const MATCHED_ARTWORKS_CONFIG = {
-  // ---- Desktop grid ----
-  GRID_MODE_DESKTOP: "auto", // "fixed" | "auto"
-  GRID_COLUMNS_DESKTOP: 4, // used when GRID_MODE_DESKTOP === "fixed"
-  GRID_MIN_COLUMN_WIDTH_DESKTOP: 180, // used when GRID_MODE_DESKTOP === "auto"
-
-  // ---- Mobile grid ----
-  GRID_MODE_MOBILE: "fixed", // "fixed" | "auto"
-  GRID_COLUMNS_MOBILE: 2, // used when GRID_MODE_MOBILE === "fixed"
-  GRID_MIN_COLUMN_WIDTH_MOBILE: 140, // used when GRID_MODE_MOBILE === "auto"
-
-  // ---- Spacing (px) ----
-  GRID_GAP_DESKTOP: 24,
-  GRID_GAP_MOBILE: 12,
-  GRID_ROW_GAP_DESKTOP: null, // set a number to override GRID_GAP_DESKTOP vertically
-  GRID_COLUMN_GAP_DESKTOP: null, // set a number to override GRID_GAP_DESKTOP horizontally
-  GRID_ROW_GAP_MOBILE: null,
-  GRID_COLUMN_GAP_MOBILE: null,
-
-  HOVER_SCALE: 1.03,
-  IMAGE_HOVER_TRANSITION: "transform 0.4s ease",
-  FALLBACK_ASPECT_RATIO: "3/2", // used only for the no-image placeholder box
-};
-
-/**
- * Build a CSS `grid-template-columns` value from the "fixed" | "auto" mode.
- */
-function buildGridTemplateColumns(mode, columns, minColumnWidth) {
-  return mode === "auto"
-    ? `repeat(auto-fill, minmax(${minColumnWidth}px, 1fr))`
-    : `repeat(${Math.max(1, Math.floor(columns) || 1)}, 1fr)`;
-}
+// Curator & participating_artists are surfaced up in the header block
+// (Artists: … / Preface by Curator …), so they're intentionally left
+// out of this bottom metadata table to avoid repeating them.
+const METADATA_ORDER = ["venue", "location", "organiser"];
 
 // ============================================================
 // Skeleton helpers — shared shimmer style
@@ -382,8 +390,104 @@ function SkeletonBlock({ height = 200, sx = {} }) {
 }
 
 // ============================================================
+// Top nav tabs — "Installation Views / Press release / Works"
+// Pure in-page anchors; sections only appear in the nav when
+// they actually have content.
+// ============================================================
+function SectionNav({ sections, ctx }) {
+  if (!sections.length) return null;
+  const C = TEXT_CONFIG.NAV_TAB;
+
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        flexWrap: "wrap",
+        gap: { xs: "16px", md: "28px" },
+        mb: {
+          xs: `${LAYOUT_CONFIG.NAV_MB_MOBILE}px`,
+          md: `${LAYOUT_CONFIG.NAV_MB_DESKTOP}px`,
+        },
+      }}
+    >
+      {sections.map((s) => (
+        <Typography
+          key={s.id}
+          component="a"
+          href={`#${s.id}`}
+          sx={{
+            ...textSx(C, ctx),
+            textDecoration: "none",
+            cursor: "pointer",
+            "&:hover": { opacity: C.activeOpacity },
+          }}
+        >
+          {s.label}
+        </Typography>
+      ))}
+    </Box>
+  );
+}
+
+// ============================================================
+// Installation Views — top row of up to 3 randomly-picked images
+// ============================================================
+function InstallationViewsRow({ images, onImageClick, isMobile }) {
+  if (!images.length) return null;
+  const C = INSTALLATION_CONFIG;
+  const gap = isMobile ? C.GAP_MOBILE : C.GAP_DESKTOP;
+  const columns = isMobile ? C.COLUMNS_MOBILE : images.length;
+
+  return (
+    <Box
+      sx={{
+        mb: {
+          xs: `${LAYOUT_CONFIG.INSTALLATION_MB_MOBILE}px`,
+          md: `${LAYOUT_CONFIG.INSTALLATION_MB_DESKTOP}px`,
+        },
+        display: "grid",
+        gridTemplateColumns: `repeat(${columns}, 1fr)`,
+        gap: `${gap}px`,
+      }}
+    >
+      {images.map((img, idx) => (
+        <motion.div
+          key={img.id || img._id || idx}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: idx * 0.06, duration: 0.5 }}
+        >
+          <Box
+            sx={{
+              width: "100%",
+              aspectRatio: C.ASPECT_RATIO,
+              cursor: "zoom-in",
+              backgroundColor: "rgba(0,0,0,0.02)",
+              overflow: "hidden",
+            }}
+            onClick={() => onImageClick(img.img_url)}
+          >
+            <img
+              src={img.img_url}
+              alt={img.caption_en || img.caption_cn || "Installation view"}
+              loading="lazy"
+              decoding="async"
+              style={{
+                width: "100%",
+                height: "100%",
+                display: "block",
+                objectFit: "cover",
+              }}
+            />
+          </Box>
+        </motion.div>
+      ))}
+    </Box>
+  );
+}
+
+// ============================================================
 // Artist name link with underline hover animation
-// (sizing / opacity driven by TEXT_CONFIG.ARTIST_LINK; font FILE passed in)
 // ============================================================
 function ArtistNameLink({ name, slug, index, isMobile, fontFamily, textColor }) {
   const [isHovered, setIsHovered] = useState(false);
@@ -440,19 +544,175 @@ function ArtistNameLink({ name, slug, index, isMobile, fontFamily, textColor }) 
 }
 
 // ============================================================
+// Works card — image + artist name + italic title, year
+// (same visual language as the artist page's Related Artworks card)
+// ============================================================
+function WorkCard({ artwork, index, textColor, captionFont, metaFont, isCn, isMobile }) {
+  const [isHovered, setIsHovered] = useState(false);
+  const R = WORKS_GRID_CONFIG;
+  const cardFontSize = isMobile ? R.CARD_FONT_SIZE_MOBILE : R.CARD_FONT_SIZE_DESKTOP;
+
+  const href = `/artworks/${makeSlug(artwork.title)}?artist=${encodeURIComponent(
+    (artwork.artist || "").replace(/\s+/g, "-")
+  )}`;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-50px" }}
+      transition={{ delay: isMobile ? 0 : (index % 10) * 0.05, duration: 0.5 }}
+      style={{ width: "100%" }}
+    >
+      <Link
+        href={href}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        style={{
+          textDecoration: "none",
+          color: "inherit",
+          display: "flex",
+          flexDirection: "column",
+          width: "100%",
+        }}
+      >
+        <Box
+          sx={{
+            width: "100%",
+            mb: R.IMAGE_TO_TEXT_GAP,
+            backgroundColor: "rgba(0,0,0,0.03)",
+            overflow: "hidden",
+          }}
+        >
+          {artwork.cover_img_url ? (
+            <img
+              src={artwork.cover_img_url}
+              alt={artwork.title || ""}
+              loading="lazy"
+              decoding="async"
+              style={{
+                width: "100%",
+                height: "auto",
+                display: "block",
+                transform: isHovered ? `scale(${R.HOVER_SCALE})` : "scale(1)",
+                transition: "transform 0.4s ease-in-out",
+              }}
+            />
+          ) : (
+            <Box
+              sx={{
+                width: "100%",
+                aspectRatio: "3/2",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Typography
+                sx={{
+                  fontFamily: metaFont,
+                  fontSize: "11px",
+                  color: textColor,
+                  opacity: 0.3,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.1em",
+                }}
+              >
+                {isCn ? "无图" : "No Image"}
+              </Typography>
+            </Box>
+          )}
+        </Box>
+
+        <Box
+          sx={{
+            fontSize: cardFontSize,
+            color: textColor,
+            lineHeight: R.CARD_LINE_HEIGHT,
+            letterSpacing: R.CARD_LETTER_SPACING,
+            display: "flex",
+            flexDirection: "column",
+            gap: "2px",
+          }}
+        >
+          <Typography component="span" sx={{ fontFamily: captionFont, opacity: 0.9, fontSize: "inherit" }}>
+            {artwork.artist || ""}
+          </Typography>
+
+          <Box sx={{ display: "inline-block", position: "relative", width: "fit-content" }}>
+            <Typography component="span" sx={{ fontFamily: captionFont, fontStyle: "italic", opacity: 0.85, fontSize: "inherit" }}>
+              {artwork.title || (isCn ? "无题" : "Untitled")}
+              {artwork.year && <span style={{ fontStyle: "normal" }}>, {artwork.year}</span>}
+            </Typography>
+            <motion.span
+              aria-hidden
+              initial={false}
+              animate={{ scaleX: isHovered ? 1 : 0 }}
+              transition={{ duration: R.UNDERLINE_DURATION, ease: "easeInOut" }}
+              style={{
+                position: "absolute",
+                bottom: 0,
+                left: 0,
+                right: 0,
+                height: "1px",
+                backgroundColor: textColor,
+                transformOrigin: "left",
+              }}
+            />
+          </Box>
+
+          {(artwork.medium || artwork.size) && (
+            <Typography component="span" sx={{ fontFamily: metaFont, opacity: R.CARD_META_OPACITY, mt: "2px", fontSize: "inherit" }}>
+              {[artwork.medium, artwork.size].filter(Boolean).join(" · ")}
+            </Typography>
+          )}
+        </Box>
+      </Link>
+    </motion.div>
+  );
+}
+
+// Works grid — renders every matched artwork (no cap).
+function WorksGrid({ artworks, textColor, captionFont, metaFont, isCn, isMobile }) {
+  const R = WORKS_GRID_CONFIG;
+  const mode = isMobile ? R.GRID_MODE_MOBILE : R.GRID_MODE_DESKTOP;
+  const columns = isMobile ? R.GRID_COLUMNS_MOBILE : R.GRID_COLUMNS_DESKTOP;
+  const minColumnWidth = isMobile ? R.GRID_MIN_COLUMN_WIDTH_MOBILE : R.GRID_MIN_COLUMN_WIDTH_DESKTOP;
+  const rowGap = R.GRID_ROW_GAP ?? R.GRID_GAP;
+  const columnGap = R.GRID_COLUMN_GAP ?? R.GRID_GAP;
+
+  const gridTemplateColumns =
+    mode === "auto"
+      ? `repeat(auto-fill, minmax(${minColumnWidth}px, 1fr))`
+      : `repeat(${Math.max(1, Math.floor(columns) || 1)}, 1fr)`;
+
+  return (
+    <Box sx={{ display: "grid", gridTemplateColumns, columnGap: `${columnGap}px`, rowGap: `${rowGap}px` }}>
+      {artworks.map((aw, i) => (
+        <WorkCard
+          key={aw.id || aw._id || i}
+          artwork={aw}
+          index={i}
+          textColor={textColor}
+          captionFont={captionFont}
+          metaFont={metaFont}
+          isCn={isCn}
+          isMobile={isMobile}
+        />
+      ))}
+    </Box>
+  );
+}
+
+// ============================================================
 // PAGE COMPONENT
 // ============================================================
 
 export default function ExhibitionDetailPageComponent() {
-  // --- Context & hooks -------------------------------------
   const { isCn } = useContext(LanguageContext);
   const { isMobile } = useContext(DeviceContext);
   const { slug } = useParams();
 
-  // Per-role branded font FILES from the central type system (lib/typography.js).
-  // Each text element pulls its typeface from its own role; sizing/spacing stay
-  // in TEXT_CONFIG above. Swap a typeface once in typography.js → every element
-  // on this page (and the fair page sharing the role) updates.
   const fonts = {
     detailTitle: useFont("detailTitle").fontFamily,
     detailSubtitle: useFont("detailSubtitle").fontFamily,
@@ -468,35 +728,22 @@ export default function ExhibitionDetailPageComponent() {
   const { colors } = useReverseTheme() || { colors: { text: "#000", background: "#fff" } };
   const { modalOpen, selectedImage, handleImageClick, handleModalClose } = useImageZoom();
 
-  // Runtime context passed into the textSx() builder
   const ctx = { isMobile, fonts, themeText: colors.text };
 
-  // --- Data ------------------------------------------------
-  // useExhibitionDetailData already matches images to this exhibition
-  // internally (via useImageGallery) and hands back the result as
-  // galleryImages, so no extra filtering/sorting is needed here.
+  // All matching (images, webs, and now artworks — bidirectionally) is
+  // resolved inside the hook, so the page component just renders
+  // whatever comes back.
   const {
     exhibition,
     isLoading,
     hasError,
     firstError,
     galleryImages = [],
+    matchedArtworks = [],
   } = useExhibitionDetailData(slug, isCn);
-
-  // Fetch all artworks so we can match related_artwork_title to real records
-  const { data: allArtworks = [], isLoading: artworksLoading } = useData("/api/artwork");
-
-  // --- Computed (ALL hooks must run before any early return) ----
 
   const artistSlug = (name) =>
     String(name || "")
-      .trim()
-      .toLowerCase()
-      .replace(/\s+/g, "_")
-      .replace(/[^\p{L}\p{N}_-]/gu, "");
-
-  const artworkSlug = (title) =>
-    String(title || "")
       .trim()
       .toLowerCase()
       .replace(/\s+/g, "_")
@@ -515,8 +762,6 @@ export default function ExhibitionDetailPageComponent() {
     [exhibition]
   );
 
-  // Paragraph-split text (handles \n breaks whether introduction/description
-  // come back as a single string or an array of strings)
   const introductionParas = useMemo(
     () => extractParagraphs(exhibition?.introduction),
     [exhibition]
@@ -526,22 +771,8 @@ export default function ExhibitionDetailPageComponent() {
     [exhibition]
   );
 
-  // Body layout rule:
-  //   • primaryParas  → paired 1:1 with gallery images (introduction if it
-  //     exists, otherwise description so a description-only show still pairs).
-  //   • trailingParas → description shown as plain text AFTER the paired block,
-  //     but only when there is a separate introduction above it.
   const primaryParas = introductionParas.length ? introductionParas : descriptionParas;
   const trailingParas = introductionParas.length ? descriptionParas : [];
-
-  // Safely normalize arrays to prevent mapping errors if a string is returned
-  const relatedArtworks = useMemo(() => {
-    if (!exhibition?.related_artwork_title) return [];
-    const raw = Array.isArray(exhibition.related_artwork_title)
-      ? exhibition.related_artwork_title
-      : [exhibition.related_artwork_title];
-    return raw.filter((t) => String(t || "").trim());
-  }, [exhibition]);
 
   const relatedArtists = useMemo(() => {
     if (!exhibition?.related_gallery_artist) return [];
@@ -551,38 +782,39 @@ export default function ExhibitionDetailPageComponent() {
     return raw.filter((name) => String(name || "").trim());
   }, [exhibition]);
 
-  // Match related_artwork_title strings to actual artwork records
-  const matchedArtworks = useMemo(() => {
-    if (!relatedArtworks.length || !Array.isArray(allArtworks)) return [];
-    const titleSet = new Set(relatedArtworks.map((t) => t.trim().toLowerCase()));
-    return allArtworks.filter((aw) => {
-      const t = (aw?.title || "").trim().toLowerCase();
-      return t && titleSet.has(t);
-    });
-  }, [relatedArtworks, allArtworks]);
+  // Random subset (max 3) for the top "Installation Views" row.
+  // Reshuffles only when the underlying image id list actually changes.
+  const galleryImageIdsKey = useMemo(
+    () => galleryImages.map((img) => img.id || img._id || img.img_url).join("|"),
+    [galleryImages]
+  );
+  const installationImages = useMemo(
+    () => sampleRandom(galleryImages, INSTALLATION_CONFIG.MAX_IMAGES),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [galleryImageIdsKey]
+  );
 
-  const isDataLoading = isLoading || artworksLoading;
+  const isDataLoading = isLoading;
 
-  // ---- SMART 1:1 PAIRING -----------------------------------
-  // Walk paragraphs and images in parallel: paragraph[i] ↔ image[i].
-  // Counts don't have to match — we run to the longer of the two and keep
-  // BOTH leftovers:
-  //   • more paragraphs than images → trailing paragraphs render text-only
-  //   • more images than paragraphs → trailing images render image-only
-  // Nothing is ever dropped.
-  const pairedBody = useMemo(() => {
-    const max = Math.max(primaryParas.length, galleryImages.length);
-    const rows = [];
-    for (let i = 0; i < max; i++) {
-      rows.push({
-        text: primaryParas[i] ?? null,
-        image: galleryImages[i] ?? null,
-      });
+  const navSections = useMemo(() => {
+    const list = [];
+    if (installationImages.length) {
+      list.push({ id: "installation-views", label: isCn ? "现场图" : "Installation Views" });
     }
-    return rows;
-  }, [primaryParas, galleryImages]);
+    if (primaryParas.length || trailingParas.length) {
+      list.push({ id: "press-release", label: isCn ? "新闻稿" : "Press release" });
+    }
+    if (matchedArtworks.length) {
+      list.push({ id: "works", label: isCn ? "作品" : "Works" });
+    }
+    return list;
+  }, [installationImages.length, primaryParas.length, trailingParas.length, matchedArtworks.length, isCn]);
 
-  // --- Render: loading -------------------------------------
+  // A download / full-version link — uses whatever the record provides
+  // (web_url today; wire up a dedicated pdf_url field on Exhibition if
+  // you want a true file download instead of an external link).
+  const downloadHref = exhibition?.web_url || null;
+
   if (isDataLoading) {
     return (
       <Box sx={{ minHeight: "100vh", backgroundColor: colors.background }}>
@@ -601,68 +833,48 @@ export default function ExhibitionDetailPageComponent() {
         />
         <LoadingLayer isLoading />
         <Container maxWidth="md" sx={{ px: { xs: 3, md: 4 }, py: { xs: 6, md: 10 } }}>
-          <Box sx={{ mb: { xs: 4, md: 6 } }}>
+          <Box sx={{ display: "flex", gap: 2, mb: { xs: 4, md: 6 } }}>
+            <SkeletonLine width="120px" height={13} />
+            <SkeletonLine width="110px" height={13} />
+            <SkeletonLine width="60px" height={13} />
+          </Box>
+
+          <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "repeat(3, 1fr)" }, gap: 2, mb: { xs: 5, md: 7 } }}>
+            <SkeletonBlock height={isMobile ? 180 : 220} />
+            <SkeletonBlock height={isMobile ? 180 : 220} />
+            <SkeletonBlock height={isMobile ? 180 : 220} />
+          </Box>
+
+          <Box sx={{ mb: { xs: 4, md: 5 } }}>
             <SkeletonLine width="60%" height={isMobile ? 22 : 26} />
-            <Box sx={{ mt: 1 }}>
+            <Box sx={{ mt: 1.5 }}>
               <SkeletonLine width="35%" height={14} />
+            </Box>
+            <Box sx={{ mt: 0.5 }}>
+              <SkeletonLine width="40%" height={14} />
             </Box>
           </Box>
 
-          <Box sx={{ mb: { xs: 5, md: 8 } }}>
-            <SkeletonBlock height={isMobile ? 220 : 400} />
-          </Box>
-
-          <Box sx={{ mt: 4 }}>
+          <Box sx={{ mt: 2 }}>
             <SkeletonLine width="100%" height={14} sx={{ mb: 1 }} />
             <SkeletonLine width="95%" height={14} sx={{ mb: 1 }} />
             <SkeletonLine width="88%" height={14} sx={{ mb: 1 }} />
             <SkeletonLine width="60%" height={14} sx={{ mb: 3 }} />
-
-            <Box sx={{ width: "100%", mb: 4 }}>
-              <SkeletonBlock height={isMobile ? 260 : 420} />
-            </Box>
-
-            <SkeletonLine width="100%" height={14} sx={{ mb: 1 }} />
-            <SkeletonLine width="70%" height={14} />
           </Box>
 
           <Box sx={{ mt: 6 }}>
             <SkeletonLine width="100px" height={11} sx={{ mb: 2 }} />
-            <Box sx={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-              <SkeletonLine width="45%" height={15} />
-              <SkeletonLine width="55%" height={15} />
-              <SkeletonLine width="35%" height={15} />
+            <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr 1fr", md: "repeat(4, 1fr)" }, gap: 2 }}>
+              {[1, 2, 3, 4].map((i) => (
+                <SkeletonBlock key={i} height={isMobile ? 140 : 200} />
+              ))}
             </Box>
-            <Box sx={{ mt: 3 }}>
-              <SkeletonLine width="130px" height={11} sx={{ mb: 2 }} />
-              <Box sx={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                <SkeletonLine width="40%" height={15} />
-                <SkeletonLine width="50%" height={15} />
-              </Box>
-            </Box>
-          </Box>
-
-          <Box
-            sx={{
-              mt: { xs: 8, md: 10 },
-              pt: { xs: 4, md: 5 },
-              borderTop: `1px solid ${colors.text}`,
-              opacity: 0.25,
-            }}
-          >
-            {[1, 2, 3, 4].map((i) => (
-              <Box key={i} sx={{ display: "flex", gap: 2, mb: 1.5 }}>
-                <SkeletonLine width="160px" height={13} />
-                <SkeletonLine width={`${30 + i * 10}%`} height={14} />
-              </Box>
-            ))}
           </Box>
         </Container>
       </Box>
     );
   }
 
-  // --- Render: error ---------------------------------------
   if (hasError) {
     return (
       <Box sx={{ mt: 3, px: 2 }}>
@@ -679,7 +891,6 @@ export default function ExhibitionDetailPageComponent() {
     );
   }
 
-  // --- Render: no data -------------------------------------
   if (!exhibition) {
     return (
       <Box sx={{ mt: 3 }}>
@@ -688,7 +899,6 @@ export default function ExhibitionDetailPageComponent() {
     );
   }
 
-  // Pre-built shared heading sx
   const sectionHeadingSx = {
     ...textSx(TEXT_CONFIG.SECTION_HEADING, ctx),
     mb: `${TEXT_CONFIG.SECTION_HEADING.marginBottom}px`,
@@ -697,7 +907,6 @@ export default function ExhibitionDetailPageComponent() {
     display: "inline-block",
   };
 
-  // --- Render: main UI -------------------------------------
   return (
     <Box sx={{ minHeight: "100vh", backgroundColor: colors.background, color: colors.text }}>
       <Container maxWidth="md" sx={{ px: { xs: 3, md: 4 }, py: { xs: 6, md: 10 } }}>
@@ -706,8 +915,21 @@ export default function ExhibitionDetailPageComponent() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
         >
-          {/* 1. Header (Title, Subtitle & Date) */}
+          {/* 0. Top nav — Installation Views / Press release / Works */}
+          <SectionNav sections={navSections} ctx={ctx} />
+
+          {/* 1. Installation Views — up to 3 random gallery images */}
+          <Box id="installation-views">
+            <InstallationViewsRow
+              images={installationImages}
+              onImageClick={handleImageClick}
+              isMobile={isMobile}
+            />
+          </Box>
+
+          {/* 2. Header (Title, Artists, Preface / Curator, Subtitle & Date) */}
           <Box
+            id="press-release"
             sx={{
               mb: {
                 xs: `${LAYOUT_CONFIG.HEADER_MB_MOBILE}px`,
@@ -735,12 +957,40 @@ export default function ExhibitionDetailPageComponent() {
               )}
             </Typography>
 
+            {/* Artists line */}
+            {(exhibition.participating_artists || relatedArtists.length > 0) && (
+              <Typography
+                sx={{
+                  ...textSx(TEXT_CONFIG.ARTISTS_LINE, ctx),
+                  m: 0,
+                  mb: `${TEXT_CONFIG.ARTISTS_LINE.marginBottom}px`,
+                }}
+              >
+                {isCn ? "参展艺术家：" : "Artists: "}
+                {exhibition.participating_artists || relatedArtists.join(", ")}
+              </Typography>
+            )}
+
+            {/* Preface / Curator line */}
+            {exhibition.curator && (
+              <Typography
+                sx={{
+                  ...textSx(TEXT_CONFIG.PREFACE_LINE, ctx),
+                  m: 0,
+                  mb: `${TEXT_CONFIG.PREFACE_LINE.marginBottom}px`,
+                }}
+              >
+                {isCn ? `策展前言：${exhibition.curator}` : `Preface by Curator ${exhibition.curator}`}
+              </Typography>
+            )}
+
             {/* Subtitle */}
             {exhibition.subtitle && (
               <Typography
                 sx={{
                   ...textSx(TEXT_CONFIG.SUBTITLE, ctx),
                   m: 0,
+                  mt: 1,
                   mb: `${TEXT_CONFIG.SUBTITLE.marginBottom}px`,
                 }}
               >
@@ -754,16 +1004,84 @@ export default function ExhibitionDetailPageComponent() {
                 sx={{
                   ...textSx(TEXT_CONFIG.DATE, ctx),
                   m: 0,
+                  mt: 1,
                   mb: `${TEXT_CONFIG.DATE.marginBottom}px`,
                 }}
               >
                 {dateRange}
               </Typography>
             )}
+
+            {/* Body — introduction / description paragraphs, plain text.
+                Installation photos already ran in the row above, so the
+                body here is text-only (no interleaved images). */}
+            {primaryParas.length > 0 && (
+              <Box sx={{ mt: `${LAYOUT_CONFIG.BODY_MT}px` }}>
+                {primaryParas.map((para, idx) => (
+                  <Typography
+                    key={idx}
+                    sx={{
+                      ...textSx(TEXT_CONFIG.INTRO, ctx),
+                      whiteSpace: "pre-line",
+                      mb: `${TEXT_CONFIG.INTRO.marginBottom}px`,
+                      "&:last-of-type": { mb: 0 },
+                    }}
+                  >
+                    {para.replace(/\\n/g, "\n")}
+                  </Typography>
+                ))}
+              </Box>
+            )}
+
+            {trailingParas.length > 0 && (
+              <Box sx={{ mt: primaryParas.length ? `${LAYOUT_CONFIG.BODY_BLOCK_GAP}px` : `${LAYOUT_CONFIG.BODY_MT}px` }}>
+                {trailingParas.map((para, idx) => (
+                  <Typography
+                    key={idx}
+                    sx={{
+                      ...textSx(TEXT_CONFIG.DESCRIPTION, ctx),
+                      whiteSpace: "pre-line",
+                      mb: `${TEXT_CONFIG.DESCRIPTION.marginBottom}px`,
+                      "&:last-of-type": { mb: 0 },
+                    }}
+                  >
+                    {para.replace(/\\n/g, "\n")}
+                  </Typography>
+                ))}
+              </Box>
+            )}
+
+            {/* Download / full version button */}
+            {downloadHref && (
+              <Box sx={{ mt: `${LAYOUT_CONFIG.DOWNLOAD_BUTTON_MT}px` }}>
+                <Typography
+                  component="a"
+                  href={downloadHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  sx={{
+                    display: "inline-block",
+                    fontFamily: fonts.detailMetaLabel,
+                    fontSize: "13px",
+                    letterSpacing: "0.02em",
+                    color: colors.text,
+                    textDecoration: "none",
+                    border: `1px solid ${colors.text}`,
+                    px: 2,
+                    py: 1,
+                    transition: "opacity 0.2s ease",
+                    "&:hover": { opacity: 0.6 },
+                  }}
+                >
+                  {isCn ? "下载完整版" : "Download Full version"}
+                </Typography>
+              </Box>
+            )}
           </Box>
 
-          {/* 2. Cover Image & Caption */}
-          {finalCoverImageUrl ? (
+          {/* 2b. Cover Image & Caption (kept for records that lead with a
+              dedicated cover image rather than relying on the gallery row) */}
+          {finalCoverImageUrl && (
             <Box
               sx={{
                 mb: {
@@ -795,127 +1113,16 @@ export default function ExhibitionDetailPageComponent() {
                 </Typography>
               )}
             </Box>
-          ) : (
-            exhibition.caption && (
-              <Box
-                sx={{
-                  mb: {
-                    xs: `${LAYOUT_CONFIG.COVER_MB_MOBILE}px`,
-                    md: `${LAYOUT_CONFIG.COVER_MB_DESKTOP}px`,
-                  },
-                }}
-              >
-                <Typography sx={{ ...textSx(TEXT_CONFIG.COVER_CAPTION, ctx), whiteSpace: "pre-line" }}>
-                  {exhibition.caption.replace(/\\n/g, "\n")}
-                </Typography>
-              </Box>
-            )
           )}
 
-          {/* 3. Body — paragraphs paired 1:1 with gallery images (interleaved) */}
-          {pairedBody.length > 0 && (
-            <Box sx={{ mt: `${LAYOUT_CONFIG.BODY_MT}px` }}>
-              {pairedBody.map((row, idx) => (
-                <Box
-                  key={idx}
-                  sx={{
-                    mb: `${LAYOUT_CONFIG.BODY_BLOCK_GAP}px`,
-                    "&:last-of-type": { mb: 0 },
-                  }}
-                >
-                  {/* Paragraph (skipped when this row is image-only) */}
-                  {row.text && (
-                    <Typography
-                      sx={{
-                        ...textSx(TEXT_CONFIG.INTRO, ctx),
-                        whiteSpace: "pre-line",
-                        mb: row.image ? `${LAYOUT_CONFIG.PARA_TO_IMAGE_GAP}px` : 0,
-                      }}
-                    >
-                      {row.text.replace(/\\n/g, "\n")}
-                    </Typography>
-                  )}
-
-                  {/* Paired image (skipped when this row is text-only) —
-                      full-width, so body images never read as small thumbnails. */}
-                  {row.image && (
-                    <Box sx={{ width: "100%", mt: row.text ? 1 : 0 }}>
-                      <Box
-                        sx={{
-                          width: "100%",
-                          cursor: "zoom-in",
-                          backgroundColor: "rgba(0,0,0,0.02)",
-                        }}
-                        onClick={() => handleImageClick(row.image.img_url)}
-                      >
-                        <img
-                          src={row.image.img_url}
-                          alt={
-                            row.image.caption_en ||
-                            row.image.caption_cn ||
-                            "Exhibition Image"
-                          }
-                          loading="lazy"
-                          decoding="async"
-                          style={{
-                            width: "100%",
-                            height: "auto",
-                            display: "block",
-                            objectFit: "cover",
-                          }}
-                        />
-                      </Box>
-                      {(row.image.caption_en || row.image.caption_cn) && (
-                        <Typography
-                          sx={{
-                            ...textSx(TEXT_CONFIG.IMAGE_CAPTION, ctx),
-                            mt: `${TEXT_CONFIG.IMAGE_CAPTION.marginTop}px`,
-                            px: 0.5,
-                          }}
-                        >
-                          {isCn ? row.image.caption_cn : row.image.caption_en}
-                        </Typography>
-                      )}
-                    </Box>
-                  )}
-                </Box>
-              ))}
-            </Box>
-          )}
-
-          {/* 3b. Trailing description (only when an introduction exists above) */}
-          {trailingParas.length > 0 && (
-            <Box
-              sx={{
-                mt: pairedBody.length
-                  ? `${LAYOUT_CONFIG.BODY_BLOCK_GAP}px`
-                  : `${LAYOUT_CONFIG.BODY_MT}px`,
-              }}
-            >
-              {trailingParas.map((para, idx) => (
-                <Typography
-                  key={idx}
-                  sx={{
-                    ...textSx(TEXT_CONFIG.DESCRIPTION, ctx),
-                    whiteSpace: "pre-line",
-                    mb: `${TEXT_CONFIG.DESCRIPTION.marginBottom}px`,
-                    "&:last-of-type": { mb: 0 },
-                  }}
-                >
-                  {para.replace(/\\n/g, "\n")}
-                </Typography>
-              ))}
-            </Box>
-          )}
-
-          {/* 4. Video Player */}
+          {/* 3. Video Player */}
           {exhibition.video_url && (
             <Box
               sx={{
                 mt: `${LAYOUT_CONFIG.VIDEO_MT}px`,
                 mb: `${LAYOUT_CONFIG.VIDEO_MB}px`,
                 position: "relative",
-                paddingTop: "56.25%", // 16:9
+                paddingTop: "56.25%",
                 width: "100%",
                 backgroundColor: "#000",
               }}
@@ -937,212 +1144,54 @@ export default function ExhibitionDetailPageComponent() {
             </Box>
           )}
 
-          {/* 5. Related Artwork & Gallery Artists */}
-          {(matchedArtworks.length > 0 || relatedArtists.length > 0) && (
+          {/* 4. Works — ALL matched artworks (bidirectional match, resolved
+              in useExhibitionDetailData), artist-page grid style */}
+          {matchedArtworks.length > 0 && (
             <Box
+              id="works"
               sx={{
                 mt: exhibition.video_url
                   ? 2
                   : {
-                      xs: `${LAYOUT_CONFIG.RELATED_MT_MOBILE}px`,
-                      md: `${LAYOUT_CONFIG.RELATED_MT_DESKTOP}px`,
+                      xs: `${LAYOUT_CONFIG.WORKS_MT_MOBILE}px`,
+                      md: `${LAYOUT_CONFIG.WORKS_MT_DESKTOP}px`,
                     },
-                display: "flex",
-                flexDirection: "column",
-                gap: `${LAYOUT_CONFIG.RELATED_SECTION_GAP}px`,
               }}
             >
-              {/* Works — image-only grid */}
-              {matchedArtworks.length > 0 &&
-                (() => {
-                  const G = MATCHED_ARTWORKS_CONFIG;
-                  const mode = isMobile ? G.GRID_MODE_MOBILE : G.GRID_MODE_DESKTOP;
-                  const columns = isMobile ? G.GRID_COLUMNS_MOBILE : G.GRID_COLUMNS_DESKTOP;
-                  const minColumnWidth = isMobile
-                    ? G.GRID_MIN_COLUMN_WIDTH_MOBILE
-                    : G.GRID_MIN_COLUMN_WIDTH_DESKTOP;
-                  const baseGap = isMobile ? G.GRID_GAP_MOBILE : G.GRID_GAP_DESKTOP;
-                  const rowGap =
-                    (isMobile ? G.GRID_ROW_GAP_MOBILE : G.GRID_ROW_GAP_DESKTOP) ?? baseGap;
-                  const columnGap =
-                    (isMobile ? G.GRID_COLUMN_GAP_MOBILE : G.GRID_COLUMN_GAP_DESKTOP) ?? baseGap;
-                  const gridTemplateColumns = buildGridTemplateColumns(
-                    mode,
-                    columns,
-                    minColumnWidth
-                  );
-
-                  return (
-                    <Box>
-                      <Typography sx={sectionHeadingSx}>
-                        {isCn ? "作品" : "Works"}
-                      </Typography>
-                      <Box
-                        sx={{
-                          display: "grid",
-                          gridTemplateColumns,
-                          columnGap: `${columnGap}px`,
-                          rowGap: `${rowGap}px`,
-                        }}
-                      >
-                        {matchedArtworks.map((aw, idx) => (
-                          <Link
-                            key={aw.id || aw._id || idx}
-                            href={`/artworks/${artworkSlug(aw.title)}?artist=${encodeURIComponent(
-                              (aw.artist || "").replace(/\s+/g, "-")
-                            )}`}
-                            style={{
-                              textDecoration: "none",
-                              color: "inherit",
-                              display: "block",
-                            }}
-                          >
-                            <motion.div
-                              initial={{ opacity: 0, y: 12 }}
-                              whileInView={{ opacity: 1, y: 0 }}
-                              viewport={{ once: true, margin: "-50px" }}
-                              transition={{
-                                delay: isMobile ? 0 : (idx % 10) * 0.05,
-                                duration: 0.4,
-                              }}
-                            >
-                              {aw.cover_img_url ? (
-                                <img
-                                  src={aw.cover_img_url}
-                                  alt={aw.title || ""}
-                                  loading="lazy"
-                                  decoding="async"
-                                  style={{
-                                    width: "100%",
-                                    height: "auto",
-                                    display: "block",
-                                    transition: G.IMAGE_HOVER_TRANSITION,
-                                  }}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.style.transform = `scale(${G.HOVER_SCALE})`;
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.style.transform = "scale(1)";
-                                  }}
-                                />
-                              ) : (
-                                <Box
-                                  sx={{
-                                    width: "100%",
-                                    aspectRatio: G.FALLBACK_ASPECT_RATIO,
-                                    backgroundColor: "rgba(0,0,0,0.03)",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                  }}
-                                >
-                                  <Typography
-                                    sx={{
-                                      fontFamily: ctx.fonts.detailSectionHeading,
-                                      fontSize: "10px",
-                                      opacity: 0.2,
-                                      textTransform: "uppercase",
-                                      letterSpacing: "0.1em",
-                                    }}
-                                  >
-                                    {isCn ? "无图" : "No Image"}
-                                  </Typography>
-                                </Box>
-                              )}
-                            </motion.div>
-                          </Link>
-                        ))}
-                      </Box>
-                    </Box>
-                  );
-                })()}
-
-              {/* Related Artists — underline hover animation */}
-              {relatedArtists.length > 0 && (
-                <Box>
-                  <Typography sx={sectionHeadingSx}>
-                    {isCn ? "相关艺术家" : "Related Artists"}
-                  </Typography>
-                  <Box sx={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                    {relatedArtists.map((artist, idx) => (
-                      <ArtistNameLink
-                        key={`artist-${idx}`}
-                        name={artist}
-                        slug={artistSlug(artist)}
-                        index={idx}
-                        isMobile={isMobile}
-                        fontFamily={ctx.fonts.detailLink}
-                        textColor={colors.text}
-                      />
-                    ))}
-                  </Box>
-                </Box>
-              )}
+              <Typography sx={sectionHeadingSx}>{isCn ? "作品" : "Works"}</Typography>
+              <WorksGrid
+                artworks={matchedArtworks}
+                textColor={colors.text}
+                captionFont={fonts.detailCaption}
+                metaFont={fonts.detailMetaLabel}
+                isCn={isCn}
+                isMobile={isMobile}
+              />
             </Box>
           )}
 
-          {/* 6. Metadata Info Section — gallery-style info table */}
-          {(() => {
-            const metadataRows = METADATA_ORDER.map((key) => ({
-              key,
-              value: exhibition[key],
-              label: METADATA_LABELS[key]
-                ? isCn
-                  ? METADATA_LABELS[key].cn
-                  : METADATA_LABELS[key].en
-                : key,
-            })).filter((row) => row.value);
-
-            if (metadataRows.length === 0) return null;
-
-            return (
-              <Box
-                sx={{
-                  mt: {
-                    xs: `${LAYOUT_CONFIG.METADATA_MT_MOBILE}px`,
-                    md: `${LAYOUT_CONFIG.METADATA_MT_DESKTOP}px`,
-                  },
-                  pt: {
-                    xs: `${LAYOUT_CONFIG.METADATA_PT_MOBILE}px`,
-                    md: `${LAYOUT_CONFIG.METADATA_PT_DESKTOP}px`,
-                  },
-                  borderTop: `1px solid ${colors.text}`,
-                }}
-              >
-                {metadataRows.map((row, idx) => (
-                  <Box
-                    key={row.key}
-                    sx={{
-                      display: "flex",
-                      flexDirection: { xs: "column", sm: "row" },
-                      gap: { xs: 0.5, sm: 4 },
-                      py: {
-                        xs: `${LAYOUT_CONFIG.METADATA_ROW_PY_MOBILE}px`,
-                        sm: `${LAYOUT_CONFIG.METADATA_ROW_PY_DESKTOP}px`,
-                      },
-                      borderBottom:
-                        idx === metadataRows.length - 1
-                          ? "none"
-                          : `1px solid ${colors.text}1a`,
-                    }}
-                  >
-                    <Typography
-                      sx={{
-                        ...textSx(TEXT_CONFIG.METADATA_LABEL, ctx),
-                        minWidth: { sm: `${LAYOUT_CONFIG.METADATA_LABEL_MINWIDTH}px` },
-                        flexShrink: 0,
-                      }}
-                    >
-                      {row.label}
-                    </Typography>
-                    <Typography sx={textSx(TEXT_CONFIG.METADATA_VALUE, ctx)}>
-                      {row.value}
-                    </Typography>
-                  </Box>
+          {/* 5. Related Artists — underline hover animation */}
+          {relatedArtists.length > 0 && (
+            <Box sx={{ mt: `${LAYOUT_CONFIG.RELATED_ARTISTS_MT}px` }}>
+              <Typography sx={sectionHeadingSx}>
+                {isCn ? "相关艺术家" : "Related Artists"}
+              </Typography>
+              <Box sx={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                {relatedArtists.map((artist, idx) => (
+                  <ArtistNameLink
+                    key={`artist-${idx}`}
+                    name={artist}
+                    slug={artistSlug(artist)}
+                    index={idx}
+                    isMobile={isMobile}
+                    fontFamily={ctx.fonts.detailLink}
+                    textColor={colors.text}
+                  />
                 ))}
               </Box>
-            );
-          })()}
+            </Box>
+          )}
+
         </motion.div>
       </Container>
 
