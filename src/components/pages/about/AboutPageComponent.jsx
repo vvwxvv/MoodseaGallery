@@ -11,23 +11,17 @@ import { renderArrayContent } from "@/utils/textFormatting";
 import useFont from "@/hooks/useFont";
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  ✦ 可配置区域 – 调整图片、文本布局及响应式尺寸
+//  ✦ 可配置区域
 // ─────────────────────────────────────────────────────────────────────────────
 const CONFIG = Object.freeze({
-  // 页面整体
   pageMaxWidth: 1200,
   pagePaddingX: { xs: "24px", md: "48px" },
   pagePaddingY: { xs: "48px", md: "72px" },
-  contentAlign: "center", // 'left' | 'center' | 'right'
+  contentAlign: "center",
 
-  // 文本列
   text: {
     flex: 1.4,
-    // ★★★ 在这里设置文本框宽度 ★★★
-    maxWidth: {
-      xs: "100%",   // 移动端全宽
-      md: 600,      // 桌面端固定为 500px（您需要的值）
-    },
+    maxWidth: { xs: "100%", md: 600 },
     headingSize: "24px",
     headingWeight: 400,
     headingMargin: "0 0 32px 0",
@@ -38,11 +32,10 @@ const CONFIG = Object.freeze({
     paragraphGap: "1.2em",
   },
 
-  // 图片列（桌面端显示）
   image: {
-    maxWidth: { xs: "100%", md: 720 }, // 响应式最大宽度
-    desktopHeight: { xs: "auto", md: 500 }, // 响应式高度（桌面固定，移动端自动）
-    objectFit: "contain", // 'contain' 保证完整显示，'cover' 则会裁剪
+    maxWidth: { xs: "100%", md: 720 },
+    desktopHeight: { xs: "auto", md: 500 },
+    objectFit: "contain",
     borderRadius: 0,
     showOnMobile: true,
     mobileGap: "60px",
@@ -51,12 +44,14 @@ const CONFIG = Object.freeze({
     mobileMaxAspect: 1.6,
   },
 
-  // 列间距
   columnGap: { xs: 0, md: "50px" },
+
+  // ★ Logo 就放这里，简单直接 ★
+  logoSrc: "/moodsea_gallery_whole_logo.png",
+  logoWidth: "100px",
+  logoTopMargin: "140px",
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  辅助函数
 // ─────────────────────────────────────────────────────────────────────────────
 const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
 
@@ -70,9 +65,6 @@ const getContentMargin = (align) => {
 };
 const CONTENT_MX = getContentMargin(CONFIG.contentAlign);
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  动画
-// ─────────────────────────────────────────────────────────────────────────────
 const EASE = [0.16, 1, 0.3, 1];
 const containerVariants = {
   hidden: {},
@@ -83,8 +75,6 @@ const itemVariants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: EASE } },
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  图片组件
 // ─────────────────────────────────────────────────────────────────────────────
 const AboutImage = React.memo(function AboutImage({ src, alt, fill = false }) {
   const [failed, setFailed] = useState(false);
@@ -103,14 +93,7 @@ const AboutImage = React.memo(function AboutImage({ src, alt, fill = false }) {
 
   if (fill) {
     return (
-      <div
-        style={{
-          width: "100%",
-          height: "100%",
-          borderRadius: `${CONFIG.image.borderRadius}px`,
-          overflow: "hidden",
-        }}
-      >
+      <div style={{ width: "100%", height: "100%", overflow: "hidden" }}>
         {src && !failed && (
           <img
             key={src}
@@ -120,12 +103,7 @@ const AboutImage = React.memo(function AboutImage({ src, alt, fill = false }) {
             decoding="async"
             draggable={false}
             onError={handleError}
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: CONFIG.image.objectFit,
-              display: "block",
-            }}
+            style={{ width: "100%", height: "100%", objectFit: CONFIG.image.objectFit, display: "block" }}
           />
         )}
       </div>
@@ -138,7 +116,6 @@ const AboutImage = React.memo(function AboutImage({ src, alt, fill = false }) {
         width: "100%",
         maxWidth: CONFIG.image.maxWidth.md,
         aspectRatio: src ? aspectRatio : CONFIG.image.mobileFallbackAspect,
-        borderRadius: `${CONFIG.image.borderRadius}px`,
         overflow: "hidden",
       }}
     >
@@ -152,12 +129,7 @@ const AboutImage = React.memo(function AboutImage({ src, alt, fill = false }) {
           draggable={false}
           onLoad={handleLoad}
           onError={handleError}
-          style={{
-            width: "100%",
-            height: "100%",
-            objectFit: CONFIG.image.objectFit,
-            display: "block",
-          }}
+          style={{ width: "100%", height: "100%", objectFit: CONFIG.image.objectFit, display: "block" }}
         />
       )}
     </div>
@@ -165,39 +137,17 @@ const AboutImage = React.memo(function AboutImage({ src, alt, fill = false }) {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  骨架屏
-// ─────────────────────────────────────────────────────────────────────────────
 const AboutSkeleton = () => (
   <PageSkeleton bgColor="#fff">
-    <Box
-      sx={{
-        maxWidth: CONFIG.pageMaxWidth,
-        ...CONTENT_MX,
-        px: CONFIG.pagePaddingX,
-        py: CONFIG.pagePaddingY,
-      }}
-    >
-      <Box
-        sx={{
-          display: { xs: "block", md: "flex" },
-          alignItems: "flex-start",
-          gap: CONFIG.columnGap,
-        }}
-      >
-        <Box
-          sx={{
-            flex: CONFIG.text.flex,
-            minWidth: 0,
-            maxWidth: CONFIG.text.maxWidth,
-          }}
-        >
+    <Box sx={{ maxWidth: CONFIG.pageMaxWidth, ...CONTENT_MX, px: CONFIG.pagePaddingX, py: CONFIG.pagePaddingY }}>
+      <Box sx={{ display: { xs: "block", md: "flex" }, alignItems: "flex-start", gap: CONFIG.columnGap }}>
+        <Box sx={{ flex: CONFIG.text.flex, minWidth: 0, maxWidth: CONFIG.text.maxWidth }}>
           <SkeletonLine width="100px" height={24} style={{ marginBottom: "32px" }} />
           <SkeletonLine width="100%" height={14} style={{ marginBottom: "18px" }} />
           <SkeletonLine width="92%" height={14} style={{ marginBottom: "18px" }} />
           <SkeletonLine width="85%" height={14} style={{ marginBottom: "18px" }} />
           <SkeletonLine width="65%" height={14} />
         </Box>
-
         <Box
           sx={{
             flex: "0 0 auto",
@@ -207,19 +157,13 @@ const AboutSkeleton = () => (
             display: { xs: "none", md: "block" },
           }}
         >
-          <SkeletonBlock
-            width="100%"
-            height="100%"
-            style={{ borderRadius: CONFIG.image.borderRadius }}
-          />
+          <SkeletonBlock width="100%" height="100%" />
         </Box>
       </Box>
     </Box>
   </PageSkeleton>
 );
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  状态守卫
 // ─────────────────────────────────────────────────────────────────────────────
 const AboutStatusGuard = ({ isLoading, error, hasData, isCn, onRetry }) => {
   if (isLoading) return <AboutSkeleton />;
@@ -299,30 +243,11 @@ const AboutPageComponent = () => {
 
   return (
     <Box sx={{ backgroundColor: colors.background, color: colors.text, minHeight: "100vh" }}>
-      <Box
-        sx={{
-          maxWidth: CONFIG.pageMaxWidth,
-          ...CONTENT_MX,
-          px: CONFIG.pagePaddingX,
-          py: CONFIG.pagePaddingY,
-        }}
-      >
+      <Box sx={{ maxWidth: CONFIG.pageMaxWidth, ...CONTENT_MX, px: CONFIG.pagePaddingX, py: CONFIG.pagePaddingY }}>
         <motion.div variants={containerVariants} initial="hidden" animate="visible">
-          <Box
-            sx={{
-              display: { xs: "block", md: "flex" },
-              alignItems: "flex-start",
-              gap: CONFIG.columnGap,
-            }}
-          >
+          <Box sx={{ display: { xs: "block", md: "flex" }, alignItems: "flex-start", gap: CONFIG.columnGap }}>
             {/* ── 左侧文本列 ── */}
-            <Box
-              sx={{
-                flex: CONFIG.text.flex,
-                minWidth: 0,
-                maxWidth: CONFIG.text.maxWidth, // ← 这里应用了 maxWidth 配置
-              }}
-            >
+            <Box sx={{ flex: CONFIG.text.flex, minWidth: 0, maxWidth: CONFIG.text.maxWidth }}>
               <motion.div variants={itemVariants}>
                 <h2 style={headingStyle}>{isCn ? "关于" : "About"}</h2>
                 {hasCaption && <p style={bodyStyle}>{caption.replace(/\\n/g, "\n")}</p>}
@@ -334,15 +259,18 @@ const AboutPageComponent = () => {
                   ))}
               </motion.div>
 
+              {/* ★★★ 简单直接的 Logo，就是一张普通图片 ★★★ */}
+              <motion.div variants={itemVariants} >
+                <img
+                  src={CONFIG.logoSrc}
+                  alt="MOODSEA Gallery"
+                  style={{ width: CONFIG.logoWidth, display: "block", marginTop: CONFIG.logoTopMargin }}
+                />
+              </motion.div>
+
               {/* 移动端图片 */}
               {portrait_image_url && CONFIG.image.showOnMobile && (
-                <Box
-                  sx={{
-                    display: { xs: "flex", md: "none" },
-                    justifyContent: "center",
-                    mt: CONFIG.image.mobileGap,
-                  }}
-                >
+                <Box sx={{ display: { xs: "flex", md: "none" }, justifyContent: "center", mt: CONFIG.image.mobileGap }}>
                   <motion.div variants={itemVariants} style={{ width: "100%", display: "flex", justifyContent: "center" }}>
                     <AboutImage src={portrait_image_url} alt={imgAlt} fill={false} />
                   </motion.div>
