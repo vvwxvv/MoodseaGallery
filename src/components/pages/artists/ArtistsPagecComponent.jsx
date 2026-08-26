@@ -402,7 +402,9 @@ function ArtistsListSkeleton({ isMobile, bgColor }) {
 export default function ArtistsPageComponent() {
   const { isCn } = useContext(LanguageContext);
   const { isMobile } = useContext(DeviceContext);
-  const { fontFamily } = useFont();
+  const { fontFamily } = useFont();                          // body default (wrapper, empty state)
+  const { fontFamily: headingFont } = useFont("sectionTitle"); // "艺术家/Artists" → Big Caslon Medium
+  const { fontFamily: listFont } = useFont("artistListItem");  // name list → Palatino Regular
   const { colors } = useReverseTheme();
 
   const text = colors.text;
@@ -492,7 +494,7 @@ export default function ArtistsPageComponent() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
         style={{
-          fontFamily,
+          fontFamily: headingFont,
           fontSize: isMobile
             ? CONFIG.HEADING.FONT_SIZE_MOBILE
             : CONFIG.HEADING.FONT_SIZE_DESKTOP,
@@ -539,7 +541,7 @@ export default function ArtistsPageComponent() {
             activeName={activeName}
             isMobile={isMobile}
             listColors={listColors}
-            fontFamily={fontFamily}
+            fontFamily={listFont}
             onActivate={handleActivate}
           />
 
