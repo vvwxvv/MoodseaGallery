@@ -132,14 +132,19 @@ const CONFIG = {
   },
 
   CAPTION: {
-    FONT_SIZE_DESKTOP: "15px",
+    // Reference: grey, Avenir Next Ultra Light, four stacked lines —
+    // artist / title (italic) / year / medium, size.
+    FONT_SIZE_DESKTOP: "15px",   // measured ~15px off the 2x comp; bump here if you want it larger
     FONT_SIZE_MOBILE: "13px",
-    FONT_WEIGHT: 400,
-    LETTER_SPACING: "0.02em",
-    LINE_HEIGHT: 1.7,
+    FONT_WEIGHT: 300,            // airy — the font FILE is already Ultra Light
+    LETTER_SPACING: "0.01em",
+    LINE_HEIGHT: 1.5,
+    // Grey. `null` derives the grey from the theme text colour via OPACITY,
+    // so it stays correct in both light and dark. Set a fixed hex here
+    // (e.g. "#8a8a8a") only if you want the same grey regardless of theme.
     COLOR: null,
-    OPACITY: 0.55,
-    LINE_GAP: 2,
+    OPACITY: 0.5,               // ≈ neutral 50% grey on white, matching the comp
+    LINE_GAP: 4,               // vertical gap between the stacked lines
     TITLE_ITALIC: true,
   },
 
@@ -464,7 +469,9 @@ const ArtworkCaption = memo(function ArtworkCaption({
     paddingTop: `${C.LINE_GAP}px`,
   };
 
-  const dimensions = [artwork?.medium, artwork?.dimensions]
+  // medium, size — per the Artwork model the field is `size`, not
+  // `dimensions`. Rendered as one line: "Oil on canvas, 200 × 120cm / …".
+  const mediumSize = [artwork?.medium, artwork?.size]
     .filter(Boolean)
     .join(", ");
 
@@ -487,8 +494,8 @@ const ArtworkCaption = memo(function ArtworkCaption({
       {artwork?.year && (
         <p style={{ ...lineStyle, fontFamily: metaFont }}>{artwork.year}</p>
       )}
-      {dimensions && (
-        <p style={{ ...lineStyle, fontFamily: metaFont }}>{dimensions}</p>
+      {mediumSize && (
+        <p style={{ ...lineStyle, fontFamily: metaFont }}>{mediumSize}</p>
       )}
     </div>
   );
@@ -643,7 +650,7 @@ const RelatedArtworkCard = memo(function RelatedArtworkCard({
               marginTop: "2px",
             }}
           >
-            {[artwork.medium, artwork.dimensions].filter(Boolean).join(" · ")}
+            {[artwork.medium, artwork.size].filter(Boolean).join(" · ")}
           </span>
         </div>
       </Link>
