@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useContext, useState, useCallback, memo } from "react";
+import React, { useContext, useState, useEffect, useCallback, memo } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { LanguageContext } from "@/components/contexts/LanguageContext";
@@ -131,47 +131,42 @@ const CONFIG = {
     STICKY_TOP: 90,
   },
 
+  // ==========================================================================
+  // 🎞️ FEATURED SLIDESHOW — the right-column artwork viewer.
+  // The featured image is now a slideshow across ALL matched artworks that
+  // have an image. Tap / click the image (or the › arrow) advances to the
+  // next one; ‹ goes back; wraps around when LOOP is true. All tunable here.
+  // ==========================================================================
+  SLIDESHOW: {
+    TAP_IMAGE_TO_ADVANCE: true, // clicking / touching the image → next
+    LOOP: true,                 // wrap from last back to first
+    FADE_DURATION: 0.35,        // image cross-fade (s)
+    NAV_MARGIN_TOP: 12,         // gap between image and the ‹ n/N › row (px)
+    NAV_MARGIN_BOTTOM: 4,       // gap between nav row and caption (px)
+    ARROW_SIZE_DESKTOP: 26,     // chevron glyph size (px)
+    ARROW_SIZE_MOBILE: 30,      // bigger tap target on touch
+    ARROW_IDLE_OPACITY: 0.55,
+    ARROW_HOVER_OPACITY: 1,
+    COUNTER_FONT_SIZE: "12px",
+    COUNTER_OPACITY: 0.55,
+    COUNTER_LETTER_SPACING: "0.08em",
+    SHOW_COUNTER: true,         // show "2 / 8"
+  },
+
   CAPTION: {
-    // Reference: grey, Avenir Next Ultra Light, four stacked lines —
-    // artist / title (italic) / year / medium, size.
-    FONT_SIZE_DESKTOP: "15px",   // measured ~15px off the 2x comp; bump here if you want it larger
+    FONT_SIZE_DESKTOP: "15px",
     FONT_SIZE_MOBILE: "13px",
-    FONT_WEIGHT: 300,            // airy — the font FILE is already Ultra Light
+    FONT_WEIGHT: 300,
     LETTER_SPACING: "0.01em",
     LINE_HEIGHT: 1.5,
-    // Grey. `null` derives the grey from the theme text colour via OPACITY,
-    // so it stays correct in both light and dark. Set a fixed hex here
-    // (e.g. "#8a8a8a") only if you want the same grey regardless of theme.
     COLOR: null,
-    OPACITY: 0.5,               // ≈ neutral 50% grey on white, matching the comp
-    LINE_GAP: 4,               // vertical gap between the stacked lines
+    OPACITY: 0.5,
+    LINE_GAP: 4,
     TITLE_ITALIC: true,
   },
 
   // ==========================================================================
   // 🔧 RELATED ARTWORKS GRID — fully configurable, production-level.
-  //
-  // Two independent modes, set separately for DESKTOP and MOBILE:
-  //
-  //   "fixed"  → You set an exact number of columns (GRID_COLUMNS_*).
-  //              Every box is the SAME width on every row — a real CSS
-  //              grid with fixed column tracks. If the LAST row has
-  //              fewer artworks than the column count (e.g. 3 artworks
-  //              left over in a 4-column grid), those boxes stay the
-  //              exact same width as every other row; the leftover
-  //              cell(s) are simply left empty rather than being
-  //              stretched to fill the row (stretching would make the
-  //              last row's boxes a different size than the rest of the
-  //              grid, which looks inconsistent).
-  //
-  //   "auto"   → No fixed count. The browser fits as many columns as it
-  //              can, each at least GRID_MIN_COLUMN_WIDTH_* wide, and
-  //              reflows automatically as the viewport resizes (classic
-  //              responsive grid, no JS breakpoints needed).
-  //
-  // GRID_GAP is the default spacing (px) between every artwork box, both
-  // horizontally and vertically. Override GRID_ROW_GAP / GRID_COLUMN_GAP
-  // individually if you want different horizontal vs. vertical spacing.
   // ==========================================================================
   RELATED: {
     HEADING_FONT_SIZE: "14px",
@@ -182,22 +177,18 @@ const CONFIG = {
     SECTION_TOP_GAP_DESKTOP: 110,
     SECTION_TOP_GAP_MOBILE: 64,
 
-    // ---- Desktop grid ----
-    GRID_MODE_DESKTOP: "fixed", // "fixed" | "auto"
-    GRID_COLUMNS_DESKTOP: 4, // used when GRID_MODE_DESKTOP === "fixed"
-    GRID_MIN_COLUMN_WIDTH_DESKTOP: 250, // used when GRID_MODE_DESKTOP === "auto"
+    GRID_MODE_DESKTOP: "fixed",
+    GRID_COLUMNS_DESKTOP: 4,
+    GRID_MIN_COLUMN_WIDTH_DESKTOP: 250,
 
-    // ---- Mobile grid ----
-    GRID_MODE_MOBILE: "fixed", // "fixed" | "auto"
-    GRID_COLUMNS_MOBILE: 2, // used when GRID_MODE_MOBILE === "fixed"
-    GRID_MIN_COLUMN_WIDTH_MOBILE: 150, // used when GRID_MODE_MOBILE === "auto"
+    GRID_MODE_MOBILE: "fixed",
+    GRID_COLUMNS_MOBILE: 2,
+    GRID_MIN_COLUMN_WIDTH_MOBILE: 150,
 
-    // ---- Spacing (px) ----
-    GRID_GAP: 14, // default gap used for both rows and columns
-    GRID_ROW_GAP: null, // set a number to override GRID_GAP vertically
-    GRID_COLUMN_GAP: null, // set a number to override GRID_GAP horizontally
+    GRID_GAP: 14,
+    GRID_ROW_GAP: null,
+    GRID_COLUMN_GAP: null,
 
-    // ---- Card content styling ----
     IMAGE_TO_TEXT_GAP: "12px",
     CARD_FONT_SIZE_DESKTOP: "12px",
     CARD_FONT_SIZE_MOBILE: "11px",
@@ -247,11 +238,6 @@ const artistHref = (title, artistName) =>
 
 /**
  * 🔧 De-duplicate artworks by a full content signature.
- *
- * Two artwork records are only considered the SAME artwork (and merged)
- * when title, year, size, AND cover_img_url are ALL identical. If any one
- * of those four fields differs — e.g. the same title but a different
- * `size` — they are treated as distinct artworks and BOTH are kept.
  */
 function dedupeArtworks(list = []) {
   const seen = new Set();
@@ -445,6 +431,8 @@ const CollectionSection = memo(function CollectionSection({
 
 // ============================================================================
 // Caption block under the featured artwork (reference style)
+// titleHref (optional) links the title line to the artwork page, since the
+// image itself is now a tap-to-advance slideshow surface rather than a link.
 // ============================================================================
 const ArtworkCaption = memo(function ArtworkCaption({
   artwork,
@@ -454,6 +442,7 @@ const ArtworkCaption = memo(function ArtworkCaption({
   captionFont,
   metaFont,
   isCn,
+  titleHref,
 }) {
   const C = CONFIG.CAPTION;
   const color = C.COLOR ?? textColor;
@@ -469,8 +458,6 @@ const ArtworkCaption = memo(function ArtworkCaption({
     paddingTop: `${C.LINE_GAP}px`,
   };
 
-  // medium, size — per the Artwork model the field is `size`, not
-  // `dimensions`. Rendered as one line: "Oil on canvas, 200 × 120cm / …".
   const mediumSize = [artwork?.medium, artwork?.size]
     .filter(Boolean)
     .join(", ");
@@ -488,7 +475,13 @@ const ArtworkCaption = memo(function ArtworkCaption({
             fontStyle: C.TITLE_ITALIC ? "italic" : "normal",
           }}
         >
-          {artwork.title}
+          {titleHref ? (
+            <Link href={titleHref} style={{ color: "inherit", textDecoration: "none" }}>
+              {artwork.title}
+            </Link>
+          ) : (
+            artwork.title
+          )}
         </p>
       )}
       {artwork?.year && (
@@ -502,10 +495,218 @@ const ArtworkCaption = memo(function ArtworkCaption({
 });
 
 // ============================================================================
+// Featured Artwork Slideshow — browsable viewer over ALL matched artworks
+// that have an image. Tap image / › to advance, ‹ to go back, wraps around.
+// Keyboard ← / → on desktop. Preloads the next image for smooth swapping.
+// ============================================================================
+const FeaturedArtworkSlideshow = memo(function FeaturedArtworkSlideshow({
+  artworks, // list already filtered to those with cover_img_url
+  artistName,
+  isMobile,
+  textColor,
+  captionFont,
+  metaFont,
+  isCn,
+}) {
+  const S = CONFIG.SLIDESHOW;
+  const [index, setIndex] = useState(0);
+  const count = artworks.length;
+
+  // keep index valid if the list length changes
+  useEffect(() => {
+    if (index > count - 1) setIndex(0);
+  }, [count, index]);
+
+  const go = useCallback(
+    (dir) => {
+      setIndex((i) => {
+        if (count === 0) return 0;
+        const raw = i + dir;
+        if (S.LOOP) return (raw + count) % count;
+        return Math.max(0, Math.min(count - 1, raw));
+      });
+    },
+    [count, S.LOOP]
+  );
+  const next = useCallback(() => go(1), [go]);
+  const prev = useCallback(() => go(-1), [go]);
+
+  // preload next image
+  useEffect(() => {
+    if (count < 2) return;
+    const nextIdx = S.LOOP ? (index + 1) % count : Math.min(count - 1, index + 1);
+    const url = artworks[nextIdx]?.cover_img_url;
+    if (url && typeof window !== "undefined") {
+      const img = new window.Image();
+      img.src = url;
+    }
+  }, [index, count, artworks, S.LOOP]);
+
+  // keyboard nav (desktop only)
+  useEffect(() => {
+    if (isMobile) return;
+    const onKey = (e) => {
+      if (e.key === "ArrowRight") next();
+      else if (e.key === "ArrowLeft") prev();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isMobile, next, prev]);
+
+  const current = artworks[index] || null;
+
+  if (!current) {
+    return (
+      <div
+        style={{
+          width: "100%",
+          aspectRatio: "4/3",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: "rgba(0,0,0,0.03)",
+        }}
+      >
+        <span
+          style={{
+            fontFamily: metaFont,
+            fontSize: "11px",
+            color: textColor,
+            opacity: 0.3,
+            textTransform: "uppercase",
+            letterSpacing: "0.1em",
+          }}
+        >
+          {isCn ? "暂无展示图片" : "No images available"}
+        </span>
+      </div>
+    );
+  }
+
+  const arrowSize = isMobile ? S.ARROW_SIZE_MOBILE : S.ARROW_SIZE_DESKTOP;
+  const multi = count > 1;
+  const canPrev = S.LOOP || index > 0;
+  const canNext = S.LOOP || index < count - 1;
+
+  const ArrowBtn = ({ dir, onClick, disabled, label }) => {
+    const [hover, setHover] = useState(false);
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={disabled}
+        aria-label={label}
+        onMouseEnter={() => setHover(true)}
+        onMouseLeave={() => setHover(false)}
+        style={{
+          background: "none",
+          border: "none",
+          padding: isMobile ? "6px 10px" : "2px 6px",
+          margin: 0,
+          cursor: disabled ? "default" : "pointer",
+          color: textColor,
+          fontSize: `${arrowSize}px`,
+          lineHeight: 1,
+          fontFamily: metaFont,
+          opacity: disabled ? 0.2 : hover ? S.ARROW_HOVER_OPACITY : S.ARROW_IDLE_OPACITY,
+          transition: "opacity 0.15s ease",
+          userSelect: "none",
+          touchAction: "manipulation",
+        }}
+      >
+        {dir === "next" ? "\u203A" : "\u2039"}
+      </button>
+    );
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+      style={{ display: "inline-block", maxWidth: "100%", verticalAlign: "top" }}
+    >
+      {/* image — tap / click advances to next */}
+      <div
+        onClick={multi && S.TAP_IMAGE_TO_ADVANCE ? next : undefined}
+        role={multi && S.TAP_IMAGE_TO_ADVANCE ? "button" : undefined}
+        aria-label={multi && S.TAP_IMAGE_TO_ADVANCE ? (isCn ? "下一张作品" : "Next artwork") : undefined}
+        style={{
+          display: "block",
+          cursor: multi && S.TAP_IMAGE_TO_ADVANCE ? "pointer" : "default",
+          touchAction: "manipulation",
+        }}
+      >
+        <motion.img
+          key={current.cover_img_url || index}
+          src={current.cover_img_url}
+          alt={current.title || artistName}
+          decoding="async"
+          draggable={false}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: S.FADE_DURATION, ease: "easeOut" }}
+          style={{
+            display: "block",
+            width: "auto",
+            height: "auto",
+            maxWidth: "100%",
+            maxHeight: CONFIG.ARTWORK.IMAGE_MAX_HEIGHT,
+            objectFit: "contain",
+            objectPosition: "left top",
+          }}
+        />
+      </div>
+
+      {/* nav row: ‹  n / N  › — only when there's more than one image */}
+      {multi && (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginTop: `${S.NAV_MARGIN_TOP}px`,
+            marginBottom: `${S.NAV_MARGIN_BOTTOM}px`,
+            width: "100%",
+          }}
+        >
+          <ArrowBtn dir="prev" onClick={prev} disabled={!canPrev} label={isCn ? "上一张" : "Previous"} />
+          {S.SHOW_COUNTER && (
+            <span
+              style={{
+                fontFamily: metaFont,
+                fontSize: S.COUNTER_FONT_SIZE,
+                opacity: S.COUNTER_OPACITY,
+                letterSpacing: S.COUNTER_LETTER_SPACING,
+                color: textColor,
+                fontVariantNumeric: "tabular-nums",
+                userSelect: "none",
+              }}
+            >
+              {index + 1} / {count}
+            </span>
+          )}
+          <ArrowBtn dir="next" onClick={next} disabled={!canNext} label={isCn ? "下一张" : "Next"} />
+        </div>
+      )}
+
+      {/* caption for the current artwork (title links to its page) */}
+      <ArtworkCaption
+        artwork={current}
+        artistName={artistName}
+        isMobile={isMobile}
+        textColor={textColor}
+        captionFont={captionFont}
+        metaFont={metaFont}
+        isCn={isCn}
+        titleHref={artistHref(current.title, artistName)}
+      />
+    </motion.div>
+  );
+});
+
+// ============================================================================
 // Related artwork card
-// (Spacing between cards is now controlled entirely by the parent grid/row
-// container — see the Related Artworks render section below — so this card
-// no longer sets its own margin or masonry break rules.)
 // ============================================================================
 const RelatedArtworkCard = memo(function RelatedArtworkCard({
   artwork,
@@ -659,8 +860,7 @@ const RelatedArtworkCard = memo(function RelatedArtworkCard({
 });
 
 // ============================================================================
-// Related Artworks grid — renders either the "fixed" (row-chunked, last row
-// stretches) or "auto" (CSS grid auto-fill) layout based on CONFIG.RELATED.
+// Related Artworks grid
 // ============================================================================
 function RelatedArtworksGrid({
   artworks,
@@ -682,14 +882,6 @@ function RelatedArtworksGrid({
   const rowGap = R.GRID_ROW_GAP ?? R.GRID_GAP;
   const columnGap = R.GRID_COLUMN_GAP ?? R.GRID_GAP;
 
-  // Both modes render as a real CSS grid, which is what keeps every box
-  // the same width on every row automatically — grid column TRACKS are
-  // fixed once for the whole grid, so a short last row never stretches
-  // its items to a different size than the rows above it. The only
-  // difference between the two modes is how the column tracks are
-  // defined:
-  //   "fixed" → an exact number of equal tracks (repeat(N, 1fr))
-  //   "auto"  → as many tracks as fit, each at least minColumnWidth wide
   const gridTemplateColumns =
     mode === "auto"
       ? `repeat(auto-fill, minmax(${minColumnWidth}px, 1fr))`
@@ -889,7 +1081,6 @@ export default function ArtistDetailPageComponent({ artistSlug }) {
   const { profile, artworks, exhibitions, fairs, events, isLoading, hasError, refetch, notFound } =
     useArtistDetailData(artistName, isCn);
 
-  // 🛡️ 使用 useAsyncAction 包装 refetch，防止快速重复点击"重试"按钮
   const { execute: safeRefetch, isExecuting: isRefetching } = useAsyncAction(
     async () => {
       await refetch();
@@ -942,16 +1133,13 @@ export default function ArtistDetailPageComponent({ artistSlug }) {
     );
   }
 
-  // 🔧 De-duplicate ALL artworks once, up front, using the full
-  // title + year + size + cover_img_url signature.
+  // De-duplicate ALL artworks once, up front.
   const dedupedArtworks = dedupeArtworks(artworks);
 
+  // Featured slideshow shows every de-duplicated artwork that has an image.
   const withImages = dedupedArtworks.filter((aw) => aw.cover_img_url);
 
-  // Featured artwork = first artwork with an image (shown big, right column).
-  const featured = withImages[0] || null;
-
-  // Related grid uses the SAME de-duplicated list (no repeats possible now).
+  // Related grid uses the full de-duplicated list.
   const related = dedupedArtworks;
 
   const contentOffsetLeft = isMobile
@@ -982,7 +1170,7 @@ export default function ArtistDetailPageComponent({ artistSlug }) {
           }px`,
         }}
       >
-        {/* ══ TOP: Bio (left) + Featured artwork with caption (right) ══ */}
+        {/* ══ TOP: Bio (left) + Featured artwork slideshow with caption (right) ══ */}
         <div
           style={{
             display: "flex",
@@ -1056,7 +1244,7 @@ export default function ArtistDetailPageComponent({ artistSlug }) {
             </div>
           </div>
 
-          {/* ── Right column: featured artwork + gray caption below ── */}
+          {/* ── Right column: featured artwork slideshow + gray caption ── */}
           <div style={{ flex: 1, minWidth: 0 }}>
             <div
               style={{
@@ -1064,55 +1252,16 @@ export default function ArtistDetailPageComponent({ artistSlug }) {
                 top: `${CONFIG.ARTWORK.STICKY_TOP}px`,
               }}
             >
-              {featured ? (
-                // 🔧 `display: inline-block` shrink-wraps this wrapper to
-                // the image's REAL rendered width (the <img> below uses
-                // width/height: "auto" with maxWidth/maxHeight caps), so
-                // the caption block underneath always inherits that exact
-                // width and its left edge lines up with the image's left
-                // edge, for any image size.
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.6, ease: "easeOut" }}
-                  style={{
-                    display: "inline-block",
-                    maxWidth: "100%",
-                    verticalAlign: "top",
-                  }}
-                >
-                  <Link
-                    href={artistHref(featured.title, profile.name)}
-                    style={{ display: "block", textDecoration: "none" }}
-                    aria-label={featured.title || profile.name}
-                  >
-                    <img
-                      src={featured.cover_img_url}
-                      alt={featured.title || profile.name}
-                      decoding="async"
-                      draggable={false}
-                      style={{
-                        display: "block",
-                        width: "auto",
-                        height: "auto",
-                        maxWidth: "100%",
-                        maxHeight: CONFIG.ARTWORK.IMAGE_MAX_HEIGHT,
-                        objectFit: "contain",
-                        objectPosition: "left top",
-                      }}
-                    />
-                  </Link>
-
-                  <ArtworkCaption
-                    artwork={featured}
-                    artistName={profile.name}
-                    isMobile={isMobile}
-                    textColor={textColor}
-                    captionFont={captionFont}
-                    metaFont={metaFont}
-                    isCn={isCn}
-                  />
-                </motion.div>
+              {withImages.length > 0 ? (
+                <FeaturedArtworkSlideshow
+                  artworks={withImages}
+                  artistName={profile.name || profile.artist}
+                  isMobile={isMobile}
+                  textColor={textColor}
+                  captionFont={captionFont}
+                  metaFont={metaFont}
+                  isCn={isCn}
+                />
               ) : (
                 <div
                   style={{
@@ -1169,7 +1318,7 @@ export default function ArtistDetailPageComponent({ artistSlug }) {
 
             <RelatedArtworksGrid
               artworks={related}
-              artistName={profile.name}
+              artistName={profile.name || profile.artist}
               textColor={textColor}
               captionFont={captionFont}
               metaFont={metaFont}
