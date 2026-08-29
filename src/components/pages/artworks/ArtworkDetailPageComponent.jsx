@@ -1,110 +1,24 @@
 "use client";
 
-import React, { useContext, useMemo } from "react";
+import React, { useContext } from "react";
 import { Box, Container, Typography, Grid, Chip } from "@mui/material";
 import { LanguageContext } from "@/components/contexts/LanguageContext";
 import { DeviceContext } from "@/components/contexts/DeviceContext";
-import { useReverseTheme } from "@/hooks/useReverseTheme";
-import LoadingAnimation from "@/components/animations/LoadingAnimation";
 import AlertInfo from "@/components/alerts/AlertInfo";
 import useFont from "@/hooks/useFont";
 
 // ============================================================
-// 骨架屏组件 —— 匹配详情页布局，让加载过程更平滑
+// 加载状态 —— 纯白屏，无骨架、无动画、无特效
 // ============================================================
-const artworkShimmerStyle = {
-  background:
-    "linear-gradient(90deg, rgba(0,0,0,0.06) 25%, rgba(0,0,0,0.15) 37%, rgba(0,0,0,0.06) 63%)",
-  backgroundSize: "400px 100%",
-  animation: "awd-shimmer 1.2s ease infinite",
-  borderRadius: "2px",
-};
-
-// 注入全局 keyframe（最好放在全局样式，但为独立组件可内联 style 标签）
-const ShimmerStyles = () => (
-  <style>{`
-    @keyframes awd-shimmer {
-      0% { background-position: -400px 0; }
-      100% { background-position: 400px 0; }
-    }
-  `}</style>
-);
-
-function ArtworkDetailSkeleton({ isMobile }) {
-  const { colors } = useReverseTheme();
-  const textColor = colors.text;
-  const bgColor = colors.background;
-
+function ArtworkDetailLoading() {
   return (
-    <div style={{ backgroundColor: bgColor, color: textColor, minHeight: "100vh" }}>
-      <ShimmerStyles />
-      {/* 顶部细条加载指示 */}
-      <div
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          height: "2px",
-          background:
-            "linear-gradient(90deg, transparent, rgba(0,0,0,0.3), transparent)",
-          backgroundSize: "200% 100%",
-          animation: "awd-shimmer 0.8s ease infinite",
-          zIndex: 9999,
-        }}
-      />
-      <Container maxWidth="lg" sx={{ py: 8 }}>
-        <Grid container spacing={4}>
-          {/* 图片占位 */}
-          <Grid item xs={12} md={7}>
-            <Box
-              sx={{
-                width: "100%",
-                borderRadius: "12px",
-                overflow: "hidden",
-                backgroundColor: "#f5f5f5",
-              }}
-            >
-              <Box
-                sx={{
-                  width: "100%",
-                  paddingBottom: "75%",
-                  ...artworkShimmerStyle,
-                }}
-              />
-            </Box>
-          </Grid>
-
-          {/* 信息占位 */}
-          <Grid item xs={12} md={5}>
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-              <Box sx={{ ...artworkShimmerStyle, width: "70%", height: 30 }} />
-              <Box sx={{ ...artworkShimmerStyle, width: "50%", height: 24 }} />
-              <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-                {[1, 2, 3].map((i) => (
-                  <Box
-                    key={i}
-                    sx={{ ...artworkShimmerStyle, width: 60, height: 28, borderRadius: 16 }}
-                  />
-                ))}
-              </Box>
-              <Box sx={{ ...artworkShimmerStyle, width: "100%", height: 16 }} />
-              <Box sx={{ ...artworkShimmerStyle, width: "90%", height: 16 }} />
-              <Box sx={{ ...artworkShimmerStyle, width: "80%", height: 16 }} />
-              <Box
-                sx={{
-                  ...artworkShimmerStyle,
-                  width: "100%",
-                  height: 80,
-                  mt: 2,
-                  borderRadius: 4,
-                }}
-              />
-            </Box>
-          </Grid>
-        </Grid>
-      </Container>
-    </div>
+    <div
+      style={{
+        backgroundColor: "#ffffff",
+        minHeight: "100vh",
+        width: "100%",
+      }}
+    />
   );
 }
 
@@ -121,9 +35,9 @@ export default function ArtworkDetailPageComponent({
   const { isMobile } = useContext(DeviceContext);
   const { fontFamily } = useFont();
 
-  // 加载状态 -> 显示骨架（而不是简单动画）
+  // 加载状态 -> 纯白屏
   if (loading) {
-    return <ArtworkDetailSkeleton isMobile={isMobile} />;
+    return <ArtworkDetailLoading />;
   }
 
   // 错误状态
@@ -138,7 +52,7 @@ export default function ArtworkDetailPageComponent({
     );
   }
 
-  // 数据不存在 -> 只有当确实没有 artwork 且不在加载中时，才显示“未找到”
+  // 数据不存在 -> 只有当确实没有 artwork 且不在加载中时，才显示"未找到"
   if (!artwork) {
     return (
       <Container maxWidth="lg" sx={{ py: 8, textAlign: "center" }}>
