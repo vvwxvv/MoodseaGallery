@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, {
@@ -12,7 +13,6 @@ import { LanguageContext } from "@/components/contexts/LanguageContext";
 import { DeviceContext } from "@/components/contexts/DeviceContext";
 import useFont from "@/hooks/useFont";
 import { useReverseTheme } from "@/hooks/useReverseTheme";
-import PageSkeleton, { SkeletonBlock, SkeletonLine } from "@/components/skeletons/PageSkeleton";
 import AlertInfo from "@/components/alerts/AlertInfo";
 import useBibliographyData from "@/components/pages/news/hooks/useBibliographyData";
 
@@ -136,120 +136,7 @@ const BibliographyItem = React.memo(function BibliographyItem({
   // 用分隔符连接：艺术家 · 标题 · 类型
   const displayText = displayParts.join(" · ");
 
-  // 为标题部分添加下划线动画，但整行都可以点击（如果href有效）
-  // 为了下划线只出现在标题下，我们需要分离标题部分，但用户要求整行内容在同一行，
-  // 且下划线动画仅作用于标题（而不是整个行）。我们可以将标题包裹在带下划线的span中，
-  // 其他部分（艺术家、类型）普通显示。
-  // 如果href无效，则整个为纯文本，无下划线。
-  // 为了简化，我们将标题单独提取出来用于下划线，其他部分保持普通样式。
-
-  // 解析显示文本，分割出标题部分，但更好的方式是用独立元素。
-  // 我们直接构建JSX，分别渲染三部分：
-  // 1. 艺术家（如果有）
-  // 2. 标题（可点击，带下划线动画）
-  // 3. 类型（如果有）
-
   const titleContent = item.title || "Untitled";
-
-  // 标题的链接样式（带下划线动画）
-  const titleLinkStyle = {
-    display: "inline-block",
-    textDecoration: "none",
-    color: listColors.base,
-    transition: "color 0.2s ease",
-    outline: "none",
-    WebkitTapHighlightColor: "transparent",
-    position: "relative",
-    padding: "2px 0",
-  };
-
-  const titleSpan = href !== "#" ? (
-    <a
-      href={href}
-      target={isExternal ? "_blank" : undefined}
-      rel={isExternal ? "noopener noreferrer" : undefined}
-      style={titleLinkStyle}
-      onMouseEnter={(e) => { e.currentTarget.style.color = listColors.active; }}
-      onMouseLeave={(e) => { e.currentTarget.style.color = listColors.base; }}
-    >
-      {titleContent}
-      {/* 下划线动画 */}
-      <motion.span
-        aria-hidden
-        initial={false}
-        animate={{ scaleX: 1 }} // 始终显示下划线？用户希望悬停时出现，所以初始为0，悬停时变为1
-        // 但我们希望悬停时出现，所以用 whileHover 更好，但这里用父元素的 hover 控制。
-        // 因为父元素是 a，我们用 a 的 hover 来控制子元素。
-        // 但 motion 不支持 whileHover 直接应用在子元素上，我们可以用 useAnimation 或 CSS。
-        // 简便方法：使用 CSS hover + transition，或使用 motion 的 whileHover。
-        // 这里我们使用 motion 的 whileHover 在 a 上传递到子元素，或者直接使用 CSS。
-        // 为了简洁，我们使用 CSS 实现：a:hover span { transform: scaleX(1); }
-        // 但为保持一致性，我们用 motion 的 animate 配合父元素 hover 状态。
-        // 更好的方案：用 React useState 控制 hover，或直接用 CSS。
-        // 此处采用 CSS 方案更简单。
-        // 我们直接写在 style 中，用 CSS 类。
-      />
-    </a>
-  ) : (
-    <span style={{ color: listColors.base, padding: "2px 0" }}>{titleContent}</span>
-  );
-
-  // 由于需要在悬停时显示下划线，我们可以用CSS实现，而不引入额外的状态。
-  // 定义样式对象，包含下划线动画的CSS。
-  // 我们在 a 标签内嵌入一个 span，初始 scaleX 0，a:hover 时 scaleX 1。
-  // 使用纯CSS，我们不用 motion，直接使用 transition。
-  // 为了保持与原有设计一致，我改用CSS方案。
-
-  // 重新设计标题部分，使用普通的 a 和 span，用 CSS transition。
-  const titleWithUnderline = href !== "#" ? (
-    <a
-      href={href}
-      target={isExternal ? "_blank" : undefined}
-      rel={isExternal ? "noopener noreferrer" : undefined}
-      style={{
-        display: "inline-block",
-        textDecoration: "none",
-        color: listColors.base,
-        transition: "color 0.2s ease",
-        outline: "none",
-        WebkitTapHighlightColor: "transparent",
-        position: "relative",
-        padding: "2px 0",
-        cursor: "pointer",
-      }}
-      onMouseEnter={(e) => { e.currentTarget.style.color = listColors.active; }}
-      onMouseLeave={(e) => { e.currentTarget.style.color = listColors.base; }}
-    >
-      {titleContent}
-      <span
-        style={{
-          position: "absolute",
-          left: 0,
-          right: 0,
-          bottom: 0,
-          height: "1px",
-          backgroundColor: listColors.underline,
-          transform: "scaleX(0)",
-          transformOrigin: "left",
-          transition: `transform ${CONFIG.LIST.UNDERLINE_DURATION}s ease`,
-          pointerEvents: "none",
-        }}
-        className="underline-bar"
-      />
-    </a>
-  ) : (
-    <span style={{ color: listColors.base, padding: "2px 0" }}>{titleContent}</span>
-  );
-
-  // 我们需要在 a 的 hover 时改变 .underline-bar 的 scaleX，可以用 CSS 或直接在 a 上添加 onMouseEnter 控制。
-  // 简单方法：使用 CSS 全局样式，但这里我们用内联 + 动态类，但比较麻烦。
-  // 更优雅：使用 React 的 state 控制 hover，但会影响性能。
-  // 由于我们只需要 hover 时下划线出现，可以使用 CSS 的 a:hover .underline-bar { transform: scaleX(1); }
-  // 但内联样式无法做到，我们可以在组件内添加一个 style 标签，或使用 css-in-js。
-  // 鉴于我们已有全局样式，我们可以添加一个简单的 CSS 类在全局，但为了封装，可以添加一个内联 style 标签。
-  // 或者我们使用 motion 的 whileHover，但 motion 需要父元素是 motion 组件。
-  // 为了简单，我使用 motion 的 `motion.a` 和 `motion.span`，并设置 whileHover 对 span 进行动画。
-  // 这样更符合原代码风格。
 
   // 改为使用 motion 版本：
   const MotionA = motion.a;
@@ -399,34 +286,19 @@ const EmptyState = React.memo(function EmptyState({ isCn, fontFamily, text }) {
 });
 
 // ============================================================================
-// 骨架屏
+// PLAIN WHITE LOADING STATE
+//   No skeleton lines, no blocks, no animation — just a blank
+//   white screen while bibliography data is being fetched.
 // ============================================================================
-function BibliographyListSkeleton({ isMobile, bgColor }) {
+function BibliographyLoading() {
   return (
-    <PageSkeleton bgColor={bgColor}>
-      <div
-        style={{
-          paddingTop: isMobile ? CONFIG.PAGE.PADDING_TOP_MOBILE : CONFIG.PAGE.PADDING_TOP_DESKTOP,
-          paddingLeft: isMobile ? CONFIG.PAGE.PADDING_LEFT_MOBILE : CONFIG.PAGE.PADDING_LEFT_DESKTOP,
-          paddingRight: isMobile ? CONFIG.PAGE.PADDING_RIGHT_MOBILE : CONFIG.PAGE.PADDING_RIGHT_DESKTOP,
-          paddingBottom: CONFIG.PAGE.PADDING_BOTTOM,
-          marginTop: CONFIG.PAGE.OFFSET_TOP,
-        }}
-      >
-        <SkeletonLine
-          width="120px"
-          height={30}
-          style={{ marginLeft: 0, marginBottom: isMobile ? CONFIG.HEADING.TO_LIST_GAP_MOBILE : CONFIG.HEADING.TO_LIST_GAP_DESKTOP }}
-        />
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
-          <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: "10px" }}>
-            {Array.from({ length: 12 }).map((_, i) => (
-              <SkeletonLine key={i} width={`${55 + Math.random() * 40}%`} height={17} />
-            ))}
-          </div>
-        </div>
-      </div>
-    </PageSkeleton>
+    <div
+      style={{
+        backgroundColor: "#ffffff",
+        minHeight: "100vh",
+        width: "100%",
+      }}
+    />
   );
 }
 
@@ -447,7 +319,7 @@ export default function BibliographyPageComponent() {
   const listColors = useMemo(() => resolveListColors(text), [text]);
 
   if (isLoading) {
-    return <BibliographyListSkeleton isMobile={isMobile} bgColor={bg} />;
+    return <BibliographyLoading />;
   }
 
   if (error) {
