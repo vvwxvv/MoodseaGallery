@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, {
@@ -12,7 +13,6 @@ import { LanguageContext } from "@/components/contexts/LanguageContext";
 import { DeviceContext } from "@/components/contexts/DeviceContext";
 import useFont from "@/hooks/useFont";
 import { useReverseTheme } from "@/hooks/useReverseTheme";
-import PageSkeleton, { SkeletonBlock, SkeletonLine } from "@/components/skeletons/PageSkeleton";
 import AlertInfo from "@/components/alerts/AlertInfo";
 import useArtistListData from "@/components/pages/artists/hooks/useArtistListData";
 import { useArtistHoverImage } from "@/components/pages/artists/hooks/useArtistHoverImage";
@@ -65,17 +65,12 @@ const CONFIG = {
   PREVIEW: {
     COLUMN_WIDTH: "54%",
     MAX_WIDTH: 450,
-    // Fallback aspect ratio (width / height) used only until the first
-    // image finishes loading and reports its real dimensions.
     FALLBACK_ASPECT_RATIO: 0.8,
-    // Safety clamp so a very wide panorama or very tall image can't
-    // blow out the sticky column — everything else uses the real ratio.
     MIN_ASPECT_RATIO: 0.5,
     MAX_ASPECT_RATIO: 1.6,
     STICKY_TOP: 90,
     OFFSET_TOP: 0,
     PLACEHOLDER_BG: "rgba(0,0,0,0.03)",
-    // How often the idle (no-hover) preview swaps to a different artist.
     RANDOM_ROTATE_INTERVAL_MS: 5000,
   },
 
@@ -93,6 +88,13 @@ const CONFIG = {
     PREVIEW_FALLBACK_ALT: { en: "Artwork preview", cn: "作品预览" },
   },
 };
+
+// ============================================================================
+// ✦ 加载状态背景色 — 内容区域纯白，不影响主导航栏/Logo
+// ============================================================================
+const LOADING_CONFIG = Object.freeze({
+  BG_COLOR: "#ffffff",
+});
 
 // ============================================================================
 // Helpers
@@ -245,18 +247,12 @@ const ArtistList = React.memo(function ArtistList({
 // ============================================================================
 // Artist preview — sticky right column
 // ============================================================================
-// Shows each image at its own natural aspect ratio (clamped to a sane
-// range) instead of forcing every artist into the same fixed box.
-// Swaps are instant — no crossfade / scale-up animation on hover, the
-// new image is just shown directly.
 const ArtistPreview = React.memo(function ArtistPreview({
   previewImage,
   previewArtist,
   isCn,
 }) {
   const [imageFailed, setImageFailed] = useState(false);
-  // Ratio of the currently-loaded image; kept around across image
-  // swaps so the container doesn't collapse before the new image loads.
   const [aspectRatio, setAspectRatio] = useState(
     CONFIG.PREVIEW.FALLBACK_ASPECT_RATIO
   );
@@ -321,9 +317,6 @@ const ArtistPreview = React.memo(function ArtistPreview({
                 style={{
                   width: "100%",
                   height: "100%",
-                  // "contain" so the original framing is preserved —
-                  // the box matches the image's own ratio, so "cover"
-                  // would just crop for no reason.
                   objectFit: "contain",
                   display: "block",
                 }}
@@ -337,7 +330,7 @@ const ArtistPreview = React.memo(function ArtistPreview({
 });
 
 // ============================================================================
-// Empty state
+// Empty state — 只清空内容区域，主导航栏和 Logo 保持不变（它们在父级 layout 中渲染）
 // ============================================================================
 const EmptyState = React.memo(function EmptyState({ isCn, fontFamily, text }) {
   return (
@@ -358,43 +351,18 @@ const EmptyState = React.memo(function EmptyState({ isCn, fontFamily, text }) {
 });
 
 // ============================================================================
-// Skeleton
+// 加载中 — 仅内容区域纯白，正常文档流渲染（不使用 fixed / z-index）
+// 主导航栏和 Logo 由父级 layout 渲染，位于本组件之外，因此始终保持正常显示
 // ============================================================================
-function ArtistsListSkeleton({ isMobile, bgColor }) {
-  return (
-    <PageSkeleton bgColor={bgColor}>
-      <div
-        style={{
-          paddingTop: isMobile ? "24px" : "20px",
-          paddingLeft: isMobile ? "20px" : "50px",
-          paddingRight: isMobile ? "20px" : "50px",
-          paddingBottom: "120px",
-          marginTop: "-10px",
-        }}
-      >
-        {/* Heading */}
-        <SkeletonLine width="120px" height={30} style={{ marginLeft: isMobile ? 0 : "28px", marginBottom: isMobile ? "40px" : "70px" }} />
-        {/* Two column layout */}
-        <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: "flex-start" }}>
-          {/* Left: name list */}
-          <div style={{ width: isMobile ? "100%" : "46%", display: "flex", flexDirection: "column", gap: "10px" }}>
-            {Array.from({ length: 12 }).map((_, i) => (
-              <SkeletonLine key={i} width={`${55 + Math.random() * 40}%`} height={17} />
-            ))}
-          </div>
-          {/* Right: preview image */}
-          {!isMobile && (
-            <div style={{ width: "54%", display: "flex", justifyContent: "center" }}>
-              <div style={{ width: "100%", maxWidth: "640px" }}>
-                <SkeletonBlock width="100%" height={0} style={{ paddingBottom: "112%" }} />
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </PageSkeleton>
-  );
-}
+const ArtistsListSkeleton = () => (
+  <div
+    style={{
+      width: "100%",
+      minHeight: "100vh",
+      backgroundColor: LOADING_CONFIG.BG_COLOR,
+    }}
+  />
+);
 
 // ============================================================================
 // Page component
@@ -402,9 +370,9 @@ function ArtistsListSkeleton({ isMobile, bgColor }) {
 export default function ArtistsPageComponent() {
   const { isCn } = useContext(LanguageContext);
   const { isMobile } = useContext(DeviceContext);
-  const { fontFamily } = useFont();                          // body default (wrapper, empty state)
-  const { fontFamily: headingFont } = useFont("sectionTitle"); // "艺术家/Artists" → Big Caslon Medium
-  const { fontFamily: listFont } = useFont("artistListItem");  // name list → Palatino Regular
+  const { fontFamily } = useFont();
+  const { fontFamily: headingFont } = useFont("sectionTitle");
+  const { fontFamily: listFont } = useFont("artistListItem");
   const { colors } = useReverseTheme();
 
   const text = colors.text;
@@ -416,8 +384,6 @@ export default function ArtistsPageComponent() {
   const [activeName, setActiveName] = useState(null);
   const { hoveredName, hoverImage, onHover, onLeave } = useArtistHoverImage(profiles);
 
-  // Idle-state rotation — a different artist's cover image every few
-  // seconds, paused the instant something is actually hovered.
   const { randomArtist, randomImage } = useRandomArtworkImage(profiles, {
     paused: !!hoveredName,
     intervalMs: CONFIG.PREVIEW.RANDOM_ROTATE_INTERVAL_MS,
@@ -438,8 +404,6 @@ export default function ArtistsPageComponent() {
     onLeave();
   }, [onLeave]);
 
-  // Hover wins when present; otherwise fall back to the auto-rotating
-  // random artist, then the first profile as a last resort.
   const previewArtist = useMemo(() => {
     if (hoveredName) {
       return profiles.find((p) => p.name === hoveredName) || null;
@@ -450,7 +414,7 @@ export default function ArtistsPageComponent() {
   const previewImage = hoverImage || randomImage;
 
   if (isLoading) {
-    return <ArtistsListSkeleton isMobile={isMobile} bgColor={bg} />;
+    return <ArtistsListSkeleton />;
   }
 
   if (hasError) {
