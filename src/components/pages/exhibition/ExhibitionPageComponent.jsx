@@ -9,7 +9,7 @@ import React, {
   useCallback,
 } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Popper from "@mui/material/Popper";
 import Fade from "@mui/material/Fade";
 import ClickAwayListener from "@mui/material/ClickAwayListener";
@@ -19,7 +19,6 @@ import { LanguageContext } from "@/components/contexts/LanguageContext";
 import { DeviceContext } from "@/components/contexts/DeviceContext";
 import useFont from "@/hooks/useFont";
 import { useReverseTheme } from "@/hooks/useReverseTheme";
-import PageSkeleton, { SkeletonBlock, SkeletonLine } from "@/components/skeletons/PageSkeleton";
 import AlertInfo from "@/components/alerts/AlertInfo";
 import useExhibitionListData from "@/components/pages/exhibition/hooks/useExhibitionListData";
 import { formatDateRange } from "@/components/pages/exhibition/utils/exhibitionDates";
@@ -62,7 +61,6 @@ const EXHIBITIONS_CONFIG = {
       color: "theme",
       opacity: 1,
     },
-
     CARD_TITLE: {
       fontSize: "22px",
       fontWeight: 500,
@@ -71,7 +69,6 @@ const EXHIBITIONS_CONFIG = {
       color: "theme",
       opacity: 1,
     },
-
     CARD_DATE: {
       fontSize: "15px",
       fontWeight: 500,
@@ -80,7 +77,6 @@ const EXHIBITIONS_CONFIG = {
       color: "theme",
       opacity: 0.6,
     },
-
     CARD_TYPE: {
       fontSize: "14px",
       fontWeight: 500,
@@ -89,7 +85,6 @@ const EXHIBITIONS_CONFIG = {
       color: "theme",
       opacity: 0.6,
     },
-
     CARD_FALLBACK_LABEL: {
       fontSize: "12px",
       fontWeight: 400,
@@ -98,7 +93,6 @@ const EXHIBITIONS_CONFIG = {
       color: "theme",
       opacity: 0.2,
     },
-
     BODY: {
       fontSize: "14px",
       fontWeight: 400,
@@ -107,7 +101,6 @@ const EXHIBITIONS_CONFIG = {
       color: "theme",
       opacity: 1,
     },
-
     EMPTY_STATE: {
       fontSize: "14px",
       fontWeight: 400,
@@ -116,7 +109,6 @@ const EXHIBITIONS_CONFIG = {
       color: "theme",
       opacity: 0.5,
     },
-
     DROPDOWN_LABEL: {
       fontSize: "16px",
       fontWeight: 400,
@@ -125,7 +117,6 @@ const EXHIBITIONS_CONFIG = {
       color: "theme",
       opacity: 1,
     },
-
     DROPDOWN_ITEM: {
       fontSize: "16px",
       fontWeight: 400,
@@ -134,7 +125,6 @@ const EXHIBITIONS_CONFIG = {
       color: "#000000",
       opacity: 1,
     },
-
     DROPDOWN_EMPTY: {
       fontSize: "16px",
       fontWeight: 400,
@@ -145,70 +135,65 @@ const EXHIBITIONS_CONFIG = {
     },
   },
 
-  // ── Card layout / structure ──────────────────────────────────────
   CARD: {
     IMAGE_ASPECT_RATIO: "3 / 2",
-    IMAGE_PLACEHOLDER_BG: "rgba(0,0,0,0.03)",
+    // ── was a grey tint (rgba(0,0,0,0.03)); the veil now supplies the
+    //    loading surface, so this only matters for the brief instant
+    //    before the veil mounts — keep it fully transparent ──
+    IMAGE_PLACEHOLDER_BG: "transparent",
     IMAGE_HOVER_SCALE: 1.02,
     IMAGE_HOVER_TRANSITION: "transform 0.5s ease",
+    // ── reveal-on-load: no blur, no grey — a veil the color of the
+    //    page background lifts off the photo as it decodes ──
+    IMAGE_LOAD_FADE_DURATION: "0.8s",
+    IMAGE_LOAD_FADE_EASE: "cubic-bezier(0.22, 1, 0.36, 1)",
+    IMAGE_LOAD_INITIAL_SCALE: 1.03,
     IMAGE_TO_CAPTION_GAP: "12px",
     TITLE_TO_DATE_GAP: "2px",
     HALF_WIDTH_MAX: "48%",
-
-    // Type label alignment relative to title/date block:
-    // "flex-start" = top | "center" = middle | "flex-end" = bottom
     TYPE_VERTICAL_ALIGN: "center",
     TYPE_GAP_FROM_TITLE: "16px",
-
-    // Title hover underline
     UNDERLINE_HEIGHT: "1px",
     UNDERLINE_OFFSET_BOTTOM: "-2px",
     UNDERLINE_DURATION: 0.3,
   },
 
-  // ── Card entrance animation ──────────────────────────────────────
   ANIMATION: {
     CARD_INITIAL: { opacity: 0, y: 20 },
     CARD_IN_VIEW: { opacity: 1, y: 0 },
     CARD_VIEWPORT: { once: true, margin: "-50px" },
     CARD_DURATION: 0.5,
+    PAGE_FADE_DURATION: 0.35,
   },
 
-  // ── Dropdown ─────────────────────────────────────────────────────
   DROPDOWN: {
     MENU_PLACEMENT: "bottom-end",
     MENU_OFFSET_DISTANCE: 0,
     MENU_OFFSET_SKID: 0,
-
-    // "match-trigger" measures the trigger button's actual width.
-    // Pass any CSS width string instead (e.g. "220px") to decouple.
     MENU_WIDTH: "match-trigger",
-
     TRIGGER: {
-      WIDTH: "150px",       // acts as min-width — grows for longer text
+      WIDTH: "150px",
       PADDING: "8px 8px",
       MARGIN: "10px 0",
-      BORDER_WIDTH: "1px",  // border color follows theme text color
+      BORDER_WIDTH: "1px",
       ARROW_SIZE: "9px",
       ARROW_GAP: "8px",
       ARROW_ROTATE_TRANSITION: "transform 0.3s ease",
-      OFFSET_TOP: "-50px",  // position nudge — negative = move up
-      OFFSET_RIGHT: "20px", // position nudge — positive = move right
+      OFFSET_TOP: "-50px",
+      OFFSET_RIGHT: "20px",
     },
-
     PANEL: {
       BG_COLOR: "#ffffff",
-      BORDER_WIDTH: "1px",  // border color follows theme text color
+      BORDER_WIDTH: "1px",
       BOX_SHADOW: "0px 4px 12px rgba(0, 0, 0, 0.05)",
       ITEM_PADDING: "8px 8px",
       ITEM_UNDERLINE_OFFSET: "4px",
       ITEM_HOVER_TRANSITION: "background-color 0.2s",
-      FADE_DURATION: 150, // ms
+      FADE_DURATION: 150,
       Z_INDEX: 50,
     },
   },
 
-  // ── Page layout ──────────────────────────────────────────────────
   LAYOUT: {
     MAX_WIDTH: "1440px",
     PADDING_MOBILE: "40px 20px",
@@ -220,6 +205,14 @@ const EXHIBITIONS_CONFIG = {
     GRID_GAP_MOBILE: "48px",
     GRID_GAP_DESKTOP: "40px 64px",
   },
+
+  // ═══════════════════════════════════════════════════════════════════
+  // LOADING — no skeleton. While data is loading the page is simply a
+  // solid white surface; nothing else renders.
+  // ═══════════════════════════════════════════════════════════════════
+  LOADING: {
+    BG_COLOR: "#ffffff",
+  },
 };
 
 // ═════════════════════════════════════════════════════════════════════
@@ -227,13 +220,9 @@ const EXHIBITIONS_CONFIG = {
 // ═════════════════════════════════════════════════════════════════════
 const pickText = (entry, isCn) => (isCn ? entry.cn : entry.en);
 
-/** Resolve a config color: "theme" → theme text color, else explicit CSS color. */
 const resolveColor = (configColor, themeColor) =>
   configColor === "theme" ? themeColor : configColor;
 
-/**
- * Build a complete inline style object from a TYPOGRAPHY config entry.
- */
 const buildTextStyle = (typo, fontFamily, themeColor) => ({
   fontFamily,
   fontSize: typo.fontSize,
@@ -276,7 +265,7 @@ const getExhibitionKey = (exhibition, index) =>
   exhibition?._id || exhibition?.id || `exhibition-${index}`;
 
 // ═════════════════════════════════════════════════════════════════════
-// CUSTOM ELEGANT DROPDOWN
+// CUSTOM ELEGANT DROPDOWN  (unchanged)
 // ═════════════════════════════════════════════════════════════════════
 function CustomYearDropdown({ isCn, textColor, bgColor, years, selectedYear, onSelect }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -345,7 +334,6 @@ function CustomYearDropdown({ isCn, textColor, bgColor, years, selectedYear, onS
 
   return (
     <Box sx={{ position: "relative", display: "inline-block" }}>
-      {/* Trigger Button */}
       <button
         ref={anchorRef}
         onClick={handleToggle}
@@ -379,7 +367,6 @@ function CustomYearDropdown({ isCn, textColor, bgColor, years, selectedYear, onS
         </span>
       </button>
 
-      {/* Dropdown Menu — MUI Popper does the real position calculation */}
       <Popper
         open={isOpen}
         anchorEl={anchorRef.current}
@@ -425,11 +412,12 @@ function CustomYearDropdown({ isCn, textColor, bgColor, years, selectedYear, onS
 }
 
 // ═════════════════════════════════════════════════════════════════════
-// EXHIBITION CARD
+// EXHIBITION CARD — image now reveals from a page-colored veil, no blur
 // ═════════════════════════════════════════════════════════════════════
-function ExhibitionCard({ exhibition, textColor, isCn, isHalfWidth = false }) {
+function ExhibitionCard({ exhibition, textColor, bgColor, isCn, isHalfWidth = false }) {
   const [isTextHovered, setIsTextHovered] = useState(false);
   const [isImageHovered, setIsImageHovered] = useState(false);
+  const [imgLoaded, setImgLoaded] = useState(false);
 
   const dateRange = formatDateRange(exhibition, isCn);
   const slug = getExhibitionSlug(exhibition);
@@ -485,24 +473,49 @@ function ExhibitionCard({ exhibition, textColor, isCn, isHalfWidth = false }) {
             aspectRatio: CARD.IMAGE_ASPECT_RATIO,
             position: "relative",
             overflow: "hidden",
-            backgroundColor: CARD.IMAGE_PLACEHOLDER_BG,
+            backgroundColor: bgColor,
+            isolation: "isolate",
           }}
         >
           {exhibition?.cover_img_url ? (
-            <img
-              src={exhibition.cover_img_url}
-              alt={title}
-              loading="lazy"
-              style={{
-                position: "absolute",
-                inset: 0,
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-                transition: CARD.IMAGE_HOVER_TRANSITION,
-                transform: isImageHovered ? `scale(${CARD.IMAGE_HOVER_SCALE})` : "scale(1)",
-              }}
-            />
+            <>
+              <img
+                src={exhibition.cover_img_url}
+                alt={title}
+                loading="lazy"
+                onLoad={() => setImgLoaded(true)}
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  opacity: imgLoaded ? 1 : 0,
+                  transform: imgLoaded
+                    ? isImageHovered
+                      ? `scale(${CARD.IMAGE_HOVER_SCALE})`
+                      : "scale(1)"
+                    : `scale(${CARD.IMAGE_LOAD_INITIAL_SCALE})`,
+                  transition: [
+                    `opacity ${CARD.IMAGE_LOAD_FADE_DURATION} ${CARD.IMAGE_LOAD_FADE_EASE}`,
+                    CARD.IMAGE_HOVER_TRANSITION,
+                  ].join(", "),
+                }}
+              />
+              {/* Veil matches the page's own background — the image
+                  seems to emerge from the page itself, never grey,
+                  never blurred. */}
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  backgroundColor: bgColor,
+                  opacity: imgLoaded ? 0 : 1,
+                  transition: `opacity ${CARD.IMAGE_LOAD_FADE_DURATION} ${CARD.IMAGE_LOAD_FADE_EASE}`,
+                  pointerEvents: "none",
+                }}
+              />
+            </>
           ) : (
             <div
               style={{
@@ -512,6 +525,8 @@ function ExhibitionCard({ exhibition, textColor, isCn, isHalfWidth = false }) {
                 alignItems: "center",
                 justifyContent: "center",
                 textTransform: "uppercase",
+                opacity: 1,
+                transition: "opacity 0.4s ease",
                 ...fallbackLabelStyle,
               }}
             >
@@ -594,59 +609,17 @@ function ExhibitionCard({ exhibition, textColor, isCn, isHalfWidth = false }) {
 }
 
 // ═════════════════════════════════════════════════════════════════════
-// SKELETON
+// LOADING SCREEN — plain white surface, nothing else rendered.
 // ═════════════════════════════════════════════════════════════════════
-function ExhibitionListSkeleton({ isMobile, bgColor }) {
+function ExhibitionLoadingScreen() {
   return (
-    <PageSkeleton bgColor={bgColor}>
-      <div
-        style={{
-          padding: isMobile ? "40px 20px" : "80px 64px",
-          maxWidth: "1440px",
-          margin: "0 auto",
-        }}
-      >
-        {/* Current section heading + dropdown placeholder */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "32px" }}>
-          <SkeletonLine width="160px" height={30} />
-          <div style={{ transform: "translate(20px, -50px)" }}>
-            <SkeletonLine width="150px" height={36} style={{ borderRadius: "0px" }} />
-          </div>
-        </div>
-
-        {/* Current exhibition card (half width) */}
-        <div style={{ marginBottom: "64px", maxWidth: isMobile ? "100%" : "48%" }}>
-          <SkeletonBlock width="100%" height={0} style={{ paddingBottom: "66.67%", marginBottom: "12px" }} />
-          <SkeletonLine width="70%" height={22} style={{ marginBottom: "4px" }} />
-          <SkeletonLine width="45%" height={15} />
-        </div>
-
-        {/* Divider */}
-        <div style={{ borderTop: "1px solid rgba(0,0,0,0.1)", margin: "0 0 64px 0", opacity: 0.8 }} />
-
-        {/* Past section heading */}
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "32px" }}>
-          <SkeletonLine width="100px" height={30} />
-        </div>
-
-        {/* Past exhibition grid */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: isMobile ? "1fr" : "repeat(2, 1fr)",
-            gap: isMobile ? "48px" : "40px 64px",
-          }}
-        >
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i}>
-              <SkeletonBlock width="100%" height={0} style={{ paddingBottom: "66.67%", marginBottom: "12px" }} />
-              <SkeletonLine width={`${55 + (i % 3) * 20}%`} height={22} style={{ marginBottom: "4px" }} />
-              <SkeletonLine width="40%" height={15} />
-            </div>
-          ))}
-        </div>
-      </div>
-    </PageSkeleton>
+    <div
+      style={{
+        backgroundColor: EXHIBITIONS_CONFIG.LOADING.BG_COLOR,
+        minHeight: "100vh",
+        width: "100%",
+      }}
+    />
   );
 }
 
@@ -664,7 +637,7 @@ export default function ExhibitionPage() {
   const textColor = colors.text;
   const bgColor = colors.background;
 
-  const { TYPOGRAPHY, LAYOUT, DROPDOWN } = EXHIBITIONS_CONFIG;
+  const { TYPOGRAPHY, LAYOUT, DROPDOWN, ANIMATION } = EXHIBITIONS_CONFIG;
 
   const headingStyle = useMemo(
     () => buildTextStyle(TYPOGRAPHY.SECTION_HEADING, headingFontFamily, textColor),
@@ -675,7 +648,6 @@ export default function ExhibitionPage() {
     [TYPOGRAPHY.EMPTY_STATE, bodyFontFamily, textColor]
   );
 
-  // `current` and `past` both come back from the hook ordered by year/date (newest first)
   const { current, past, isLoading, hasError, refetch } = useExhibitionListData(isCn);
 
   const [selectedYear, setSelectedYear] = useState("");
@@ -691,8 +663,6 @@ export default function ExhibitionPage() {
     return Array.from(set).sort((a, b) => b.localeCompare(a));
   }, [allExhibitions]);
 
-  // allExhibitions is current (newest-first) followed by past (newest-first);
-  // re-sort the filtered result so a single selected year still reads newest → oldest
   const yearResults = useMemo(() => {
     if (!isFiltering) return [];
     return allExhibitions
@@ -708,8 +678,6 @@ export default function ExhibitionPage() {
 
   const pastSectionResults = isFiltering ? yearResults : past;
 
-  // Trigger button position adjustment — applied via transform so it
-  // doesn't disturb the flex row's layout/spacing for the heading.
   const dropdownTriggerOffsetStyle = useMemo(
     () => ({
       transform: `translate(${DROPDOWN.TRIGGER.OFFSET_RIGHT}, ${DROPDOWN.TRIGGER.OFFSET_TOP})`,
@@ -730,8 +698,6 @@ export default function ExhibitionPage() {
     </div>
   );
 
-  if (isLoading) return <ExhibitionListSkeleton isMobile={isMobile} bgColor={bgColor} />;
-
   if (hasError) {
     return (
       <AlertInfo
@@ -744,8 +710,18 @@ export default function ExhibitionPage() {
     );
   }
 
+  // While loading: render nothing but a plain white page.
+  if (isLoading) {
+    return <ExhibitionLoadingScreen />;
+  }
+
   return (
-    <div
+    <motion.div
+      key="content"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: ANIMATION.PAGE_FADE_DURATION }}
       style={{
         backgroundColor: bgColor,
         color: textColor,
@@ -755,7 +731,6 @@ export default function ExhibitionPage() {
         margin: "0 auto",
       }}
     >
-      {/* ── Current section (hidden while filtering by year) ── */}
       {!isFiltering && (
         <>
           <div
@@ -779,6 +754,7 @@ export default function ExhibitionPage() {
                   key={getExhibitionKey(ex, i)}
                   exhibition={ex}
                   textColor={textColor}
+                  bgColor={bgColor}
                   isCn={isCn}
                   isHalfWidth={!isMobile}
                 />
@@ -798,7 +774,6 @@ export default function ExhibitionPage() {
         </>
       )}
 
-      {/* ── Past / filtered-year section ── */}
       <div>
         <div
           style={{
@@ -826,6 +801,7 @@ export default function ExhibitionPage() {
                 key={getExhibitionKey(ex, i)}
                 exhibition={ex}
                 textColor={textColor}
+                bgColor={bgColor}
                 isCn={isCn}
               />
             ))}
@@ -838,6 +814,6 @@ export default function ExhibitionPage() {
           </p>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }
