@@ -38,9 +38,8 @@ const BODY_TEXT_SIZE = "12px";
 //  QUICK MAP:
 //    • Big page title            → TITLE            (26/22, unchanged)
 //    • Subtitle / Date           → SUBTITLE / DATE  (kept for hierarchy)
-//    • Section labels            → SECTION_HEADING  ▸ MATCHES NEWS HEADING
-//        ("Works" / "Related Artists": family from useFont() no-role via
-//         `labelFont`, 28/18, weight 500, 0.01em, not uppercase.)
+//    • Section labels            → SECTION_HEADING  ▸ News font family,
+//        15px, light weight (see note below)
 //    • Body copy / caption       → BODY_TEXT_SIZE (12px, About body)
 //    • Nav tabs                  → NAV_TAB          (small anchors, unchanged)
 //    • Metadata field labels     → METADATA_LABEL   (micro-label, unchanged)
@@ -162,23 +161,23 @@ const TEXT_CONFIG = {
     marginBottom: 16,
   },
 
-  // ▸▸ SECTION LABELS — MATCHES NEWS / LIST-PAGE HEADING ◂◂
-  //   Family comes from `labelFont` (useFont() no-role) in the component,
-  //   overriding `role`. Sizes/weight/spacing mirror the News "News"
-  //   heading (−2px → 28/18). Not uppercase, full opacity — these now
-  //   read as headings, not micro-dividers.
-  //   ↩ To restore the old small divider: fontSize 11/11, fontWeight 700,
-  //     letterSpacing "0.15em", opacity 0.6, textTransform "uppercase".
+  // ▸▸ SECTION LABELS ("Works" / "Related Artists") ◂◂
+  //   Font family comes from `labelFont` (useFont() no-role) in the
+  //   component, overriding `role` below — same family as the News
+  //   page heading.
+  //   Size is intentionally smaller than the News heading (15px, not
+  //   25px) and light-weight (300) rather than bold, so these read as
+  //   quiet section dividers rather than competing with the page title.
+  //   ↩ To restore the old micro-divider look: fontSize 11/11, fontWeight
+  //     700, letterSpacing "0.15em", opacity 0.6, textTransform "uppercase".
   SECTION_HEADING: {
-    role: "detailSectionHeading", // fallback family only; labelFont overrides
-    fontSizeDesktop: "28px",
-    fontSizeMobile: "18px",
-    fontWeight: 500,
-    color: null,
-    opacity: 1,
+    fontSizeDesktop: "15px",
+    fontSizeMobile: "15px",
+    fontWeight: 300,          // thin/light — not bold
+    lineHeight: "normal",
     letterSpacing: "0.01em",
-    lineHeight: 1.3,
-    marginBottom: 24,
+    color: "theme",
+    opacity: 1,
   },
 
   ARTIST_LINK: {
@@ -863,11 +862,11 @@ export default function ExhibitionDetailPageComponent() {
     );
   }
 
-  // Section-label style — matches the News heading (family via labelFont).
+  // Section-label style — News font family (labelFont), 15px, light weight.
   const sectionHeadingSx = {
     ...textSx(TEXT_CONFIG.SECTION_HEADING, ctx),
     fontFamily: labelFont, // override role font → News-heading family
-    mb: `${TEXT_CONFIG.SECTION_HEADING.marginBottom}px`,
+    mb: `${TEXT_CONFIG.SECTION_HEADING.marginBottom || 0}px`,
     pb: "8px",
     borderBottom: `1px solid ${colors.text}`,
     display: "inline-block",
