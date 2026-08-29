@@ -16,32 +16,23 @@ import AlertInfo from "@/components/alerts/AlertInfo";
 import useBibliographyData from "@/components/pages/news/hooks/useBibliographyData";
 
 // ============================================================================
-// SHARED SIZES
-//   Body / caption / meta text size — matches the About page body (12px).
-//   Change here and every list + meta + empty line follows.
-// ============================================================================
-const BODY_TEXT_SIZE = "12px";
-
-// ============================================================================
 // UI CONFIGURATION
 // ============================================================================
 const CONFIG = {
   PAGE: {
-    // ↓ whole-page frame — each side +10px vs. the previous layout
-    PADDING_LEFT_DESKTOP: 110,
-    PADDING_RIGHT_DESKTOP: 60,
-    PADDING_LEFT_MOBILE: 60,
-    PADDING_RIGHT_MOBILE: 30,
-    PADDING_TOP_DESKTOP: 40,
-    PADDING_TOP_MOBILE: 34,
-    PADDING_BOTTOM: 130,
+    PADDING_LEFT_DESKTOP: 100,
+    PADDING_RIGHT_DESKTOP: 50,
+    PADDING_LEFT_MOBILE: 50,
+    PADDING_RIGHT_MOBILE: 20,
+    PADDING_TOP_DESKTOP: 30,
+    PADDING_TOP_MOBILE: 24,
+    PADDING_BOTTOM: 120,
     OFFSET_TOP: -10,
   },
 
   HEADING: {
-    // ↓ label −2px (was 30 / 20)
-    FONT_SIZE_DESKTOP: "28px",
-    FONT_SIZE_MOBILE: "18px",
+    FONT_SIZE_DESKTOP: "30px",
+    FONT_SIZE_MOBILE: "20px",
     FONT_WEIGHT: 500,
     LETTER_SPACING: "0.01em",
     OFFSET_LEFT: 0,
@@ -59,9 +50,8 @@ const CONFIG = {
     OFFSET_TOP: 50,
     ITEM_GAP_DESKTOP: 10,
     ITEM_GAP_MOBILE: 10,
-    // ↓ body copy → 12px (About body)
-    ITEM_FONT_SIZE_DESKTOP: BODY_TEXT_SIZE,
-    ITEM_FONT_SIZE_MOBILE: BODY_TEXT_SIZE,
+    ITEM_FONT_SIZE_DESKTOP: "17px",
+    ITEM_FONT_SIZE_MOBILE: "15px",
     ITEM_FONT_WEIGHT: 347,
     ITEM_LINE_HEIGHT: 1.4,
     ITEM_LETTER_SPACING: "0.02em",
@@ -69,14 +59,14 @@ const CONFIG = {
     ITEM_COLOR_ACTIVE: null,
     UNDERLINE_COLOR: null,
     UNDERLINE_DURATION: 0.3,
-    // 类型 / 关联艺术家 meta — 同为 12px（About body）
-    META_FONT_SIZE_DESKTOP: BODY_TEXT_SIZE,
-    META_FONT_SIZE_MOBILE: BODY_TEXT_SIZE,
+    // 类型和关联艺术家的字体大小（与主标题相同或略小，此处统一）
+    META_FONT_SIZE_DESKTOP: "15px",
+    META_FONT_SIZE_MOBILE: "13px",
     META_OPACITY: 0.7,
   },
 
   EMPTY_STATE: {
-    FONT_SIZE: BODY_TEXT_SIZE, // 12px, consistent with body
+    FONT_SIZE: "13px",
     OPACITY: 0.3,
     LETTER_SPACING: "0.1em",
   },
@@ -147,6 +137,7 @@ const BibliographyItem = React.memo(function BibliographyItem({
 
   const titleContent = item.title || "Untitled";
 
+  // 改为使用 motion 版本：
   const MotionA = motion.a;
   const MotionSpan = motion.span;
 
@@ -295,6 +286,8 @@ const EmptyState = React.memo(function EmptyState({ isCn, fontFamily, text }) {
 
 // ============================================================================
 // PLAIN WHITE LOADING STATE
+//   No skeleton lines, no blocks, no animation — just a blank
+//   white screen while bibliography data is being fetched.
 // ============================================================================
 function BibliographyLoading() {
   return (
