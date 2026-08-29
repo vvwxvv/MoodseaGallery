@@ -5,7 +5,6 @@ import { Box } from "@mui/material";
 import { motion } from "framer-motion";
 
 import useAboutData from "@/components/pages/about/hooks/useAboutData";
-import PageSkeleton, { SkeletonBlock, SkeletonLine } from "@/components/skeletons/PageSkeleton";
 import AlertInfo from "@/components/alerts/AlertInfo";
 import { renderArrayContent } from "@/utils/textFormatting";
 import useFont from "@/hooks/useFont";
@@ -50,6 +49,13 @@ const CONFIG = Object.freeze({
   logoSrc: "/moodsea_gallery_whole_logo.png",
   logoWidth: "100px",
   logoTopMargin: "140px",
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  ✦ 加载状态背景色 — 纯白空白页面，不使用任何骨架屏效果
+// ─────────────────────────────────────────────────────────────────────────────
+const LOADING_CONFIG = Object.freeze({
+  BG_COLOR: "#ffffff",
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -137,31 +143,10 @@ const AboutImage = React.memo(function AboutImage({ src, alt, fill = false }) {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
+//  加载中 — 纯白空白页面，不渲染任何内容
+// ─────────────────────────────────────────────────────────────────────────────
 const AboutSkeleton = () => (
-  <PageSkeleton bgColor="#fff">
-    <Box sx={{ maxWidth: CONFIG.pageMaxWidth, ...CONTENT_MX, px: CONFIG.pagePaddingX, py: CONFIG.pagePaddingY }}>
-      <Box sx={{ display: { xs: "block", md: "flex" }, alignItems: "flex-start", gap: CONFIG.columnGap }}>
-        <Box sx={{ flex: CONFIG.text.flex, minWidth: 0, maxWidth: CONFIG.text.maxWidth }}>
-          <SkeletonLine width="100px" height={24} style={{ marginBottom: "32px" }} />
-          <SkeletonLine width="100%" height={14} style={{ marginBottom: "18px" }} />
-          <SkeletonLine width="92%" height={14} style={{ marginBottom: "18px" }} />
-          <SkeletonLine width="85%" height={14} style={{ marginBottom: "18px" }} />
-          <SkeletonLine width="65%" height={14} />
-        </Box>
-        <Box
-          sx={{
-            flex: "0 0 auto",
-            width: "100%",
-            maxWidth: CONFIG.image.maxWidth,
-            height: CONFIG.image.desktopHeight,
-            display: { xs: "none", md: "block" },
-          }}
-        >
-          <SkeletonBlock width="100%" height="100%" />
-        </Box>
-      </Box>
-    </Box>
-  </PageSkeleton>
+  <Box sx={{ minHeight: "100vh", backgroundColor: LOADING_CONFIG.BG_COLOR }} />
 );
 
 // ─────────────────────────────────────────────────────────────────────────────
