@@ -5,7 +5,6 @@ import { Box } from "@mui/material";
 import { usePathname } from "next/navigation";
 import { DeviceContext } from "@/components/contexts/DeviceContext";
 import Footer from "@/components/footers/Footer";
-import LoadingLayer from "@/components/animations/LoadingLayer";
 import ConstructionBWPageComponent from "@/components/pages/constructions/ConstructionBWPageComponent";
 import LayoutMainContent from "@/components/layouts/components/LayoutMainContent";
 import LanguageSwitcherInMenu from "@/components/switchers/LanguageSwitcherInMenu";
@@ -78,16 +77,15 @@ export default function LayoutContent({ children }) {
 
   useTransparentBody(isClientReady && isUnderConstruction);
 
-  // 1. Pre-hydration
+  // 1. Pre-hydration — empty
   if (!isClientReady) {
-    return <LoadingLayer isLoading />;
+    return null;
   }
 
   // 2. Construction mode
   if (isUnderConstruction) {
     return (
       <>
-        <LoadingLayer isLoading={!isLayoutReady} />
         {isLayoutReady && (
           <div style={{ position: "fixed", inset: 0, width: "100%", height: "100%" }}>
             <ConstructionBWPageComponent />
@@ -101,15 +99,13 @@ export default function LayoutContent({ children }) {
   const containerStyle = { backgroundColor, background: backgroundColor };
 
   return (
-    <>
-     <QueryClientProvider client={queryClient}>
-      <LoadingLayer isLoading={!isLayoutReady} />
+    <QueryClientProvider client={queryClient}>
       {isLayoutReady && (
         <Box
           sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}
           style={{ ...style, ...containerStyle }}
         >
-          <Box 
+          <Box
             sx={{ display: "flex", flexDirection: "column", flexGrow: 1, width: "100%", position: "relative" }}
             style={containerStyle}
           >
@@ -129,7 +125,6 @@ export default function LayoutContent({ children }) {
           <Footer />
         </Box>
       )}
-      </QueryClientProvider>
-    </>
+    </QueryClientProvider>
   );
 }
