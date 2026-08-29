@@ -15,7 +15,6 @@ import useFairDetailData from "@/components/pages/fair/hooks/useFairDetailData";
 import { useReverseTheme } from "@/hooks/useReverseTheme";
 
 // Alerts / states
-import PageSkeleton, { SkeletonBlock, SkeletonLine } from "@/components/skeletons/PageSkeleton";
 import ErrorState from "@/components/alerts/ErrorState";
 import FormAlert from "@/components/alerts/FormAlert";
 import NoDataInfo from "@/components/alerts/NoDataInfo";
@@ -364,67 +363,19 @@ function HoverUnderlineLink({ label, href, index, isMobile, fontFamily, textColo
 }
 
 // ============================================================
-// SKELETON
+// PLAIN WHITE LOADING STATE
+//   No skeleton lines, no blocks, no animation — just a blank
+//   white screen while fair detail data is being fetched.
 // ============================================================
-function FairDetailSkeleton({ isMobile, bgColor }) {
+function FairDetailLoading() {
   return (
-    <PageSkeleton bgColor={bgColor}>
-      <Box sx={{ minHeight: "100vh" }}>
-        <Box
-          sx={{
-            maxWidth: "md",
-            mx: "auto",
-            px: { xs: 3, md: 4 },
-            py: { xs: 6, md: 10 },
-          }}
-        >
-          {/* Header: title + section + date */}
-          <Box sx={{ mb: { xs: 4, md: 6 } }}>
-            <SkeletonLine
-              width={isMobile ? "180px" : "320px"}
-              height={isMobile ? 22 : 26}
-              style={{ marginBottom: "8px" }}
-            />
-            <SkeletonLine width="120px" height={16} style={{ marginBottom: "8px", opacity: 0.7 }} />
-            <SkeletonLine width="200px" height={14} style={{ opacity: 0.9 }} />
-          </Box>
-
-          {/* Cover image */}
-          <Box sx={{ mb: { xs: 5, md: 8 } }}>
-            <SkeletonBlock width="100%" height={0} style={{ paddingBottom: "56%", marginBottom: "12px" }} />
-            <SkeletonLine width="60%" height={13} />
-          </Box>
-
-          {/* Press release paragraphs + a paired image placeholder */}
-          <Box sx={{ display: "flex", flexDirection: "column", gap: "18px", mb: 4 }}>
-            <SkeletonLine width="100%" height={14} />
-            <SkeletonLine width="95%" height={14} />
-            <SkeletonLine width="88%" height={14} />
-            <SkeletonLine width="72%" height={14} />
-          </Box>
-          <Box sx={{ mb: 6 }}>
-            <SkeletonBlock width="100%" height={0} style={{ paddingBottom: "56%" }} />
-          </Box>
-
-          {/* Related works / artists */}
-          <Box sx={{ mb: 4 }}>
-            <SkeletonLine width="60px" height={11} style={{ marginBottom: "12px", opacity: 0.6 }} />
-            <SkeletonLine width="160px" height={15} style={{ marginBottom: "6px" }} />
-            <SkeletonLine width="140px" height={15} style={{ marginBottom: "6px" }} />
-          </Box>
-
-          {/* Metadata section */}
-          <Box sx={{ mt: { xs: 8, md: 10 }, pt: { xs: 4, md: 5 }, borderTop: "1px solid rgba(0,0,0,0.1)" }}>
-            {["Section", "Venue", "Location", "Curator"].map((_, i) => (
-              <Box key={i} sx={{ display: "flex", mb: 1.5, gap: 2, flexDirection: { xs: "column", sm: "row" } }}>
-                <SkeletonLine width="100px" height={13} style={{ opacity: 0.6 }} />
-                <SkeletonLine width={`${120 + i * 40}px`} height={14} style={{ opacity: 0.85 }} />
-              </Box>
-            ))}
-          </Box>
-        </Box>
-      </Box>
-    </PageSkeleton>
+    <Box
+      sx={{
+        backgroundColor: "#ffffff",
+        minHeight: "100vh",
+        width: "100%",
+      }}
+    />
   );
 }
 
@@ -525,7 +476,7 @@ export default function FairDetailPageComponent() {
 
   // --- Render: loading -------------------------------------
   if (isLoading) {
-    return <FairDetailSkeleton isMobile={isMobile} bgColor={colors.background} />;
+    return <FairDetailLoading />;
   }
 
   // --- Render: error ---------------------------------------
@@ -842,68 +793,7 @@ export default function FairDetailPageComponent() {
             </Box>
           )}
 
-          {/* 6. Metadata Info Section — gallery-style info table */}
-          {(() => {
-            const metadataRows = METADATA_ORDER.map((key) => ({
-              key,
-              value: fair[key],
-              label: METADATA_LABELS[key]
-                ? isCn
-                  ? METADATA_LABELS[key].cn
-                  : METADATA_LABELS[key].en
-                : key,
-            })).filter((row) => row.value);
-
-            if (metadataRows.length === 0) return null;
-
-            return (
-              <Box
-                sx={{
-                  mt: {
-                    xs: `${LAYOUT_CONFIG.METADATA_MT_MOBILE}px`,
-                    md: `${LAYOUT_CONFIG.METADATA_MT_DESKTOP}px`,
-                  },
-                  pt: {
-                    xs: `${LAYOUT_CONFIG.METADATA_PT_MOBILE}px`,
-                    md: `${LAYOUT_CONFIG.METADATA_PT_DESKTOP}px`,
-                  },
-                  borderTop: `1px solid ${colors.text}`,
-                }}
-              >
-                {metadataRows.map((row, idx) => (
-                  <Box
-                    key={row.key}
-                    sx={{
-                      display: "flex",
-                      flexDirection: { xs: "column", sm: "row" },
-                      gap: { xs: 0.5, sm: 4 },
-                      py: {
-                        xs: `${LAYOUT_CONFIG.METADATA_ROW_PY_MOBILE}px`,
-                        sm: `${LAYOUT_CONFIG.METADATA_ROW_PY_DESKTOP}px`,
-                      },
-                      borderBottom:
-                        idx === metadataRows.length - 1
-                          ? "none"
-                          : `1px solid ${colors.text}1a`,
-                    }}
-                  >
-                    <Typography
-                      sx={{
-                        ...textSx(TEXT_CONFIG.METADATA_LABEL, ctx),
-                        minWidth: { sm: `${LAYOUT_CONFIG.METADATA_LABEL_MINWIDTH}px` },
-                        flexShrink: 0,
-                      }}
-                    >
-                      {row.label}
-                    </Typography>
-                    <Typography sx={textSx(TEXT_CONFIG.METADATA_VALUE, ctx)}>
-                      {row.value}
-                    </Typography>
-                  </Box>
-                ))}
-              </Box>
-            );
-          })()}
+       
         </motion.div>
       </Container>
 
