@@ -7,7 +7,6 @@ import { LanguageContext } from "@/components/contexts/LanguageContext";
 import { DeviceContext } from "@/components/contexts/DeviceContext";
 import useFont from "@/hooks/useFont";
 import { useReverseTheme } from "@/hooks/useReverseTheme";
-import LoadingLayer from "@/components/animations/LoadingLayer";
 import AlertInfo from "@/components/alerts/AlertInfo";
 import useArtistDetailData from "@/components/pages/artists/hooks/useArtistDetailData";
 import PDFViewer from "@/components/others/PDFViewer";
@@ -914,152 +913,6 @@ function RelatedArtworksGrid({
 }
 
 // ============================================================================
-// Artist Detail Skeleton — matches page layout
-// ============================================================================
-const artistShimmerStyle = {
-  background:
-    "linear-gradient(90deg, rgba(0,0,0,0.06) 25%, rgba(0,0,0,0.15) 37%, rgba(0,0,0,0.06) 63%)",
-  backgroundSize: "400px 100%",
-  animation: "awd-shimmer 1.2s ease infinite",
-  borderRadius: "2px",
-};
-
-function ArtistDetailSkeleton({ isMobile }) {
-  const { colors } = useReverseTheme();
-  const textColor = colors.text;
-  const bgColor = colors.background;
-  const contentOffsetLeft = isMobile ? 0 : CONFIG.PAGE.CONTENT_OFFSET_LEFT;
-  const px = isMobile
-    ? CONFIG.PAGE.PADDING_HORIZONTAL_MOBILE + contentOffsetLeft
-    : CONFIG.PAGE.PADDING_HORIZONTAL + contentOffsetLeft;
-
-  const R = CONFIG.RELATED;
-  const skeletonColumns = isMobile ? R.GRID_COLUMNS_MOBILE : R.GRID_COLUMNS_DESKTOP;
-  const skeletonGap = R.GRID_GAP;
-  const skeletonCount = isMobile ? skeletonColumns * 2 : skeletonColumns * 2;
-
-  return (
-    <div style={{ backgroundColor: bgColor, color: textColor, minHeight: "100vh" }}>
-      <div
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          height: "2px",
-          background: "linear-gradient(90deg, transparent, rgba(0,0,0,0.3), transparent)",
-          backgroundSize: "200% 100%",
-          animation: "awd-shimmer 0.8s ease infinite",
-          zIndex: 9999,
-        }}
-      />
-      <LoadingLayer isLoading />
-      <div
-        style={{
-          boxSizing: "border-box",
-          maxWidth: `${CONFIG.PAGE.MAX_WIDTH}px`,
-          margin: "0 auto",
-          paddingTop: `${isMobile ? CONFIG.PAGE.PADDING_TOP_MOBILE : CONFIG.PAGE.PADDING_TOP_DESKTOP}px`,
-          paddingBottom: `${CONFIG.PAGE.PADDING_BOTTOM}px`,
-          paddingLeft: `${px}px`,
-          paddingRight: `${isMobile ? CONFIG.PAGE.PADDING_HORIZONTAL_MOBILE : CONFIG.PAGE.PADDING_HORIZONTAL}px`,
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            flexDirection: isMobile ? "column" : "row",
-            alignItems: "flex-start",
-            gap: isMobile ? "48px" : CONFIG.ARTWORK.COLUMN_GAP,
-          }}
-        >
-          <div
-            style={{
-              flex: isMobile ? "none" : `0 0 ${CONFIG.BIO.COLUMN_WIDTH}`,
-              maxWidth: isMobile ? "100%" : `${CONFIG.BIO.COLUMN_MAX_WIDTH}px`,
-            }}
-          >
-            <div
-              style={{
-                ...artistShimmerStyle,
-                width: "70%",
-                height: isMobile ? "24px" : "30px",
-                marginBottom: "40px",
-              }}
-            />
-            <div style={{ display: "flex", flexDirection: "column", gap: "28px" }}>
-              <div style={{ ...artistShimmerStyle, width: "100%", height: "14px" }} />
-              <div style={{ ...artistShimmerStyle, width: "95%", height: "14px" }} />
-              <div style={{ ...artistShimmerStyle, width: "85%", height: "14px" }} />
-              <div style={{ ...artistShimmerStyle, width: "70%", height: "14px" }} />
-            </div>
-          </div>
-
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div
-              style={{
-                ...artistShimmerStyle,
-                width: "100%",
-                paddingBottom: "75%",
-                borderRadius: "0",
-              }}
-            />
-          </div>
-        </div>
-
-        <div style={{ marginTop: isMobile ? "64px" : "110px" }}>
-          <div
-            style={{
-              ...artistShimmerStyle,
-              width: "140px",
-              height: "14px",
-              marginBottom: "36px",
-            }}
-          />
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: `repeat(${skeletonColumns}, 1fr)`,
-              columnGap: `${skeletonGap}px`,
-              rowGap: `${isMobile ? 16 : 40}px`,
-            }}
-          >
-            {Array.from({ length: skeletonCount }).map((_, i) => (
-              <div key={i}>
-                <div
-                  style={{
-                    ...artistShimmerStyle,
-                    width: "100%",
-                    paddingBottom: "100%",
-                    marginBottom: "12px",
-                    borderRadius: "0",
-                  }}
-                />
-                <div style={{ ...artistShimmerStyle, width: "60%", height: "10px", marginBottom: "6px" }} />
-                <div style={{ ...artistShimmerStyle, width: "85%", height: "11px", marginBottom: "4px" }} />
-                <div style={{ ...artistShimmerStyle, width: "45%", height: "10px" }} />
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div style={{ marginTop: "90px" }}>
-          <div style={{ ...artistShimmerStyle, width: "120px", height: "14px", marginBottom: "28px" }} />
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} style={{ display: "flex", gap: "16px", alignItems: "baseline" }}>
-                <div style={{ ...artistShimmerStyle, width: `${50 + Math.random() * 30}%`, height: "15px" }} />
-                <div style={{ ...artistShimmerStyle, width: "80px", height: "12px" }} />
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ============================================================================
 // Page component
 // ============================================================================
 export default function ArtistDetailPageComponent({ artistSlug }) {
@@ -1093,7 +946,19 @@ export default function ArtistDetailPageComponent({ artistSlug }) {
     }
   );
 
-  if (isLoading) return <ArtistDetailSkeleton isMobile={isMobile} />;
+  // ── Loading state: no skeleton, no shimmer, no animation — just an empty,
+  // themed placeholder box so there's no flash of unstyled content.
+  if (isLoading) {
+    return (
+      <div
+        style={{
+          backgroundColor: bgColor,
+          color: textColor,
+          minHeight: "100vh",
+        }}
+      />
+    );
+  }
 
   if (hasError) {
     return (
