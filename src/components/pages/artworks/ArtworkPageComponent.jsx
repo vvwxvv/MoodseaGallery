@@ -11,7 +11,6 @@ import { useReverseTheme } from "@/hooks/useReverseTheme";
 import useData from "@/hooks/useData";
 import { filterByLanguage } from "@/utils/filterByLanguage";
 import { normalizeName } from "@/components/pages/artists/hooks/useArtistDetailData";
-import LoadingAnimation from "@/components/animations/LoadingAnimation";
 import AlertInfo from "@/components/alerts/AlertInfo";
 import EnquirePopup from "@/components/popups/EnquirePopup";
 
@@ -178,6 +177,23 @@ function ArtworkCell({ artwork, index, text, isCn, isMobile, onEnquire }) {
   );
 }
 
+// ============================================================================
+// PLAIN WHITE LOADING STATE
+//   No skeleton, no animation, no LoadingLayer — just a blank white screen
+//   while the artist/about + artwork data is being fetched.
+// ============================================================================
+function ArtistDetailLoading() {
+  return (
+    <div
+      style={{
+        backgroundColor: "#ffffff",
+        minHeight: "100vh",
+        width: "100%",
+      }}
+    />
+  );
+}
+
 export default function ArtistDetailPageComponent() {
   const { slug } = useParams();
   const { isCn } = useContext(LanguageContext);
@@ -264,7 +280,7 @@ export default function ArtistDetailPageComponent() {
     };
   }, [rawAbouts, isCn, artistName]);
 
-  if (isLoading) return <LoadingAnimation isLoading />;
+  if (isLoading) return <ArtistDetailLoading />;
   if (hasError) {
     return <AlertInfo message={isCn ? "加载失败" : "Loading Failed"} buttonText={isCn ? "重试" : "Retry"} onBack={refetch} isCn={isCn} />;
   }
