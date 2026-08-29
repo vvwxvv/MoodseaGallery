@@ -6,7 +6,6 @@ import { motion } from "framer-motion";
 
 import useAboutData from "@/components/pages/about/hooks/useAboutData";
 import useGalleryContactData from "@/components/pages/about/hooks/useGalleryContactData";
-import PageSkeleton, { SkeletonBlock, SkeletonLine } from "@/components/skeletons/PageSkeleton";
 import AlertInfo from "@/components/alerts/AlertInfo";
 import { renderArrayContent } from "@/utils/textFormatting";
 import useFont from "@/hooks/useFont";
@@ -189,65 +188,25 @@ const AboutImage = React.memo(function AboutImage({ src, alt, fill = false }) {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// SKELETON  (matches the new left-hugging two-column layout)
+// PLAIN WHITE LOADING STATE
+//   No skeleton lines, no animation, no effects — just a blank white screen
+//   while the data is being fetched.
 // ─────────────────────────────────────────────────────────────────────────────
-const AboutSkeleton = () => (
-  <PageSkeleton bgColor="#fff">
-    <Box
-      sx={{
-        maxWidth: LAYOUT.MAX_WIDTH,
-        ...CONTENT_MX,
-        px: LAYOUT.PAGE_PX,
-        py: LAYOUT.PAGE_PY,
-      }}
-    >
-      <Box
-        sx={{
-          display: { xs: "block", md: "flex" },
-          alignItems: "stretch",
-          gap: LAYOUT.COLUMN_GAP,
-        }}
-      >
-        {/* Left: text (About + Contact) */}
-        <Box sx={{ flex: LAYOUT.TEXT_COLUMN_FLEX, minWidth: 0, maxWidth: LAYOUT.TEXT_MAX_WIDTH }}>
-          <Box sx={{ mb: LAYOUT.ABOUT_TO_CONTACT_GAP }}>
-            <SkeletonLine width="100px" height={24} style={{ marginBottom: "32px" }} />
-            <SkeletonLine width="100%" height={14} style={{ marginBottom: "18px" }} />
-            <SkeletonLine width="92%" height={14} style={{ marginBottom: "18px" }} />
-            <SkeletonLine width="85%" height={14} style={{ marginBottom: "18px" }} />
-            <SkeletonLine width="65%" height={14} />
-          </Box>
-
-          <Box>
-            <SkeletonLine width="140px" height={24} style={{ marginBottom: "32px" }} />
-            <SkeletonLine width="320px" height={14} style={{ marginBottom: "12px" }} />
-            <SkeletonLine width="280px" height={14} style={{ marginBottom: "12px" }} />
-            <SkeletonLine width="300px" height={14} style={{ marginBottom: "12px" }} />
-            <SkeletonLine width="360px" height={14} />
-          </Box>
-        </Box>
-
-        {/* Right: image (fills column height) */}
-        <Box
-          sx={{
-            flex: LAYOUT.IMAGE_COLUMN_FLEX,
-            minWidth: 0,
-            maxWidth: `${IMAGE.MAX_WIDTH}px`,
-            display: { xs: "none", md: "block" },
-          }}
-        >
-          <SkeletonBlock width="100%" height="100%" style={{ minHeight: 420, borderRadius: IMAGE.BORDER_RADIUS }} />
-        </Box>
-      </Box>
-    </Box>
-  </PageSkeleton>
+const PlainWhiteLoading = () => (
+  <Box
+    sx={{
+      backgroundColor: "#fff",
+      minHeight: "100vh",
+      width: "100%",
+    }}
+  />
 );
 
 // ─────────────────────────────────────────────────────────────────────────────
 // STATUS GUARD  (loading / error for both hooks)
 // ─────────────────────────────────────────────────────────────────────────────
 const AboutStatusGuard = ({ isLoading, error, hasData, isCn, onRetry }) => {
-  if (isLoading) return <AboutSkeleton />;
+  if (isLoading) return <PlainWhiteLoading />;
   if (error) {
     return (
       <AlertInfo
@@ -268,7 +227,7 @@ const AboutStatusGuard = ({ isLoading, error, hasData, isCn, onRetry }) => {
 // ─────────────────────────────────────────────────────────────────────────────
 // PAGE COMPONENT
 // ─────────────────────────────────────────────────────────────────────────────
-const AboutPageComponent = () => {
+const ContactPageComponent = () => {
   // ── About data ──
   const {
     isCn,
@@ -388,7 +347,6 @@ const AboutPageComponent = () => {
 
   const imgAlt = isCn ? "画廊肖像" : "Gallery portrait";
 
-
   return (
     <Box sx={{ backgroundColor: colors.background, color: colors.text, minHeight: "100vh" }}>
       {/* Whole-page content block — position controlled by LAYOUT.CONTENT_ALIGN */}
@@ -410,76 +368,84 @@ const AboutPageComponent = () => {
           >
             {/* ── LEFT COLUMN: text (About + Contact) ── */}
             <Box sx={{ flex: LAYOUT.TEXT_COLUMN_FLEX, minWidth: 0, maxWidth: LAYOUT.TEXT_MAX_WIDTH }}>
-
-
               {/* ── CONTACT SECTION ── */}
-              <Box style={{ marginTop:"400px" }}>
-              <motion.div variants={itemVariants}>
-      <h2 style={headingStyle}>{labels.contactTitle}</h2>
+              <Box style={{ marginTop: "400px" }}>
+                <motion.div variants={itemVariants}>
+                  <h2 style={headingStyle}>{labels.contactTitle}</h2>
 
-      {contactInfo ? (
-        <>
-          {contactInfo.openingTime && (
-            <div style={contactLineStyle}>
-              <span style={labelStyle}>{labels.openingLabel}</span>
-              <span>{contactInfo.openingTime}</span>
-            </div>
-          )}
-          {contactInfo.phone && (
-            <div style={contactLineStyle}>
-              <span style={labelStyle}>{labels.telLabel}</span>
-              <span>{contactInfo.phone}</span>
-            </div>
-          )}
-          {contactInfo.email && (
-            <div style={contactLineStyle}>
-              <span style={labelStyle}>{labels.emailLabel}</span>
-              <a href={`mailto:${contactInfo.email}`} style={linkStyle}>
-                {contactInfo.email}
-              </a>
-            </div>
-          )}
-          {contactInfo.address && (
-            <div style={contactLineStyle}>
-              <span style={labelStyle}>{labels.addressLabel}</span>
-              <span>{contactInfo.address}</span>
-            </div>
-          )}
-          {contactInfo.web_url && (
-            <div style={contactLineStyle}>
-              <span style={labelStyle}>Web:</span>
-              <a href={contactInfo.web_url} target="_blank" rel="noopener noreferrer" style={linkStyle}>
-                {contactInfo.web_url}
-              </a>
-            </div>
-          )}
+                  {contactInfo ? (
+                    <>
+                      {contactInfo.openingTime && (
+                        <div style={contactLineStyle}>
+                          <span style={labelStyle}>{labels.openingLabel}</span>
+                          <span>{contactInfo.openingTime}</span>
+                        </div>
+                      )}
+                      {contactInfo.phone && (
+                        <div style={contactLineStyle}>
+                          <span style={labelStyle}>{labels.telLabel}</span>
+                          <span>{contactInfo.phone}</span>
+                        </div>
+                      )}
+                      {contactInfo.email && (
+                        <div style={contactLineStyle}>
+                          <span style={labelStyle}>{labels.emailLabel}</span>
+                          <a href={`mailto:${contactInfo.email}`} style={linkStyle}>
+                            {contactInfo.email}
+                          </a>
+                        </div>
+                      )}
+                      {contactInfo.address && (
+                        <div style={contactLineStyle}>
+                          <span style={labelStyle}>{labels.addressLabel}</span>
+                          <span>{contactInfo.address}</span>
+                        </div>
+                      )}
+                      {contactInfo.web_url && (
+                        <div style={contactLineStyle}>
+                          <span style={labelStyle}>Web:</span>
+                          <a
+                            href={contactInfo.web_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={linkStyle}
+                          >
+                            {contactInfo.web_url}
+                          </a>
+                        </div>
+                      )}
 
-          {/* ── Social media ── */}
-          {contactInfo.socialMedia.length > 0 && (
-            <div style={{ marginTop: SOCIAL.TOP_GAP }}>
-              {contactInfo.socialMedia.map((s, i) => (
-                <div key={`${s.platform || "social"}-${i}`} style={contactLineStyle}>
-                  {s.platform && <span style={labelStyle}>{s.platform}:</span>}
-                  {s.url ? (
-                    <a href={s.url} target="_blank" rel="noopener noreferrer" style={linkStyle}>
-                      {s.account || s.url}
-                    </a>
+                      {/* ── Social media ── */}
+                      {contactInfo.socialMedia.length > 0 && (
+                        <div style={{ marginTop: SOCIAL.TOP_GAP }}>
+                          {contactInfo.socialMedia.map((s, i) => (
+                            <div key={`${s.platform || "social"}-${i}`} style={contactLineStyle}>
+                              {s.platform && <span style={labelStyle}>{s.platform}:</span>}
+                              {s.url ? (
+                                <a
+                                  href={s.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  style={linkStyle}
+                                >
+                                  {s.account || s.url}
+                                </a>
+                              ) : (
+                                <span>{s.account}</span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </>
                   ) : (
-                    <span>{s.account}</span>
+                    <p style={bodyStyle}>
+                      {isCn ? "暂无联系信息" : "No contact information available"}
+                    </p>
                   )}
-                </div>
-              ))}
-            </div>
-          )}
-        </>
-      ) : (
-        <p style={bodyStyle}>{isCn ? "暂无联系信息" : "No contact information available"}</p>
-      )}
-    </motion.div>
-
+                </motion.div>
               </Box>
             </Box>
-
           </Box>
         </motion.div>
       </Box>
@@ -487,4 +453,4 @@ const AboutPageComponent = () => {
   );
 };
 
-export default AboutPageComponent;
+export default ContactPageComponent;
