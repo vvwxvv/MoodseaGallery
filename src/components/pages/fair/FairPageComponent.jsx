@@ -19,7 +19,6 @@ import { LanguageContext } from "@/components/contexts/LanguageContext";
 import { DeviceContext } from "@/components/contexts/DeviceContext";
 import useFont from "@/hooks/useFont";
 import { useReverseTheme } from "@/hooks/useReverseTheme";
-import PageSkeleton, { SkeletonBlock, SkeletonLine } from "@/components/skeletons/PageSkeleton";
 import AlertInfo from "@/components/alerts/AlertInfo";
 import useFairListData from "@/components/pages/fair/hooks/useFairListData";  // fair hook
 import { formatDateRange } from "@/components/pages/fair/utils/fairDates";   // fair date utils
@@ -576,59 +575,19 @@ function FairCard({ fair, textColor, isCn, isHalfWidth = false }) {
 }
 
 // ═════════════════════════════════════════════════════════════════════
-// SKELETON
+// PLAIN WHITE LOADING STATE
+//   No skeleton lines, no blocks, no animation — just a blank white
+//   screen while fair data is being fetched.
 // ═════════════════════════════════════════════════════════════════════
-function FairListSkeleton({ isMobile, bgColor }) {
+function FairsLoading() {
   return (
-    <PageSkeleton bgColor={bgColor}>
-      <div
-        style={{
-          padding: isMobile ? "40px 20px" : "80px 64px",
-          maxWidth: "1440px",
-          margin: "0 auto",
-        }}
-      >
-        {/* Current section heading + dropdown placeholder */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "32px" }}>
-          <SkeletonLine width="180px" height={30} />
-          <div style={{ transform: "translate(20px, -50px)" }}>
-            <SkeletonLine width="150px" height={36} style={{ borderRadius: "0px" }} />
-          </div>
-        </div>
-
-        {/* Current fair card (half width) */}
-        <div style={{ marginBottom: "64px", maxWidth: isMobile ? "100%" : "48%" }}>
-          <SkeletonBlock width="100%" height={0} style={{ paddingBottom: "66.67%", marginBottom: "12px" }} />
-          <SkeletonLine width="65%" height={22} style={{ marginBottom: "4px" }} />
-          <SkeletonLine width="40%" height={15} />
-        </div>
-
-        {/* Divider */}
-        <div style={{ borderTop: "1px solid rgba(0,0,0,0.1)", margin: "0 0 64px 0", opacity: 0.8 }} />
-
-        {/* Past section heading */}
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "32px" }}>
-          <SkeletonLine width="100px" height={30} />
-        </div>
-
-        {/* Past fairs grid */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: isMobile ? "1fr" : "repeat(2, 1fr)",
-            gap: isMobile ? "48px" : "40px 64px",
-          }}
-        >
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i}>
-              <SkeletonBlock width="100%" height={0} style={{ paddingBottom: "66.67%", marginBottom: "12px" }} />
-              <SkeletonLine width={`${55 + (i % 3) * 20}%`} height={22} style={{ marginBottom: "4px" }} />
-              <SkeletonLine width="40%" height={15} />
-            </div>
-          ))}
-        </div>
-      </div>
-    </PageSkeleton>
+    <div
+      style={{
+        backgroundColor: "#ffffff",
+        minHeight: "100vh",
+        width: "100%",
+      }}
+    />
   );
 }
 
@@ -719,7 +678,7 @@ export default function FairsPage() {
     </div>
   );
 
-  if (isLoading) return <FairListSkeleton isMobile={isMobile} bgColor={bgColor} />;
+  if (isLoading) return <FairsLoading />;
 
   if (hasError) {
     return (
