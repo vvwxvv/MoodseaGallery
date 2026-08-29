@@ -54,7 +54,7 @@ const FAIRS_TEXT = {
 //  QUICK EDIT:
 //    • Section heading (Current/Past/Year)  → TYPOGRAPHY.SECTION_HEADING
 //        ↳ synced to News/Exhibition heading (family via useFont() in the
-//          component, size 28/18, weight 500, 0.01em).
+//          component, size 25/18, weight 500, 0.01em).
 //    • Card "type" tag                       → TYPOGRAPHY.CARD_TYPE (12px)
 //    • Card title / date                     → TYPOGRAPHY.CARD_TITLE / CARD_DATE
 // ═════════════════════════════════════════════════════════════════════
@@ -62,8 +62,8 @@ const FAIRS_CONFIG = {
   TYPOGRAPHY: {
     // ▸▸ SYNCED WITH NEWS / EXHIBITION HEADING ◂◂
     SECTION_HEADING: {
-      fontSize: "28px",        // desktop (News heading − 2px)
-      fontSizeMobile: "18px",  // mobile
+      fontSize: "25px",        // desktop — matches News heading exactly
+      fontSizeMobile: "18px",  // mobile  — matches News heading exactly
       fontWeight: 500,
       lineHeight: "normal",
       letterSpacing: "0.01em",
