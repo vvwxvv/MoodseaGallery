@@ -49,12 +49,10 @@ const Footer = () => {
       className="fixed bottom-0 left-0 w-full z-50"
       style={{
         backgroundColor: colors.background,
-        borderTop: `1px solid ${colors.border || '#e0e0e0'}`,
-        boxShadow: '0 -2px 10px rgba(0, 0, 0, 0.1)'
       }}
     >
       <div 
-        className="flex items-center justify-center px-4 py-2"
+        className="flex items-center justify-center px-2 py-1"
         style={{ backgroundColor: colors.background }}
       >
         <div 
@@ -63,6 +61,7 @@ const Footer = () => {
             color: colors.text,
             fontFamily: contentFontFamily,
             fontSize: '11px',
+            boxShadow: '0 -2px 10px rgba(219, 219, 219, 0.1)',
             backgroundColor: colors.background
           }}
         >
