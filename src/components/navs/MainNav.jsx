@@ -34,6 +34,11 @@ import { useAsyncAction } from "@/hooks/useAsyncAction";
 // this nav uses, edit FONT.ROLE. To change what font FILE that role
 // resolves to, edit lib/typography.js — not this file.
 //
+// Current resolution for ROLE "navLink": zh → PingFang-Regular (language
+// default); en → Jost-Medium (display face, TYPE_SCALE.navLink.en in
+// lib/typography.js). Make sure the Jost-Medium @font-face is declared in
+// the site's global CSS or this will silently fall back to system sans.
+//
 const NAV_CONFIG = {
   // ── Font ─────────────────────────────────────────────────────────
   FONT: {
@@ -57,7 +62,7 @@ const NAV_CONFIG = {
   LOGO: {
     SRC: "/moodsea_gallery_logo.png",
     ALT: "MOODSEA GALLERY",
-    WIDTH_DESKTOP: "300px",
+    WIDTH_DESKTOP: "270px",
     WIDTH_MOBILE: "200px",
     HEIGHT_DESKTOP: "65px",
     HEIGHT_MOBILE: "55px",
@@ -69,10 +74,10 @@ const NAV_CONFIG = {
 
   // ── Desktop nav links ────────────────────────────────────────────
   LINK: {
-    FONT_SIZE: "18px",
+    FONT_SIZE: "17px",
     FONT_WEIGHT: 500,
-    LINE_HEIGHT: "16px",
-    LETTER_SPACING: "0.04em",
+    LINE_HEIGHT: "15px",
+    LETTER_SPACING: "0.03em",
     TEXT_TRANSFORM: "none",
     GAP: "clamp(16px, 2.5vw, 32px)",
     COLOR: null, // null → falls back to theme text color
@@ -110,7 +115,7 @@ const NAV_CONFIG = {
     BACKDROP_Z_OFFSET: 100, // backdrop z-index = DRAWER.Z_INDEX - this
     BACKDROP_FADE_DURATION: 0.2,
 
-    LINK_FONT_SIZE: "24px",
+    LINK_FONT_SIZE: "23px",
     LINK_FONT_WEIGHT: 600,
     LINK_LETTER_SPACING: "0.02em",
     LINK_LINE_HEIGHT: "1.4",
