@@ -1,24 +1,22 @@
 import React, { useContext } from "react";
 import { motion } from 'framer-motion';
-import { usePathname } from 'next/navigation';
 import { LanguageContext } from "../contexts/LanguageContext";
 import useFont from "@/hooks/useFont";
 import useBackgroundColor from "@/hooks/useBackgroundColor";
-import ThemeSwitcher from "@/components/switchers/ThemeSwitcher";
 import { useReverseTheme } from '@/hooks/useReverseTheme';
 import { DeviceContext } from "@/components/contexts/DeviceContext";
+import footerConfig from "@/data/footer.json";   // 导入配置文件
 
 const Footer = () => {
   const { isCn, isLoading } = useContext(LanguageContext);
   const { isMobile } = useContext(DeviceContext);
   const { contentFontFamily } = useFont('13px');
   const { colors } = useReverseTheme();
-  
-  // Background color hook
+
   const { getBackgroundStyle } = useBackgroundColor('transparent', {
     useCustomColor: true
   });
-  
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -30,19 +28,18 @@ const Footer = () => {
     }
   };
 
-  // Get person name from environment variables based on language
-  const personName = isCn 
-    ? (process.env.NEXT_PUBLIC_APP_PERSON_CN || '')
-    : (process.env.NEXT_PUBLIC_APP_PERSON_EN || '');
-  
-  // Get rights reserved text based on language
-  const rightsReserved = isCn ? '保留所有权利' : 'All rights reserved';
-  
-  // Create copyright with current year and person name
+  // 读取当前语言的配置
+  const langData = isCn ? footerConfig.cn : footerConfig.en;
+  const { startYear, companyName, rightsText } = langData;
   const currentYear = new Date().getFullYear();
-  const copyright = isLoading 
-    ? `© ${currentYear} ${isCn ? '' : ''}. ${rightsReserved}.`
-    : `© ${currentYear} ${personName}. ${rightsReserved}.`;
+
+  // 构造版权文本
+  const yearRange = startYear === currentYear
+    ? `${currentYear}`
+    : `${startYear}–${currentYear}`;
+  const copyright = isLoading
+    ? `© ${currentYear} ${isCn ? '' : ''}. ${rightsText}.`   // 加载中占位（保留原逻辑）
+    : `© ${yearRange} ${companyName}. ${rightsText}.`;
 
   return (
     <motion.div
@@ -65,7 +62,7 @@ const Footer = () => {
           style={{
             color: colors.text,
             fontFamily: contentFontFamily,
-            fontSize: '13px',
+            fontSize: '11px',
             backgroundColor: colors.background
           }}
         >
@@ -77,4 +74,3 @@ const Footer = () => {
 };
 
 export default Footer;
-
