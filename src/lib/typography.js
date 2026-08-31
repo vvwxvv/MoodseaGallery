@@ -49,6 +49,9 @@ export const FONT_FAMILIES = {
   bigCaslon: {
     medium: 'BigCaslon-Medium',
   },
+  jost: {                    // Nav link face (en only) → Jost-Medium
+    medium: 'Jost-Medium',
+  },
   iowanOldStyle: {
     roman: 'IowanOldStyle-Roman',
     italic: 'IowanOldStyle-Italic',
@@ -74,6 +77,7 @@ export const CJK_FALLBACK = 'PingFang-Regular';
 export const TYPEFACE_GENERIC = {
   palatino: 'serif',
   bigCaslon: 'serif',
+  jost: 'sans-serif',
   iowanOldStyle: 'serif',
 };
 
@@ -81,6 +85,7 @@ export const TYPEFACE_GENERIC = {
 export const TYPEFACE_DEFAULT_VARIANT = {
   palatino: 'regular',
   bigCaslon: 'medium',
+  jost: 'medium',
   iowanOldStyle: 'roman',
 };
 
@@ -110,11 +115,15 @@ export const TYPE_SCALE = {
     en: { font: 'bigCaslon', weight: 'regular', fontSize: 56, lineHeight: 67.2, letterSpacing: 100 / 1000 },
   },
 
-  // NAV — weight-only (picks the font FILE). All other nav styling lives in
-  // NAV_CONFIG in components/nav/MainNav.js.
+  // NAV — picks the font FILE. All other nav styling lives in NAV_CONFIG in
+  // components/nav/MainNav.js.
+  //   zh → stays on the PingFang language default (weight-only).
+  //   en → Jost-Medium display face. `weight: 'regular'` is kept only as the
+  //        fallback used if 'jost' ever fails to resolve (see TYPE_SCALE
+  //        header note above).
   navLink: {
     zh: { weight: 'regular' },
-    en: { weight: 'regular' },
+    en: { font: 'jost', variant: 'medium', weight: 'regular' },
   },
 
   // MANAGER NAV — weight-only. Sizing/spacing inline in ManagerNav.js.
