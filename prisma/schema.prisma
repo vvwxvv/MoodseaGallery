@@ -129,6 +129,7 @@ model Bibliography{
   year String?
   date String?
   published_at String?
+  related_artist        String[]
   pdf_url String?
   web_url String?
   video_url String?
@@ -256,5 +257,6 @@ model Subscribe {
   isActive Boolean @default(true)
   createdAt DateTime @default(now())
 }
+
 
 
