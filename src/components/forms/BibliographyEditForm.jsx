@@ -30,6 +30,9 @@ const getDefaultValues = (item, isCn) => {
     related_gallery_exhibition: Array.isArray(item?.related_gallery_exhibition) 
       ? item.related_gallery_exhibition 
       : [],
+    related_artist: Array.isArray(item?.related_artist)
+      ? item.related_artist
+      : [],
     order: String(item?.order ?? ""),
     language: item?.language || (isCn ? "CN" : "EN"),
     mark: item?.mark || "",
