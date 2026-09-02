@@ -14,6 +14,7 @@ export const bibliographySchema = z.object({
   web_url: z.string().nullable().optional(),
   video_url: z.string().nullable().optional(),
   related_gallery_exhibition: z.array(z.string()).optional(),
+  related_artist: z.array(z.string()).optional(),
   order: z.string().optional(),
   mark: z.string().optional(),
   language: z.string().optional(),
