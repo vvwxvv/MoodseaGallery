@@ -66,6 +66,7 @@ export default function BibliographyForm() {
     web_url: "",
     video_url: "",
     related_gallery_exhibition: [],
+    related_artist: [],
     mark: "",
     order: "",
     language: isCn ? "CN" : "EN",
