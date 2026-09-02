@@ -6,6 +6,7 @@ import { LanguageContext } from '@/components/contexts/LanguageContext';
 
 /* ---------- reusable component ---------- */
 import TabbedFormManager from '@/components/forms/managers/TabbedFormManager';
+import MultiRelationSelector from '@/components/forms/selectors/MultiRelationSelector';
 
 /* ---------- centralised labels ---------- */
 // 若你已存在 bibliographyFormLabels 可导入，此处直接定义本地对象保持与 Artwork 一致风格
@@ -14,6 +15,7 @@ const BIBLIOGRAPHY_FORM_LABELS = {
     basic: { en: 'Basic Information', cn: '基本信息' },
     media: { en: 'Media Links', cn: '媒体链接' },
     relations: { en: 'Relations', cn: '关联信息' },
+    related_artist: { en: 'Related Artists', cn: '相关艺术家' },
     metadata: { en: 'Metadata', cn: '元数据' },
   },
   fields: {
@@ -29,6 +31,7 @@ const BIBLIOGRAPHY_FORM_LABELS = {
     web_url: { en: 'Website URL', cn: '网页链接' },
     video_url: { en: 'Video URL', cn: '视频链接' },
     related_gallery_exhibition: { en: 'Related Gallery Exhibitions', cn: '相关画廊展览' },
+    related_artist: { en: 'Related Artists', cn: '相关艺术家' },
     order: { en: 'Order', cn: '排序' },
     language: { en: 'Language', cn: '语言' },
     mark: { en: 'Mark', cn: '标记' },
@@ -48,6 +51,11 @@ const BIBLIOGRAPHY_SCHEMA = [
     fieldName: 'related_gallery_exhibition',
     rows: 1,
     multiline: false,
+  },
+  {
+    key: 'related_artist',
+    type: 'custom',
+    renderKey: 'relatedArtistSection',
   },
   {
     key: 'basic',
@@ -151,9 +159,35 @@ const BibliographyFormSection = ({
     );
   };
 
+  /* ---------- 关联艺术家数据源（跨实体，从 About 取艺术家名） ---------- */
+  const relatedArtistSources = [
+    {
+      endpoint: 'about',
+      labelKey: 'artist',
+      languageField: 'language',
+      matchLanguage: true,
+      unique: true,
+    },
+  ];
+
   const customRenderers = {
     relatedMediaSelectors,
     relatedContentSelectors,
+    relatedArtistSection: () => (
+      <MultiRelationSelector
+        name="related_artist"
+        label={getLabelFunc('related_artist')}
+        control={form.control}
+        sources={relatedArtistSources}
+        disabled={disabled}
+        isCn={isCn}
+        colors={colors}
+        placeholder={
+          isCn ? '选择或输入相关艺术家' : 'Select or type related artists'
+        }
+        onChange={(vals) => onFieldChange?.('related_artist', vals)}
+      />
+    ),
   };
 
   return (
