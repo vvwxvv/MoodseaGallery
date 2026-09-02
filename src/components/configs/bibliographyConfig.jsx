@@ -29,6 +29,7 @@ export const bibliographyLabels = {
     web_url: { en: 'Website URL', cn: '网页链接' },
     video_url: { en: 'Video URL', cn: '视频链接' },
     related_gallery_exhibition: { en: 'Related Gallery Exhibitions', cn: '相关画廊展览' },
+    related_artist: { en: 'Related Artists', cn: '相关艺术家' },
     order: { en: 'Order', cn: '排序' },
     language: { en: 'Language', cn: '语言' },          // 新增
     mark: { en: 'Mark', cn: '标记' },                  // 新增
@@ -92,6 +93,7 @@ export const getFieldGroupsBibliography = (isCn = false) => {
       title: isCn ? '关联信息' : 'Relations',
       fields: [
         { key: "related_gallery_exhibition" },
+        { key: "related_artist" },
       ]
     },
     META: {
@@ -169,11 +171,11 @@ export const bibliographyConfig = {
     filterableFields: ['type', 'language'],                // 新增 language 筛选
     mainFields: ['title', 'author', 'year'],
     expandedFields: ['subtitle', 'cover_img_url', 'pdf_url', 'web_url', 'video_url'],
-    arrayFields: ['related_gallery_exhibition'],
+    arrayFields: ['related_gallery_exhibition', 'related_artist'],
     validFields: [
       'id', 'title', 'subtitle', 'cover_img_url', 'author', 'type',
       'year', 'date', 'published_at', 'pdf_url', 'web_url', 'video_url',
-      'related_gallery_exhibition', 'order', 'language', 'mark' // 新增 language, mark
+      'related_gallery_exhibition', 'related_artist', 'order', 'language', 'mark' // 新增 language, mark
     ],
   },
 
