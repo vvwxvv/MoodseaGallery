@@ -74,7 +74,7 @@ const FAIRS_CONFIG = {
     CARD_TITLE: {
       fontSize: "22px",
       fontWeight: 500,
-      lineHeight: "34px",
+      lineHeight: "1",
       letterSpacing: "0px",
       color: "theme",
       opacity: 1,
@@ -167,7 +167,7 @@ const FAIRS_CONFIG = {
     TYPE_GAP_FROM_TITLE: "16px",
 
     UNDERLINE_HEIGHT: "1px",
-    UNDERLINE_OFFSET_BOTTOM: "-2px",
+    UNDERLINE_OFFSET_BOTTOM: "0px",
     UNDERLINE_DURATION: 0.3,
   },
 
