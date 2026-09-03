@@ -28,7 +28,6 @@ const PDFViewerButton = ({
   style = {},
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [hovered, setHovered] = useState(false);
   const { isCn } = useContext(LanguageContext);
 
   const handlePDFOpen = useCallback(
@@ -56,8 +55,6 @@ const PDFViewerButton = ({
         type="button"
         onClick={handlePDFOpen}
         disabled={isDisabled}
-        onMouseEnter={() => !isDisabled && setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
         style={{
           fontSize: "12px",
           padding: "4px 0",
@@ -66,7 +63,7 @@ const PDFViewerButton = ({
           color: isDisabled ? `${colors.text}50` : colors.text,
           cursor: isDisabled ? "not-allowed" : "pointer",
           fontFamily,
-          fontWeight: hovered ? "bold" : "normal",
+          fontWeight: "normal",
           textDecoration: "underline",
           textUnderlineOffset: "4px",
           transition: "all 0.2s ease",
@@ -932,8 +929,6 @@ const RelatedArtworkCard = memo(function RelatedArtworkCard({
                 width: "100%",
                 height: "auto",
                 display: "block",
-                transform: isHovered ? `scale(${R.HOVER_SCALE})` : "scale(1)",
-                transition: "transform 0.4s ease-in-out",
               }}
             />
           ) : (
