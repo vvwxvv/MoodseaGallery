@@ -200,6 +200,16 @@ export const TYPE_SCALE = {
     en: { weight: 'medium' },
   },
 
+  // ── About page (weight-only; sizing in About CONFIG.text.body) ──────────
+  // Centered single-column layout: brand logo image + body copy only, no
+  // heading. Language-default face (PingFang / Avenir Next), regular weight —
+  // matches the site's generic `body` / `bodyText` convention. If you later
+  // reintroduce an "关于 / About" heading, add an `aboutHeading` role here.
+  aboutBody: {                           // MOODSEA intro paragraphs (caption + introductions)
+    zh: { weight: 'regular' },
+    en: { weight: 'regular' },
+  },
+
   // ── Exhibition & Fair detail pages (shared; sizing in TEXT/LAYOUT_CONFIG)─
   detailTitle: {
     zh: { weight: 'medium' },
