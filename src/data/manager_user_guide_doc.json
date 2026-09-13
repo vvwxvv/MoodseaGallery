@@ -1,0 +1,1939 @@
+{
+  "title": {
+    "en": "Manager User Guide",
+    "cn": "后台使用指南"
+  },
+  "subtitle": {
+    "en": "The complete manual for the Moodsea Gallery manager — content, images, ordering and relations, written for daily use.",
+    "cn": "Moodsea Gallery 后台完整手册 — 内容、图片、排序与关联的日常操作说明。"
+  },
+  "badge": {
+    "en": "Guide",
+    "cn": "指南"
+  },
+  "searchPlaceholder": {
+    "en": "Search the guide…",
+    "cn": "搜索指南…"
+  },
+  "noResults": {
+    "en": "No chapter matches that search.",
+    "cn": "没有匹配的章节。"
+  },
+  "backLabel": {
+    "en": "Outline",
+    "cn": "目录"
+  },
+  "updated": "2026-09-13",
+  "parts": [
+    {
+      "id": "basics",
+      "title": {
+        "en": "Basics",
+        "cn": "基础"
+      }
+    },
+    {
+      "id": "content",
+      "title": {
+        "en": "Content types",
+        "cn": "内容类型"
+      }
+    },
+    {
+      "id": "media",
+      "title": {
+        "en": "Images & media",
+        "cn": "图片与媒体"
+      }
+    },
+    {
+      "id": "organise",
+      "title": {
+        "en": "Ordering, grouping & links",
+        "cn": "排序、分组与关联"
+      }
+    },
+    {
+      "id": "maintain",
+      "title": {
+        "en": "Maintenance",
+        "cn": "日常维护"
+      }
+    }
+  ],
+  "sections": [
+    {
+      "id": "getting-started",
+      "group": "basics",
+      "icon": "book",
+      "title": {
+        "en": "Getting started",
+        "cn": "快速开始"
+      },
+      "summary": {
+        "en": "What the manager is, how it is laid out, and the three areas you touch on every page.",
+        "cn": "后台的定位、整体结构，以及每页都会用到的三个区域。"
+      },
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": {
+            "en": "The manager is the private authoring side of the website. Every content type has its own page, and every page works the same way: a title bar, a collapsible control panel, and the records themselves grouped into boxes.",
+            "cn": "后台是网站的私有编辑端。每种内容类型拥有独立页面，且操作方式统一：标题栏、可折叠控制面板，以及按分组展示的记录。"
+          }
+        },
+        {
+          "type": "kv",
+          "rows": [
+            {
+              "k": {
+                "en": "Top bar",
+                "cn": "顶部栏"
+              },
+              "v": {
+                "en": "Content type name on the left; on the right ＋ (create) and the grid / list view toggle. The 中文 / EN switch sits in the very top-right corner of the site.",
+                "cn": "左侧为内容类型名称；右侧依次是 ＋（新建）与 网格/列表 切换。中文/EN 语言切换位于网站最右上角。"
+              }
+            },
+            {
+              "k": {
+                "en": "Search & filter panel",
+                "cn": "搜索与筛选面板"
+              },
+              "v": {
+                "en": "Collapsed by default under the title. It contains: the action buttons, the pinned controls (Group by, the order-page shortcut, the image Sync button), the search field, the filter dropdowns and the A–Z bar.",
+                "cn": "默认折叠在标题下方。包含：操作按钮、固定控件（分组、排序页入口、图片同步按钮）、搜索框、筛选下拉与 A–Z 字母栏。"
+              }
+            },
+            {
+              "k": {
+                "en": "Content area",
+                "cn": "内容区"
+              },
+              "v": {
+                "en": "Your records, grouped into collapsible boxes. Every card shows its image, title, key fields, and edit / delete actions along the bottom. The group header carries a size slider for that group.",
+                "cn": "记录以可折叠分组呈现。每张卡片显示图片、标题与关键字段，底部有编辑与删除操作。分组标题带有该组的卡片大小滑块。"
+              }
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "items": [
+            {
+              "en": "Everything you change is saved by the save button only — navigating away discards an edited but unsaved form.",
+              "cn": "所有修改仅在点击保存后生效 — 未保存就离开页面会丢失改动。"
+            },
+            {
+              "en": "There is no undo. Before bulk operations, export a copy (see Batch edit & export).",
+              "cn": "系统没有撤销功能。批量操作前请先导出备份（见“批量编辑与导出”）。"
+            },
+            {
+              "en": "This guide is always one click away: the vertical “Guide” tab on the right edge opens the document you are reading.",
+              "cn": "本指南随时可用：右侧边缘的竖排“指南”按钮即可打开当前文档。"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "manager-layout",
+      "group": "basics",
+      "icon": "boxes",
+      "title": {
+        "en": "How a page is organised",
+        "cn": "页面结构"
+      },
+      "summary": {
+        "en": "The controls, the view modes and the card anatomy in detail.",
+        "cn": "控件、视图模式与卡片结构的详细说明。"
+      },
+      "blocks": [
+        {
+          "type": "kv",
+          "rows": [
+            {
+              "k": {
+                "en": "Search & filter",
+                "cn": "搜索与筛选"
+              },
+              "v": {
+                "en": "Opens the tools: Batch Edit and Export buttons, the search box, dropdown filters (Mark, Tag, Type, Tag source …) and the alphabet bar with per-letter counts.",
+                "cn": "展开工具区：批量编辑与导出按钮、搜索框、下拉筛选（标记、标签、类型、标签来源…）以及带数量的字母栏。"
+              }
+            },
+            {
+              "k": {
+                "en": "Grid view",
+                "cn": "网格视图"
+              },
+              "v": {
+                "en": "Cards in a responsive grid — best for images and visual review. Drag the slider in a group header to resize that group's cards.",
+                "cn": "自适应网格卡片 — 适合浏览图片与整体审阅。拖动分组标题中的滑块可调整该组卡片大小。"
+              }
+            },
+            {
+              "k": {
+                "en": "List view",
+                "cn": "列表视图"
+              },
+              "v": {
+                "en": "Compact rows with the summary fields visible and an expand arrow for the rest. Best for checking many records quickly.",
+                "cn": "紧凑行显示摘要字段，展开箭头查看其余字段。适合快速核对大量记录。"
+              }
+            },
+            {
+              "k": {
+                "en": "Card actions",
+                "cn": "卡片操作"
+              },
+              "v": {
+                "en": "Pencil = edit (opens the full form), bin = delete (asks for confirmation). Cards with media have an expand control for the full-size preview.",
+                "cn": "铅笔 = 编辑（打开完整表单），垃圾桶 = 删除（会先确认）。含媒体的卡片可展开查看大图。"
+              }
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "tone": "tip",
+          "text": {
+            "en": "Group headers collapse. Keep everything collapsed and open only the artist / year you are working on — it makes a 500-record page feel small.",
+            "cn": "分组可折叠。把大部分组收起，只展开当前处理的艺术家或年份，能让数百条记录的页面变得轻量。"
+          }
+        }
+      ]
+    },
+    {
+      "id": "search-filter",
+      "group": "basics",
+      "icon": "search",
+      "title": {
+        "en": "Finding records",
+        "cn": "查找记录"
+      },
+      "summary": {
+        "en": "Search, filters and the A–Z bar — and how to combine them.",
+        "cn": "搜索、筛选与字母栏，以及如何组合使用。"
+      },
+      "blocks": [
+        {
+          "type": "list",
+          "items": [
+            {
+              "en": "Search matches the important text fields of the current page (for images: tag_en, tag_cn, caption, mark, type, tag source).",
+              "cn": "搜索会匹配当前页的主要文本字段（图片页为 tag_en、tag_cn、说明、标记、类型、标签来源）。"
+            },
+            {
+              "en": "Dropdown filters stack. Filtering by Mark = needs_review and Type = exhibition gives you the exact queue of work left.",
+              "cn": "多个下拉筛选可叠加。例如 标记=需审核 且 类型=展览，即可得到待办清单。"
+            },
+            {
+              "en": "The A–Z bar filters by the first letter and shows how many records sit under each letter — useful to spot gaps.",
+              "cn": "字母栏按首字母筛选并显示各字母下的记录数量，便于发现空缺。"
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "tone": "info",
+          "text": {
+            "en": "Filters only affect what you see. They never modify data — but they DO affect Batch Edit and Export, which work on the filtered set.",
+            "cn": "筛选只影响显示，不会修改数据 — 但“批量编辑”和“导出”只作用于筛选后的结果。"
+          }
+        },
+        {
+          "type": "note",
+          "tone": "warning",
+          "text": {
+            "en": "Clear the filters (reset them to “All”) before exporting everything, otherwise you will export just the filtered slice.",
+            "cn": "如需导出全部，请先将筛选重置为“全部”，否则只会导出筛选后的部分。"
+          }
+        }
+      ]
+    },
+    {
+      "id": "language-pairs",
+      "group": "basics",
+      "icon": "globe",
+      "title": {
+        "en": "Language: always work in pairs",
+        "cn": "语言：始终成对维护"
+      },
+      "summary": {
+        "en": "The single most important convention in this database.",
+        "cn": "本数据库中最重要的一条约定。"
+      },
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": {
+            "en": "English and Chinese are separate records, not two fields of one record. An English artwork and a Chinese artwork are two rows that describe the same work. The public site shows only the records whose language matches the visitor's language.",
+            "cn": "中英文是各自独立的记录，而不是同一条记录的两个字段。英文作品与中文作品是描述同一作品的两条记录。前台只会显示与访客语言一致的记录。"
+          }
+        },
+        {
+          "type": "kv",
+          "rows": [
+            {
+              "k": {
+                "en": "Keep consistent",
+                "cn": "保持一致"
+              },
+              "v": {
+                "en": "For a pair, keep the same artist, year, size and image URL. Only the text fields and the Language value differ.",
+                "cn": "成对记录应保持艺术家、年份、尺寸与图片地址一致，仅文本字段与“语言”不同。"
+              }
+            },
+            {
+              "k": {
+                "en": "Images are NOT split",
+                "cn": "图片不区分语言"
+              },
+              "v": {
+                "en": "One image row holds tag_en AND tag_cn. It is shared by the EN and CN records — do not create the same image twice.",
+                "cn": "一条图片记录同时包含 tag_en 与 tag_cn，供中英文记录共用 — 不要重复添加同一张图片。"
+              }
+            },
+            {
+              "k": {
+                "en": "Changing language",
+                "cn": "修改语言"
+              },
+              "v": {
+                "en": "Switching the Language of an existing record moves it to the other site. It does not translate anything.",
+                "cn": "修改已有记录的语言会把它移到另一语言站点，并不会自动翻译。"
+              }
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "tone": "tip",
+          "text": {
+            "en": "Shortcut: after saving the EN record, create the CN one immediately while the details are fresh, then add both to the same exhibition relation.",
+            "cn": "小技巧：保存英文记录后立刻创建中文记录，趁信息新鲜，并把两者加入同一展览关联。"
+          }
+        }
+      ]
+    },
+    {
+      "id": "create-edit",
+      "group": "basics",
+      "icon": "edit",
+      "title": {
+        "en": "Creating & editing",
+        "cn": "新增与编辑"
+      },
+      "summary": {
+        "en": "The tabbed form, field by field, and what happens on save.",
+        "cn": "分标签表单的逐项说明与保存行为。"
+      },
+      "blocks": [
+        {
+          "type": "steps",
+          "items": [
+            {
+              "en": "＋ in the top bar creates a new record; the pencil on a card opens it for editing.",
+              "cn": "顶部栏的 ＋ 新建记录；卡片上的铅笔图标打开编辑。"
+            },
+            {
+              "en": "Work through the tabs — Basic Info, Details, Media Links, Metadata, Relations, and Ordering last.",
+              "cn": "依次完成各标签：基本信息、详情、媒体链接、元数据、关联，最后是排序。"
+            },
+            {
+              "en": "Press Save at the bottom. The list refreshes and the record appears in its group.",
+              "cn": "点击底部的保存按钮。列表会刷新，记录出现在对应分组中。"
+            }
+          ]
+        },
+        {
+          "type": "kv",
+          "rows": [
+            {
+              "k": {
+                "en": "Text fields",
+                "cn": "文本字段"
+              },
+              "v": {
+                "en": "Use normal sentence case. Titles should match exactly between the record and its image tag so the two link up.",
+                "cn": "使用正常大小写。标题应与对应图片标签完全一致，以便自动关联。"
+              }
+            },
+            {
+              "k": {
+                "en": "Language dropdown",
+                "cn": "语言下拉"
+              },
+              "v": {
+                "en": "English / Chinese. Required in practice — records without a language show up on both sites.",
+                "cn": "英文/中文。实际使用中必填 — 未设置语言的记录会在两个站点都出现。"
+              }
+            },
+            {
+              "k": {
+                "en": "Year dropdown",
+                "cn": "年份下拉"
+              },
+              "v": {
+                "en": "1980 → current year, newest first. Type-free: pick from the list.",
+                "cn": "1980 至当前年份，最新在上。直接选择即可，无需输入。"
+              }
+            },
+            {
+              "k": {
+                "en": "Multiline fields",
+                "cn": "多行字段"
+              },
+              "v": {
+                "en": "Caption and introduction accept several paragraphs. One idea per paragraph; no manual line breaks.",
+                "cn": "说明与介绍支持多段。每段一个要点，不要手动换行。"
+              }
+            },
+            {
+              "k": {
+                "en": "Deleting",
+                "cn": "删除"
+              },
+              "v": {
+                "en": "The bin icon asks for confirmation. Deleting a record leaves other records untouched — check whether something still links to it.",
+                "cn": "垃圾桶图标会先确认。删除不会影响其他记录 — 但请确认没有内容仍在引用它。"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "artworks",
+      "group": "content",
+      "icon": "layers",
+      "title": {
+        "en": "Artworks",
+        "cn": "作品"
+      },
+      "summary": {
+        "en": "The core record of the gallery — and the three different positions one work can hold.",
+        "cn": "画廊的核心记录，以及一件作品可拥有的三种不同排序。"
+      },
+      "blocks": [
+        {
+          "type": "table",
+          "head": [
+            {
+              "en": "Field",
+              "cn": "字段"
+            },
+            {
+              "en": "What to put",
+              "cn": "填写内容"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "en": "artist",
+                "cn": "艺术家"
+              },
+              {
+                "en": "Exactly the name used on the artist page (spelling matters for grouping).",
+                "cn": "与艺术家页一致的名字（拼写影响分组）。"
+              }
+            ],
+            [
+              {
+                "en": "title / year / medium / size",
+                "cn": "标题 / 年份 / 媒介 / 尺寸"
+              },
+              {
+                "en": "As shown on the label: “Oil on canvas”, “50×60 cm”.",
+                "cn": "与展签一致：如“布面油画”、“50×60 cm”。"
+              }
+            ],
+            [
+              {
+                "en": "series",
+                "cn": "系列"
+              },
+              {
+                "en": "Optional grouping name for works made together.",
+                "cn": "可选，用于归组同一系列作品。"
+              }
+            ],
+            [
+              {
+                "en": "sold",
+                "cn": "售出"
+              },
+              {
+                "en": "Yes / No — drives the sold badge on the public page.",
+                "cn": "是/否 — 决定前台是否显示已售标记。"
+              }
+            ],
+            [
+              {
+                "en": "cover_img_url",
+                "cn": "封面图"
+              },
+              {
+                "en": "The URL of the image row (see the Images chapters).",
+                "cn": "图片记录中的地址（见图片章节）。"
+              }
+            ],
+            [
+              {
+                "en": "related_gallery_exhibition",
+                "cn": "相关画廊展览"
+              },
+              {
+                "en": "Multi-select of existing exhibitions the work appeared in.",
+                "cn": "多选，来自已存在的展览。"
+              }
+            ],
+            [
+              {
+                "en": "order.*",
+                "cn": "排序"
+              },
+              {
+                "en": "Three separate positions — set them on the order page, not here.",
+                "cn": "三个独立排序 — 在排序页设置，此处只读。"
+              }
+            ]
+          ]
+        },
+        {
+          "type": "note",
+          "tone": "tip",
+          "text": {
+            "en": "A work can be positioned differently on the artist page, the exhibition page and the art-fair page. That is why the Ordering tab shows three rows.",
+            "cn": "同一作品在艺术家页、展览页与艺博会页可以有不同位置，因此“排序”标签显示三行。"
+          }
+        }
+      ]
+    },
+    {
+      "id": "exhibitions",
+      "group": "content",
+      "icon": "calendar",
+      "title": {
+        "en": "Exhibitions",
+        "cn": "展览"
+      },
+      "summary": {
+        "en": "Building a show: dates, works, artists and installation views.",
+        "cn": "创建展览：日期、作品、艺术家与现场图。"
+      },
+      "blocks": [
+        {
+          "type": "steps",
+          "items": [
+            {
+              "en": "Basic Info: title, dates, venue, curator, organiser — the fields shown on the exhibition header.",
+              "cn": "基本信息：标题、日期、场馆、策展人、主办方 — 展览页顶部展示的字段。"
+            },
+            {
+              "en": "Related Artists: pick the artists from the list. This is what fills each artist's page with the show.",
+              "cn": "相关艺术家：从列表中选择。它会将该展览显示在对应艺术家页面上。"
+            },
+            {
+              "en": "Related Artwork: add each work with its title, its position in the show and optional mark (e.g. “show”).",
+              "cn": "相关作品：逐条添加作品标题、在展览中的序号，以及可选标记（如“show”）。"
+            },
+            {
+              "en": "Press Release: one paragraph per row; the page pairs them with the installation images.",
+              "cn": "新闻稿：每行一段，页面会与现场图片配对展示。"
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "tone": "info",
+          "text": {
+            "en": "The public page also shows a work if the artwork itself links back to the exhibition, so the relation only needs to exist on one side.",
+            "cn": "若作品本身关联了该展览，前台同样会显示，因此关联只需存在于一侧。"
+          }
+        },
+        {
+          "type": "note",
+          "tone": "tip",
+          "text": {
+            "en": "Installation views are images tagged with the exhibition's name. Add them to the Image page with tag_en / tag_cn = exhibition title; the artist grouping will then file them under every artist in the show.",
+            "cn": "现场图是以展览名称作为标签的图片。请在图片页添加，tag_en / tag_cn 填展览标题；按艺术家分组时它们会归入参展的每位艺术家。"
+          }
+        }
+      ]
+    },
+    {
+      "id": "fairs",
+      "group": "content",
+      "icon": "globe",
+      "title": {
+        "en": "Art fairs",
+        "cn": "艺博会"
+      },
+      "summary": {
+        "en": "The same shape as an exhibition, with a booth and its own artwork order.",
+        "cn": "与展览结构相似，另有展位信息与独立的作品排序。"
+      },
+      "blocks": [
+        {
+          "type": "list",
+          "items": [
+            {
+              "en": "Dates: date_start, date_end and the VIP preview date drive the “current / past” classification on the fairs page.",
+              "cn": "日期：开始、结束与贵宾预览日期决定艺博会页面的“当前/往届”分类。"
+            },
+            {
+              "en": "Booth and venue: shown under the title.",
+              "cn": "展位与场馆：显示在标题下方。"
+            },
+            {
+              "en": "Related Artwork Title + Related Gallery Artist: what the gallery presented — chosen from the records that already exist.",
+              "cn": "相关作品标题 + 相关艺术家：画廊呈现的内容 — 从已有记录中选择。"
+            },
+            {
+              "en": "Artworks carry a separate art_fair_page_order, so the fair page can be arranged independently of the artist page.",
+              "cn": "作品拥有独立的“艺博会页排序”，可与艺术家页分别安排。"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "events-writings",
+      "group": "content",
+      "icon": "table",
+      "title": {
+        "en": "Events, writings & bibliographies",
+        "cn": "活动、文章与文献"
+      },
+      "summary": {
+        "en": "Talks, press and publications — the supporting editorial content.",
+        "cn": "讲座、媒体报道与出版物等辅助内容。"
+      },
+      "blocks": [
+        {
+          "type": "kv",
+          "rows": [
+            {
+              "k": {
+                "en": "Events",
+                "cn": "活动"
+              },
+              "v": {
+                "en": "title, date & time, host, venue, address, a related-artist multi-select and an introduction. Used for talks, openings and studio visits.",
+                "cn": "标题、时间、主办、场馆、地址、相关艺术家多选与介绍。用于讲座、开幕与工作室走访。"
+              }
+            },
+            {
+              "k": {
+                "en": "Writings",
+                "cn": "文章"
+              },
+              "v": {
+                "en": "author, title, subtitle, category, keywords, paragraphs, status. Marks and language behave like everywhere else.",
+                "cn": "作者、标题、副标题、分类、关键词、段落、状态。标记与语言规则与其他页面一致。"
+              }
+            },
+            {
+              "k": {
+                "en": "Bibliographies",
+                "cn": "文献"
+              },
+              "v": {
+                "en": "published articles about the artists: title, author, year, published_at, pdf_url, plus related artists and exhibitions.",
+                "cn": "关于艺术家的已发表文章：标题、作者、年份、出版时间、PDF 链接，以及相关艺术家与展览。"
+              }
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "tone": "tip",
+          "text": {
+            "en": "Use the keywords field generously — it improves press search and gives you a way to filter later.",
+            "cn": "关键词字段尽量填写充分 — 有助于站内搜索，也方便后续筛选。"
+          }
+        }
+      ]
+    },
+    {
+      "id": "about-artists",
+      "group": "content",
+      "icon": "user",
+      "title": {
+        "en": "Artist biographies",
+        "cn": "艺术家简介"
+      },
+      "summary": {
+        "en": "The record behind every artist page.",
+        "cn": "每个艺术家页背后的记录。"
+      },
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": {
+            "en": "One About record per artist, per language. The artist page pulls everything together: the biography, the portrait, and — through relations — the works, exhibitions, fairs, events and bibliographies that mention the artist.",
+            "cn": "每位艺术家每种语言一条“简介”记录。艺术家页会聚合简介、肖像，并通过关联汇总该艺术家相关的作品、展览、艺博会、活动与文献。"
+          }
+        },
+        {
+          "type": "list",
+          "items": [
+            {
+              "en": "artist: must match the artist name used on the artworks, otherwise the page cannot find them.",
+              "cn": "artist：必须与作品中的艺术家名称一致，否则页面无法关联作品。"
+            },
+            {
+              "en": "portrait_image_url: the artist's photograph (also add it to the Image page so it is searchable).",
+              "cn": "肖像图地址：艺术家照片（建议同时添加到图片页以便检索）。"
+            },
+            {
+              "en": "caption + introductions: short bio and the paragraphs shown on the page.",
+              "cn": "简介与介绍段落：简短的传记与页面展示的段落。"
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "tone": "warning",
+          "text": {
+            "en": "If the artist page looks empty, the artist name is almost always spelled differently on the artworks. Compare the About record with the Artwork records and align them.",
+            "cn": "若艺术家页为空，通常是作品中的艺术家名称拼写不一致。请比对简介记录与作品记录并对齐。"
+          }
+        }
+      ]
+    },
+    {
+      "id": "video-web",
+      "group": "content",
+      "icon": "video",
+      "title": {
+        "en": "Videos & web links",
+        "cn": "视频与网页"
+      },
+      "summary": {
+        "en": "Media records that carry a link plus bilingual tags.",
+        "cn": "包含链接与中英文标签的媒体记录。"
+      },
+      "blocks": [
+        {
+          "type": "list",
+          "items": [
+            {
+              "en": "Video records match by tag_en / tag_cn, exactly like images — tag them with the artwork or exhibition title they show.",
+              "cn": "视频记录与图片一样通过 tag_en / tag_cn 关联 — 请填写其所展示的作品或展览标题。"
+            },
+            {
+              "en": "Web records hold external links (press, features, interviews) with the same tagging convention.",
+              "cn": "网页记录保存外部链接（报道、专题、访谈），标签规则相同。"
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "tone": "info",
+          "text": {
+            "en": "Both carry a mark and an order field. Their order is currently shown read-only in the form — tell your developer if you need a drag-and-drop page for them.",
+            "cn": "两者都含标记与排序字段。目前排序在表单中只读显示 — 如需拖拽排序页请告知开发者。"
+          }
+        }
+      ]
+    },
+    {
+      "id": "images-library",
+      "group": "media",
+      "icon": "image",
+      "title": {
+        "en": "The image library",
+        "cn": "图片库"
+      },
+      "summary": {
+        "en": "One row per file, two tags, and the fields that matter.",
+        "cn": "每个文件一行，两个标签，以及关键字段。"
+      },
+      "blocks": [
+        {
+          "type": "table",
+          "head": [
+            {
+              "en": "Field",
+              "cn": "字段"
+            },
+            {
+              "en": "What it does",
+              "cn": "作用"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "en": "img_url",
+                "cn": "图片地址"
+              },
+              {
+                "en": "The file URL. Upload here, then reuse this URL as a cover elsewhere.",
+                "cn": "文件地址。在此上传，并将该地址用作其他内容的封面。"
+              }
+            ],
+            [
+              {
+                "en": "tag_en / tag_cn",
+                "cn": "英文/中文标签"
+              },
+              {
+                "en": "What the image shows — usually the artwork or exhibition title. Both live on the same row.",
+                "cn": "图片内容 — 通常为作品或展览标题。中英文在同一行。"
+              }
+            ],
+            [
+              {
+                "en": "type",
+                "cn": "类型"
+              },
+              {
+                "en": "artwork / exhibition / documentation … it drives the grouping and the filters.",
+                "cn": "作品/展览/记录… 影响分组与筛选。"
+              }
+            ],
+            [
+              {
+                "en": "mark",
+                "cn": "标记"
+              },
+              {
+                "en": "Internal flags. “Hide in Artist Page Rolling Image” removes the image from an artist's slideshow.",
+                "cn": "内部标记。“艺术家页轮播图隐藏”会将该图从艺术家页轮播中移除。"
+              }
+            ],
+            [
+              {
+                "en": "order.rolling_img_order",
+                "cn": "轮播图排序"
+              },
+              {
+                "en": "Its position inside the artist's rolling slideshow — set on the order page.",
+                "cn": "在艺术家页轮播中的位置 — 在排序页设置。"
+              }
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "image-workflow",
+      "group": "media",
+      "icon": "ruler",
+      "title": {
+        "en": "Adding images — the right order",
+        "cn": "添加图片的正确顺序"
+      },
+      "summary": {
+        "en": "Add once, reuse everywhere.",
+        "cn": "一次添加，多处复用。"
+      },
+      "blocks": [
+        {
+          "type": "steps",
+          "items": [
+            {
+              "en": "Open the Image page and create the record: upload the file and fill tag_en, tag_cn and type.",
+              "cn": "打开图片页新建记录：上传文件并填写 tag_en、tag_cn 与类型。"
+            },
+            {
+              "en": "Copy the img_url.",
+              "cn": "复制 img_url。"
+            },
+            {
+              "en": "Paste it as cover_img_url on the artwork / exhibition / fair / event, and as portrait_image_url on the About record.",
+              "cn": "将其粘贴为作品/展览/艺博会/活动的 cover_img_url，或简介记录的 portrait_image_url。"
+            },
+            {
+              "en": "If you are unsure whether every cover made it into the library, press Sync Images (see next chapter).",
+              "cn": "若不确定封面是否都已入库，点击“同步图片”（见下一章）。"
+            }
+          ]
+        },
+        {
+          "type": "kv",
+          "rows": [
+            {
+              "k": {
+                "en": "Filenames",
+                "cn": "文件名"
+              },
+              "v": {
+                "en": "Use lowercase with underscores: 2025_dai_mouyu_lucidity_35x142cm.webp — year, artist, title, size. Searchable and sortable.",
+                "cn": "使用小写加下划线：2025_dai_mouyu_lucidity_35x142cm.webp — 年份、艺术家、标题、尺寸，便于检索与排序。"
+              }
+            },
+            {
+              "k": {
+                "en": "Tags",
+                "cn": "标签"
+              },
+              "v": {
+                "en": "Tag with the exact EN and CN titles of the item it depicts — this is what links an image to an artwork or an exhibition.",
+                "cn": "使用所描绘内容的确切中英文标题 — 这是图片与作品/展览建立关联的依据。"
+              }
+            },
+            {
+              "k": {
+                "en": "One file, one row",
+                "cn": "一个文件一行"
+              },
+              "v": {
+                "en": "Never add the same URL twice. Duplicates split the ordering and the rolling slideshow.",
+                "cn": "不要重复添加同一地址。重复会打乱排序与轮播。"
+              }
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "tone": "tip",
+          "text": {
+            "en": "Batch-upload related images (a whole exhibition's installation views) in one session and tag them all with the same exhibition title — the artist grouping then files them automatically.",
+            "cn": "同一展览的现场图可一次性批量添加，并统一填写展览标题作为标签，分组会自动归类。"
+          }
+        }
+      ]
+    },
+    {
+      "id": "image-sync",
+      "group": "media",
+      "icon": "refresh",
+      "title": {
+        "en": "Sync Images (the refresh button)",
+        "cn": "同步图片（刷新按钮）"
+      },
+      "summary": {
+        "en": "Catches covers that were uploaded elsewhere but never added to the library.",
+        "cn": "补全在其他页面单独上传、尚未入库的封面。"
+      },
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": {
+            "en": "On the Image page, next to the group-by control, there is a sync button. It scans the covers of Artwork, Exhibition, Fair, Event, Writing, Bibliography and the About portraits, and creates an Image row for every URL that is not in the library yet — filling tag_en / tag_cn from the related record.",
+            "cn": "图片页的“分组”控件旁有同步按钮。它会扫描作品、展览、艺博会、活动、文章、文献的封面与艺术家肖像，并将尚未存在于图片库的地址自动创建为图片记录，同时从对应记录填充中英文标签。"
+          }
+        },
+        {
+          "type": "table",
+          "head": [
+            {
+              "en": "State",
+              "cn": "状态"
+            },
+            {
+              "en": "What it means",
+              "cn": "含义"
+            },
+            {
+              "en": "What to do",
+              "cn": "操作"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "en": "Sync Images (N)",
+                "cn": "同步图片 (N)"
+              },
+              {
+                "en": "N covers exist elsewhere but are missing here.",
+                "cn": "有 N 个封面存在于其他内容但未入库。"
+              },
+              {
+                "en": "Click it — the count is shown next to the button.",
+                "cn": "点击即可，数量显示在按钮旁。"
+              }
+            ],
+            [
+              {
+                "en": "Syncing…",
+                "cn": "同步中…"
+              },
+              {
+                "en": "Running.",
+                "cn": "正在执行。"
+              },
+              {
+                "en": "Wait; the page refreshes itself.",
+                "cn": "等待，页面会自动刷新。"
+              }
+            ],
+            [
+              {
+                "en": "Images Up To Date (grey)",
+                "cn": "图片已同步（灰色）"
+              },
+              {
+                "en": "Everything is already in the library.",
+                "cn": "所有封面都已入库。"
+              },
+              {
+                "en": "Nothing — it stays grey until something new appears.",
+                "cn": "无需操作，若有新增会自动变为可点击。"
+              }
+            ]
+          ]
+        },
+        {
+          "type": "list",
+          "items": [
+            {
+              "en": "It only ADDS. It never overwrites, renames or deletes, and it never creates a duplicate URL.",
+              "cn": "只会新增。不会覆盖、重命名或删除，也不会产生重复地址。"
+            },
+            {
+              "en": "tag_cn is filled when the Chinese sibling row shares the same cover URL; if it does not, only tag_en is filled and you can complete the Chinese tag by hand.",
+              "cn": "当中文对应记录使用同一封面地址时会自动填充 tag_cn；若不一致则只填充 tag_en，可手工补充中文标签。"
+            },
+            {
+              "en": "An image you deleted on purpose will come back if its cover URL still exists somewhere. Delete the cover on the source record too, or keep it deliberately.",
+              "cn": "若作品/展览上仍保留该封面地址，被删除的图片会再次补回。可同时移除来源记录的封面，或有意保留。"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "image-rolling",
+      "group": "media",
+      "icon": "sort",
+      "title": {
+        "en": "Rolling images & hiding",
+        "cn": "轮播图与隐藏"
+      },
+      "summary": {
+        "en": "The slideshow on an artist page, and how to keep an image out of it.",
+        "cn": "艺术家页轮播，以及如何排除某张图片。"
+      },
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": {
+            "en": "Every artist page has a rolling slideshow built from the images whose tags match that artist — artworks and exhibition views alike. Image → Order Rolling Images arranges it: images are grouped by artist, and each artist is one big box holding its sources (Works, Exhibition: …, Art Fair: …).",
+            "cn": "每个艺术家页都有一个轮播，内容来自标签匹配该艺术家的图片 — 包括作品图与展览现场图。图片 → 轮播图排序 用于安排顺序：按艺术家分组，每位艺术家为一个大分组，内含来源子分组（作品、展览：…、艺博会：…）。"
+          }
+        },
+        {
+          "type": "list",
+          "items": [
+            {
+              "en": "Drag inside a source box to reorder; the numbers run continuously across the artist's boxes.",
+              "cn": "在来源子分组内拖动排序；编号在艺术家的各子分组间连续。"
+            },
+            {
+              "en": "Press Save Order — dragging alone does not persist.",
+              "cn": "需点击“保存排序”，仅拖动不会保存。"
+            },
+            {
+              "en": "The eye icon hides an image from the slideshow. Hidden images lose their number, shrink to half size and collect under the dashed line at the bottom of the artist box.",
+              "cn": "眼睛图标可将图片从轮播中隐藏。隐藏后失去编号、缩小一半，并集中在该艺术家分组的虚线下方。"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ordering-overview",
+      "group": "organise",
+      "icon": "sort",
+      "title": {
+        "en": "Ordering: the whole system",
+        "cn": "排序系统总览"
+      },
+      "summary": {
+        "en": "Which position controls what, and where each one is edited.",
+        "cn": "各排序控制什么，以及在何处编辑。"
+      },
+      "blocks": [
+        {
+          "type": "table",
+          "head": [
+            {
+              "en": "Position",
+              "cn": "排序"
+            },
+            {
+              "en": "Controls",
+              "cn": "控制内容"
+            },
+            {
+              "en": "Edited on",
+              "cn": "编辑位置"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "en": "order.artist_page_order",
+                "cn": "艺术家页排序"
+              },
+              {
+                "en": "Order of a work inside its artist's grid",
+                "cn": "作品在艺术家作品网格中的顺序"
+              },
+              {
+                "en": "Artwork → Order Artworks",
+                "cn": "作品 → 排序页"
+              }
+            ],
+            [
+              {
+                "en": "order.exhibition_page_order",
+                "cn": "展览页排序"
+              },
+              {
+                "en": "Position of the same work on exhibition pages",
+                "cn": "同一作品在展览页的顺序"
+              },
+              {
+                "en": "Artwork → Order Artworks (switch Order by)",
+                "cn": "作品排序页（切换排序维度）"
+              }
+            ],
+            [
+              {
+                "en": "order.art_fair_page_order",
+                "cn": "艺博会页排序"
+              },
+              {
+                "en": "Position on fair pages",
+                "cn": "在艺博会页的顺序"
+              },
+              {
+                "en": "Artwork → Order Artworks (switch Order by)",
+                "cn": "作品排序页（切换排序维度）"
+              }
+            ],
+            [
+              {
+                "en": "order.rolling_img_order",
+                "cn": "轮播图排序"
+              },
+              {
+                "en": "Order inside an artist's rolling slideshow",
+                "cn": "艺术家页轮播中的顺序"
+              },
+              {
+                "en": "Image → Order Rolling Images",
+                "cn": "图片 → 轮播图排序"
+              }
+            ],
+            [
+              {
+                "en": "related_artwork[].order",
+                "cn": "展览内作品顺序"
+              },
+              {
+                "en": "Order of works inside one exhibition",
+                "cn": "某个展览内部的作品顺序"
+              },
+              {
+                "en": "Exhibition → Related Artwork rows",
+                "cn": "展览 → 相关作品行"
+              }
+            ],
+            [
+              {
+                "en": "order (simple)",
+                "cn": "通用排序"
+              },
+              {
+                "en": "List position for exhibitions, fairs, writings, events …",
+                "cn": "展览、艺博会、文章、活动的列表顺序"
+              },
+              {
+                "en": "That page's Reorder page",
+                "cn": "该页面的排序页"
+              }
+            ]
+          ]
+        },
+        {
+          "type": "note",
+          "tone": "info",
+          "text": {
+            "en": "In every form, the Ordering tab is read-only: it shows the current number and offers Edit Order, which jumps to the drag-and-drop page.",
+            "cn": "所有表单的“排序”标签为只读：显示当前编号，并提供“编辑排序”跳转到拖拽排序页。"
+          }
+        }
+      ]
+    },
+    {
+      "id": "order-page",
+      "group": "organise",
+      "icon": "grid",
+      "title": {
+        "en": "Using an order page",
+        "cn": "排序页操作"
+      },
+      "summary": {
+        "en": "Drag, save, reset — and the hidden lane.",
+        "cn": "拖动、保存、重置，以及隐藏区。"
+      },
+      "blocks": [
+        {
+          "type": "steps",
+          "items": [
+            {
+              "en": "Open it from the Order shortcut in the header, or from the Ordering tab of any record.",
+              "cn": "从标题栏的排序入口，或任意记录的“排序”标签打开。"
+            },
+            {
+              "en": "Drag a card to a new position. Numbers update instantly.",
+              "cn": "拖动卡片到新位置，编号会即时更新。"
+            },
+            {
+              "en": "Repeat in the other boxes if needed — each box is independent.",
+              "cn": "如需可继续调整其他分组 — 各组相互独立。"
+            },
+            {
+              "en": "Press Save Order. Reset restores the last saved state without saving.",
+              "cn": "点击“保存排序”。“重置”会恢复到上次保存的状态且不写入。"
+            }
+          ]
+        },
+        {
+          "type": "kv",
+          "rows": [
+            {
+              "k": {
+                "en": "Grid / list",
+                "cn": "网格/列表"
+              },
+              "v": {
+                "en": "Switch views in the toolbar; the size slider scales the cards (grid mode).",
+                "cn": "工具栏可切换视图；大小滑块调整卡片尺寸（网格模式）。"
+              }
+            },
+            {
+              "k": {
+                "en": "Hidden lane",
+                "cn": "隐藏区"
+              },
+              "v": {
+                "en": "Images hidden from the rolling slideshow sit half-size under a dashed line; the eye icon puts them back.",
+                "cn": "被隐藏的图片以一半大小置于虚线下方；点击眼睛图标可恢复。"
+              }
+            },
+            {
+              "k": {
+                "en": "Numbering rule",
+                "cn": "编号规则"
+              },
+              "v": {
+                "en": "Hidden images have no number and are skipped, so the visible sequence stays 1, 2, 3 … without gaps.",
+                "cn": "隐藏图片不编号并被跳过，因此可见序列保持 1、2、3… 无空缺。"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "grouping-cards",
+      "group": "organise",
+      "icon": "grid",
+      "title": {
+        "en": "Grouping & card size",
+        "cn": "分组与卡片大小"
+      },
+      "summary": {
+        "en": "Browse 500 records without scrolling forever.",
+        "cn": "高效浏览数百条记录。"
+      },
+      "blocks": [
+        {
+          "type": "list",
+          "items": [
+            {
+              "en": "Most pages group automatically: artwork by artist, exhibition and fair by year, enquiries by status, videos and web by type.",
+              "cn": "多数页面自动分组：作品按艺术家、展览与艺博会按年份、咨询按状态、视频与网页按类型。"
+            },
+            {
+              "en": "The Image page offers “Tag / Title” or “Artist”. Artist view pairs each image with the artists it belongs to — including installation views — inside one large artist box with sub-boxes for Works / Exhibitions / Fairs.",
+              "cn": "图片页可选“标签/标题”或“艺术家”。艺术家视图会把图片（包括现场图）归入对应艺术家的大分组，并经子分组区分作品/展览/艺博会。"
+            },
+            {
+              "en": "Every group header has a size slider: enlarge one group to inspect a detail, shrink another to skim.",
+              "cn": "每个分组标题都有大小滑块：放大某组查看细节，缩小另一组快速浏览。"
+            },
+            {
+              "en": "Group headers are collapsible — collapsed groups keep the page short and fast.",
+              "cn": "分组标题可折叠 — 收起后页面更短、更流畅。"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "relations",
+      "group": "organise",
+      "icon": "link",
+      "title": {
+        "en": "Linking content together",
+        "cn": "内容关联"
+      },
+      "summary": {
+        "en": "Relations keep the site consistent — pick from what already exists.",
+        "cn": "关联让站点保持一致 — 只从已有记录中选择。"
+      },
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": {
+            "en": "Every relation field is a multi-select whose options come from existing records, matched to the language of the item you are editing: an English artwork lists English exhibitions, a Chinese one lists Chinese exhibitions.",
+            "cn": "所有关联字段都是多选下拉，选项来自已有记录，并与当前内容的语言匹配：英文作品只列出英文展览，中文作品只列出中文展览。"
+          }
+        },
+        {
+          "type": "list",
+          "items": [
+            {
+              "en": "Artwork → Related Gallery Exhibitions: the shows a work appeared in. This also fills the exhibition's own work list.",
+              "cn": "作品 → 相关画廊展览：作品参展记录。也会补充展览页的作品列表。"
+            },
+            {
+              "en": "Exhibition / Fair → Related Gallery Artists: the artists involved.",
+              "cn": "展览 / 艺博会 → 相关艺术家：参与其中的艺术家。"
+            },
+            {
+              "en": "Fair → Related Artwork Title: what was on the booth.",
+              "cn": "艺博会 → 相关作品标题：展位上呈现的作品。"
+            },
+            {
+              "en": "Event / Bibliography → Related Artist: used to surface talks and press on the artist page.",
+              "cn": "活动 / 文献 → 相关艺术家：用于在艺术家页展示讲座与媒体报道。"
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "tone": "warning",
+          "text": {
+            "en": "Relation lists only contain records that exist. If something is missing, create it first — for example the exhibition — then come back to link it.",
+            "cn": "关联列表只包含已存在的记录。若缺少目标，请先创建（例如展览），再回来关联。"
+          }
+        },
+        {
+          "type": "note",
+          "tone": "tip",
+          "text": {
+            "en": "Removing a chip from a relation does not delete the other record — it only removes the link, which is always safe to fix.",
+            "cn": "从关联中移除标签不会删除对方记录，仅解除关联，可放心调整。"
+          }
+        }
+      ]
+    },
+    {
+      "id": "marks-status",
+      "group": "organise",
+      "icon": "tag",
+      "title": {
+        "en": "Marks, status & visibility",
+        "cn": "标记、状态与可见性"
+      },
+      "summary": {
+        "en": "Internal flags and the switches that decide what the public sees.",
+        "cn": "内部标记与决定前台展示的开关。"
+      },
+      "blocks": [
+        {
+          "type": "table",
+          "head": [
+            {
+              "en": "Field",
+              "cn": "字段"
+            },
+            {
+              "en": "Values you will use",
+              "cn": "常用值"
+            },
+            {
+              "en": "Effect",
+              "cn": "效果"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "en": "mark",
+                "cn": "标记"
+              },
+              {
+                "en": "needs_review, featured, hide_in_artist_page_rolling_image, slider",
+                "cn": "需审核、精选、艺术家页轮播图隐藏、轮播"
+              },
+              {
+                "en": "Internal only — filters, queues and the rolling slideshow",
+                "cn": "仅内部使用 — 筛选、待办与轮播"
+              }
+            ],
+            [
+              {
+                "en": "sold",
+                "cn": "售出"
+              },
+              {
+                "en": "Yes / No",
+                "cn": "是 / 否"
+              },
+              {
+                "en": "Shows a sold state on the artwork",
+                "cn": "在前台显示已售状态"
+              }
+            ],
+            [
+              {
+                "en": "status",
+                "cn": "状态"
+              },
+              {
+                "en": "draft, published, archived",
+                "cn": "草稿、已发布、已归档"
+              },
+              {
+                "en": "Publication state for writings and exhibitions",
+                "cn": "文章与展览的发布状态"
+              }
+            ],
+            [
+              {
+                "en": "language",
+                "cn": "语言"
+              },
+              {
+                "en": "EN / CN",
+                "cn": "EN / CN"
+              },
+              {
+                "en": "Which site the record belongs to",
+                "cn": "记录所属的站点"
+              }
+            ]
+          ]
+        },
+        {
+          "type": "note",
+          "tone": "tip",
+          "text": {
+            "en": "Use needs_review as a personal to-do flag: filter by it, fix the records, then clear the mark.",
+            "cn": "可将“需审核”作为个人待办标记：筛选出来、处理完后清除标记。"
+          }
+        }
+      ]
+    },
+    {
+      "id": "batch-export",
+      "group": "maintain",
+      "icon": "table",
+      "title": {
+        "en": "Batch edit & export",
+        "cn": "批量编辑与导出"
+      },
+      "summary": {
+        "en": "Change or take out many records at once.",
+        "cn": "一次修改或导出多条记录。"
+      },
+      "blocks": [
+        {
+          "type": "kv",
+          "rows": [
+            {
+              "k": {
+                "en": "Batch Edit",
+                "cn": "批量编辑"
+              },
+              "v": {
+                "en": "Opens a spreadsheet-like grid of every field. Edit cells directly and save once. Columns can be hidden — hover a header.",
+                "cn": "打开类似表格的全字段视图，直接编辑单元格后统一保存。表头悬停可隐藏列。"
+              }
+            },
+            {
+              "k": {
+                "en": "Export",
+                "cn": "导出"
+              },
+              "v": {
+                "en": "Downloads the current filtered rows as CSV. Filter first (e.g. one artist) to keep the file small.",
+                "cn": "将当前筛选结果导出为 CSV。建议先筛选（如单一艺术家）以控制文件大小。"
+              }
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "tone": "warning",
+          "text": {
+            "en": "Export before any bulk change. There is no undo, and an accidental batch edit can touch hundreds of rows at once.",
+            "cn": "任何批量修改前请先导出备份。系统无法撤销，误操作可能一次影响数百条记录。"
+          }
+        },
+        {
+          "type": "note",
+          "tone": "tip",
+          "text": {
+            "en": "CSV is also the fastest way to review the database with a colleague — export, sort in a spreadsheet, then apply the fixes in the manager.",
+            "cn": "CSV 也是与同事一起复核数据的最快方式 — 导出、在表格中整理，再回到后台修改。"
+          }
+        }
+      ]
+    },
+    {
+      "id": "site-meta",
+      "group": "maintain",
+      "icon": "globe",
+      "title": {
+        "en": "Site Meta",
+        "cn": "站点信息"
+      },
+      "summary": {
+        "en": "Title, footer, social links, menus and SEO — all in one manager page now.",
+        "cn": "标题、页脚、社交链接、导航菜单与 SEO — 现在都在同一个管理页面里。"
+      },
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": {
+            "en": "/manager/meta is the single place for everything about the site itself. It reads and writes the Meta record, so you never have to open a JSON file to change the title, the footer, the menus or the sharing image.",
+            "cn": "/manager/meta 是站点自身信息的唯一入口。它读写 Meta 记录，因此修改标题、页脚、菜单或分享图都不需要再打开 JSON 文件。"
+          }
+        },
+        {
+          "type": "kv",
+          "items": [
+            {
+              "k": {
+                "en": "App",
+                "cn": "应用信息"
+              },
+              "v": {
+                "en": "Site title (EN/CN), type, category, version, purpose, descriptions, default language",
+                "cn": "站点标题（中英）、类型、分类、版本、用途、简介、默认语言"
+              }
+            },
+            {
+              "k": {
+                "en": "Footer",
+                "cn": "页脚"
+              },
+              "v": {
+                "en": "Company name (EN/CN), start year, rights text (EN/CN)",
+                "cn": "公司名称（中英）、起始年份、版权文字（中英）"
+              }
+            },
+            {
+              "k": {
+                "en": "Social media",
+                "cn": "社交媒体"
+              },
+              "v": {
+                "en": "Platform / account / URL rows, shown in the contact area",
+                "cn": "平台 / 账号 / 链接，用于联系区域"
+              }
+            },
+            {
+              "k": {
+                "en": "Website",
+                "cn": "网站"
+              },
+              "v": {
+                "en": "The gallery's own web address",
+                "cn": "画廊自己的网站地址"
+              }
+            },
+            {
+              "k": {
+                "en": "Navigation menus",
+                "cn": "导航菜单"
+              },
+              "v": {
+                "en": "Public menu and manager menu, per language, with dropdown children",
+                "cn": "公开菜单与后台菜单，按语言区分，支持下拉子项"
+              }
+            },
+            {
+              "k": {
+                "en": "SEO & tags",
+                "cn": "SEO 与标签"
+              },
+              "v": {
+                "en": "Page title, description, keywords, share image, icon, canonical, author",
+                "cn": "页面标题、描述、关键词、分享图、图标、规范链接、作者"
+              }
+            },
+            {
+              "k": {
+                "en": "Theme & features",
+                "cn": "主题与功能"
+              },
+              "v": {
+                "en": "Default theme, follow-system toggle, show artwork filters",
+                "cn": "默认主题、跟随系统开关、显示作品筛选器"
+              }
+            }
+          ]
+        },
+        {
+          "type": "steps",
+          "items": [
+            {
+              "en": "Open Settings → Site Meta (or /manager/meta) and pick the language you are editing (both are always saved).",
+              "cn": "打开 设置 → 站点信息（或 /manager/meta），并选择你要编辑的语言（两种语言都会保存）。"
+            },
+            {
+              "en": "Edit the section you need; add or remove menu items, social rows and dropdown children inline.",
+              "cn": "编辑需要的区块；菜单项、社交账号与下拉子项均可就地增删。"
+            },
+            {
+              "en": "Press Save changes. The header, footer, menus and head tags update on the next load.",
+              "cn": "点击 保存更改。页头、页脚、菜单与 head 标签会在下次加载时更新。"
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "items": [
+            {
+              "en": "Menu edits take effect immediately everywhere in the site, public and manager.",
+              "cn": "菜单的修改会立即在站点各处生效（前台与后台）。"
+            },
+            {
+              "en": "The old JSON files in src/data stay only as a fallback for the first render; the Meta record always wins.",
+              "cn": "src/data 下的旧 JSON 仅作为首次渲染的兜底；Meta 记录始终优先。"
+            },
+            {
+              "en": "Form settings (form options, types, marks, language options) intentionally stay in JSON.",
+              "cn": "表单设置（选项、类型、标记、语言选项）仍保留在 JSON 中。"
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "tone": "tip",
+          "text": {
+            "en": "After saving, hard refresh (Cmd+Shift+R) if a cached page still shows the old text.",
+            "cn": "保存后若页面仍显示旧文字，请强制刷新（Cmd+Shift+R）。"
+          }
+        }
+      ]
+    },
+    {
+      "id": "best-practices",
+      "group": "maintain",
+      "icon": "check",
+      "title": {
+        "en": "Recommended workflow",
+        "cn": "推荐工作流程"
+      },
+      "summary": {
+        "en": "The order of operations that keeps everything in step.",
+        "cn": "保持数据一致的操作顺序。"
+      },
+      "blocks": [
+        {
+          "type": "steps",
+          "items": [
+            {
+              "en": "Images first: add the file to the Image page and tag it in both languages.",
+              "cn": "先处理图片：在图片页添加文件并填写中英文标签。"
+            },
+            {
+              "en": "Create the artwork / exhibition / fair and reuse that image URL as the cover.",
+              "cn": "创建作品/展览/艺博会，并复用该图片地址作为封面。"
+            },
+            {
+              "en": "Add the EN and CN records as a pair with matching artist, year and image.",
+              "cn": "成对添加中英文记录，保持艺术家、年份与图片一致。"
+            },
+            {
+              "en": "Link the relations: artwork ↔ exhibition ↔ artist, fair ↔ artwork.",
+              "cn": "填写关联：作品 ↔ 展览 ↔ 艺术家，艺博会 ↔ 作品。"
+            },
+            {
+              "en": "Arrange the positions on the order pages, last.",
+              "cn": "最后在排序页安排展示位置。"
+            },
+            {
+              "en": "Run Sync Images to catch anything uploaded elsewhere, then mark the record reviewed.",
+              "cn": "运行图片同步补全遗漏封面，并标记该记录为已审核。"
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "items": [
+            {
+              "en": "Search before you create — duplicates are the most common data problem.",
+              "cn": "创建前先搜索 — 重复记录是最常见的数据问题。"
+            },
+            {
+              "en": "Never type a year or a language by hand; use the dropdowns.",
+              "cn": "不要手工输入年份或语言，请使用下拉选择。"
+            },
+            {
+              "en": "Work one artist at a time: filter → edit → order → sync → done.",
+              "cn": "按艺术家逐个处理：筛选 → 编辑 → 排序 → 同步 → 完成。"
+            },
+            {
+              "en": "Keep the manager and the website in sync weekly — run the sync, check the needs_review queue.",
+              "cn": "每周与网站核对一次：运行同步、清理“需审核”队列。"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "troubleshooting",
+      "group": "maintain",
+      "icon": "help",
+      "title": {
+        "en": "Troubleshooting",
+        "cn": "常见问题"
+      },
+      "summary": {
+        "en": "The issues that come up most often, and their fix.",
+        "cn": "最常遇到的问题与解决办法。"
+      },
+      "blocks": [
+        {
+          "type": "table",
+          "head": [
+            {
+              "en": "Symptom",
+              "cn": "现象"
+            },
+            {
+              "en": "Cause",
+              "cn": "原因"
+            },
+            {
+              "en": "Fix",
+              "cn": "解决"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "en": "Page looks empty",
+                "cn": "页面为空"
+              },
+              {
+                "en": "Data still loading (the artwork list is large)",
+                "cn": "数据仍在加载（作品列表较大）"
+              },
+              {
+                "en": "Wait a few seconds or press Retry",
+                "cn": "稍候或点击重试"
+              }
+            ],
+            [
+              {
+                "en": "An item is not on the website",
+                "cn": "内容未在网站显示"
+              },
+              {
+                "en": "Language mismatch, or a status/mark excludes it",
+                "cn": "语言不匹配，或状态/标记排除"
+              },
+              {
+                "en": "Check its language and status; confirm the site you are viewing",
+                "cn": "检查语言与状态，并确认所查看的站点"
+              }
+            ],
+            [
+              {
+                "en": "Artist page is empty",
+                "cn": "艺术家页为空"
+              },
+              {
+                "en": "The artist name differs between the About record and the artworks",
+                "cn": "简介记录与作品中的艺术家名称不一致"
+              },
+              {
+                "en": "Align the spelling on both sides",
+                "cn": "统一两侧的名称拼写"
+              }
+            ],
+            [
+              {
+                "en": "An image is missing from the slideshow",
+                "cn": "轮播中缺少某张图片"
+              },
+              {
+                "en": "It is marked hidden, or has no rolling order",
+                "cn": "被标记为隐藏，或没有轮播排序"
+              },
+              {
+                "en": "Un-hide it on the order page, then Save Order",
+                "cn": "在排序页取消隐藏，然后保存排序"
+              }
+            ],
+            [
+              {
+                "en": "My ordering did not stick",
+                "cn": "排序未生效"
+              },
+              {
+                "en": "The order page was not saved",
+                "cn": "排序页未保存"
+              },
+              {
+                "en": "Press Save Order — dragging alone is not persisted",
+                "cn": "点击“保存排序”，仅拖动不会保存"
+              }
+            ],
+            [
+              {
+                "en": "The dropdown has no option I need",
+                "cn": "下拉中没有所需选项"
+              },
+              {
+                "en": "The related record does not exist yet",
+                "cn": "关联记录尚不存在"
+              },
+              {
+                "en": "Create it first (exhibition, artwork, biography), then link it",
+                "cn": "先创建（展览、作品、简介），再关联"
+              }
+            ],
+            [
+              {
+                "en": "The same image appears twice",
+                "cn": "图片重复"
+              },
+              {
+                "en": "It was added both by hand and by sync, under different URLs",
+                "cn": "手工与同步各添加了一次（地址不同）"
+              },
+              {
+                "en": "Filter by tag, delete the duplicate, keep the one in use",
+                "cn": "按标签筛选，删除重复项，保留正在使用的那条"
+              }
+            ],
+            [
+              {
+                "en": "The sync button is grey",
+                "cn": "同步按钮为灰色"
+              },
+              {
+                "en": "Nothing to add — the library matches the covers",
+                "cn": "无需新增 — 图片库与封面已一致"
+              },
+              {
+                "en": "Nothing to do",
+                "cn": "无需操作"
+              }
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "glossary",
+      "group": "maintain",
+      "icon": "book",
+      "title": {
+        "en": "Glossary",
+        "cn": "术语表"
+      },
+      "summary": {
+        "en": "The words this guide (and the site) uses.",
+        "cn": "本指南与网站使用的术语。"
+      },
+      "blocks": [
+        {
+          "type": "kv",
+          "rows": [
+            {
+              "k": {
+                "en": "Record",
+                "cn": "记录"
+              },
+              "v": {
+                "en": "One row in the manager — e.g. one artwork, one image file.",
+                "cn": "后台中的一行数据 — 例如一件作品、一个图片文件。"
+              }
+            },
+            {
+              "k": {
+                "en": "Group",
+                "cn": "分组"
+              },
+              "v": {
+                "en": "A collapsible box collecting related records (by artist, year, tag …).",
+                "cn": "收集相关记录的可折叠容器（按艺术家、年份、标签…）。"
+              }
+            },
+            {
+              "k": {
+                "en": "Tag",
+                "cn": "标签"
+              },
+              "v": {
+                "en": "The text on an image row (tag_en / tag_cn) that says what it shows and links it to content.",
+                "cn": "图片记录上的文本（tag_en / tag_cn），说明内容并建立关联。"
+              }
+            },
+            {
+              "k": {
+                "en": "Mark",
+                "cn": "标记"
+              },
+              "v": {
+                "en": "An internal flag on a record — never shown to visitors.",
+                "cn": "记录上的内部标记，不会对访客显示。"
+              }
+            },
+            {
+              "k": {
+                "en": "Relation",
+                "cn": "关联"
+              },
+              "v": {
+                "en": "A link between two records, chosen from existing ones (e.g. artwork → exhibition).",
+                "cn": "两条记录之间的链接，从已有记录中选择（如 作品 → 展览）。"
+              }
+            },
+            {
+              "k": {
+                "en": "Order page",
+                "cn": "排序页"
+              },
+              "v": {
+                "en": "The drag-and-drop page that sets positions.",
+                "cn": "用于设置位置的拖拽排序页。"
+              }
+            },
+            {
+              "k": {
+                "en": "Rolling images",
+                "cn": "轮播图"
+              },
+              "v": {
+                "en": "The slideshow on an artist page, built from that artist's images.",
+                "cn": "艺术家页上的图片轮播，由其图片组成。"
+              }
+            },
+            {
+              "k": {
+                "en": "Sync",
+                "cn": "同步"
+              },
+              "v": {
+                "en": "The Refresh/Sync button that adds missing covers to the image library.",
+                "cn": "“同步图片”按钮，用于将缺失封面补入图片库。"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

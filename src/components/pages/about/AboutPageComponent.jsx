@@ -1,0 +1,432 @@
+"use client";
+
+import React, { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
+import { Box } from "@mui/material";
+import { motion } from "framer-motion";
+
+import useAboutData from "@/components/pages/about/hooks/useAboutData";
+import useGalleryContactData from "@/components/pages/about/hooks/useGalleryContactData";
+import AlertInfo from "@/components/alerts/AlertInfo";
+import ContactInfo from "@/components/lists/ContactInfo";
+import { renderArrayContent } from "@/utils/textFormatting";
+import useFont from "@/hooks/useFont";
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  ✦ CONFIG — 分区清晰，改哪块看哪块
+// ─────────────────────────────────────────────────────────────────────────────
+const CONFIG = Object.freeze({
+  // ── 页面容器 ──
+  page: {
+    maxWidth: 1200,
+    paddingX: { xs: "48px", md: "48px" },
+    paddingY: { xs: "48px", md: "72px" },
+    align: "center", // "left" | "center" | "right"
+  },
+
+  // ── 两列布局 ──
+  layout: {
+    columnGap: { xs: 0, md: "50px" },
+  },
+
+  // ── 左侧文本列 ──
+  text: {
+    flex: 1.4,
+    maxWidth: { xs: "100%", md: 520 },
+    heading: {
+      size: "20px",
+      weight: 600,
+      margin: "0 0 28px 0",
+      letterSpacing: "0.02em",
+    },
+    body: {
+      size: "13px",
+      weight: 400,
+      lineHeight: 1.7,
+      opacity: 0.62,
+      gap: "1.2em",
+      align: "justify",
+    },
+  },
+
+  // ── 联系信息块（图标版，无文字标签）──
+  //  设计说明：用图标替代 “Tel / Email / Address …” 文字标签，
+  //  更清爽、年轻、高效。图标样式详见 components/lists/ContactInfo.jsx
+  contact: {
+    topGap: { xs: "56px", md: "40px" }, // 正文与联系块之间
+  },
+
+  // ── 右侧图片列 ──
+  //  图片始终保持原始比例，不裁切、不拉伸
+  image: {
+    fit: "contain", // 保持原比例，完整显示
+    quality: 90,
+    borderRadius: 0,
+
+    // 远程/动态 API 图片默认 true，直接可用；
+    // 在 next.config 配好 remotePatterns 后可改 false 开启优化。
+    unoptimized: true,
+
+    // ★ 桌面：高度上限为主，宽度按原比例自动 ★
+    desktop: {
+      maxHeight: 470, // 主控制：图片最大高度
+      maxWidth: 600, // 安全上限：宽度算出来超过时才生效
+    },
+
+    // 移动端：宽度上限为主，高度按原比例自动
+    mobile: {
+      show: true,
+      maxWidth: 460,
+      gap: "60px",
+    },
+
+    // 图片真实比例读取前的占位比例（w / h）
+    fallbackAspect: 0.85,
+
+    // 图上文字叠层（设计稿：MOODSEA / 木曦画廊）
+    overlay: {
+      show: true,
+      title: "MOODSEA",
+      subtitle: "木曦画廊",
+    },
+  },
+});
+
+// 加载态：纯白空白页，无骨架屏
+const LOADING_BG = "#ffffff";
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  工具
+// ─────────────────────────────────────────────────────────────────────────────
+const CONTENT_MX = (() => {
+  const map = {
+    left: { ml: 0, mr: "auto" },
+    center: { mx: "auto" },
+    right: { ml: "auto", mr: 0 },
+  };
+  return map[CONFIG.page.align] || map.center;
+})();
+
+const EASE = [0.16, 1, 0.3, 1];
+const containerVariants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.1, delayChildren: 0.1 } },
+};
+const itemVariants = {
+  hidden: { opacity: 0, y: 15 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: EASE } },
+};
+
+// 桌面盒子尺寸：以原始比例为准，先受 maxHeight 约束，再受 maxWidth 约束
+const getDesktopBox = (aspect) => {
+  let h = CONFIG.image.desktop.maxHeight;
+  let w = h * aspect;
+  if (w > CONFIG.image.desktop.maxWidth) {
+    w = CONFIG.image.desktop.maxWidth;
+    h = w / aspect;
+  }
+  return { w: Math.round(w), h: Math.round(h) };
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  图片组件（next/image，fill）
+//  盒子按图片真实比例生成 → contain 无留白、无裁切、比例不变
+// ─────────────────────────────────────────────────────────────────────────────
+// 图上文字叠层（设计稿：MOODSEA / 木曦画廊）
+const ImageOverlay = ({ fontFamily }) => {
+  const { show, title, subtitle } = CONFIG.image.overlay;
+  if (!show) return null;
+  return (
+    <Box
+      sx={{
+        position: "absolute",
+        left: 0,
+        right: 0,
+        bottom: "15%",
+        textAlign: "center",
+        pointerEvents: "none",
+        color: "rgba(120,120,120,0.9)",
+        lineHeight: 1.15,
+      }}
+    >
+      <Box
+        sx={{
+          fontFamily,
+          fontSize: { xs: "20px", md: "24px" },
+          letterSpacing: "0.26em",
+          fontWeight: 300,
+          pl: "0.26em",
+        }}
+      >
+        {title}
+      </Box>
+      <Box
+        sx={{
+          fontFamily,
+          fontSize: { xs: "12px", md: "14px" },
+          letterSpacing: "0.34em",
+          mt: "6px",
+          pl: "0.34em",
+        }}
+      >
+        {subtitle}
+      </Box>
+    </Box>
+  );
+};
+
+const AboutImage = React.memo(function AboutImage({ src, alt, variant, fontFamily }) {
+  const [failed, setFailed] = useState(false);
+  const [aspect, setAspect] = useState(CONFIG.image.fallbackAspect);
+
+  useEffect(() => {
+    setFailed(false);
+    setAspect(CONFIG.image.fallbackAspect);
+  }, [src]);
+
+  const handleError = useCallback(() => setFailed(true), []);
+
+  const handleLoad = useCallback((e) => {
+    const el = e.currentTarget || e.target;
+    const w = el?.naturalWidth;
+    const h = el?.naturalHeight;
+    if (w && h) setAspect(w / h); // 保留原始比例，不做任何 clamp
+  }, []);
+
+  if (!src || failed) return null;
+
+  const shared = {
+    src,
+    alt,
+    fill: true,
+    draggable: false,
+    quality: CONFIG.image.quality,
+    unoptimized: CONFIG.image.unoptimized,
+    onLoad: handleLoad,
+    onError: handleError,
+    style: { objectFit: CONFIG.image.fit },
+  };
+
+  // ── 桌面：maxHeight 为主，宽度按原比例 ──
+  if (variant === "desktop") {
+    const { w, h } = getDesktopBox(aspect);
+    return (
+      <Box
+        sx={{
+          position: "relative",
+          width: `${w}px`,
+          height: `${h}px`,
+          maxWidth: "100%",
+          borderRadius: `${CONFIG.image.borderRadius}px`,
+          overflow: "hidden",
+        }}
+      >
+        <Image {...shared} sizes={`${CONFIG.image.desktop.maxWidth}px`} priority />
+        <ImageOverlay fontFamily={fontFamily} />
+      </Box>
+    );
+  }
+
+  // ── 移动端：maxWidth 为主，高度按原比例 ──
+  return (
+    <Box
+      sx={{
+        position: "relative",
+        width: "100%",
+        maxWidth: `${CONFIG.image.mobile.maxWidth}px`,
+        aspectRatio: String(aspect),
+        borderRadius: `${CONFIG.image.borderRadius}px`,
+        overflow: "hidden",
+      }}
+    >
+      <Image {...shared} sizes={`${CONFIG.image.mobile.maxWidth}px`} />
+      <ImageOverlay fontFamily={fontFamily} />
+    </Box>
+  );
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  加载态 / 错误态
+// ─────────────────────────────────────────────────────────────────────────────
+const AboutSkeleton = () => (
+  <Box sx={{ minHeight: "100vh", backgroundColor: LOADING_BG }} />
+);
+
+const AboutStatusGuard = ({ isLoading, error, hasData, isCn, onRetry }) => {
+  if (isLoading) return <AboutSkeleton />;
+  if (error) {
+    return (
+      <AlertInfo
+        message={isCn ? "连接失败" : "Connection Failed"}
+        subMessage={isCn ? "系统暂时不可用" : "System temporarily unavailable"}
+        buttonText={isCn ? "重试" : "Try Again"}
+        onBack={onRetry}
+        isCn={isCn}
+      />
+    );
+  }
+  if (!hasData) {
+    return <AlertInfo message={isCn ? "暂无关于数据" : "No about data available"} isCn={isCn} />;
+  }
+  return null;
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  主页面
+// ─────────────────────────────────────────────────────────────────────────────
+const AboutPageComponent = () => {
+  const {
+    isCn,
+    colors,
+    fontFamily: aboutFontFamily,
+    galleryAbout,
+    isLoading: aboutLoading,
+    error: aboutError,
+    handleRetry: aboutRetry,
+  } = useAboutData();
+
+  const {
+    contacts,
+    isLoading: contactLoading,
+    error: contactError,
+    handleRetry: contactRetry,
+  } = useGalleryContactData();
+
+  const { fontFamily } = useFont(CONFIG.text.body.size);
+  const effectiveFont = aboutFontFamily || fontFamily;
+
+  const isLoading = aboutLoading || contactLoading;
+  const error = aboutError || contactError;
+  const handleRetry = () => {
+    aboutRetry();
+    contactRetry();
+  };
+
+  const hasData = Boolean(galleryAbout);
+
+  if (isLoading || error || !hasData) {
+    return (
+      <AboutStatusGuard
+        isLoading={isLoading}
+        error={error}
+        hasData={hasData}
+        isCn={isCn}
+        onRetry={handleRetry}
+      />
+    );
+  }
+
+  const { caption, introductions, portrait_image_url } = galleryAbout;
+  const hasIntroduction = Array.isArray(introductions) && introductions.length > 0;
+  const hasCaption = Boolean(caption && caption.trim());
+
+  // ── 联系信息（第一条记录）──
+  const contact = contacts?.[0] || null;
+
+  // ── 样式 ──
+  const headingStyle = {
+    fontFamily: effectiveFont,
+    fontSize: CONFIG.text.heading.size,
+    fontWeight: CONFIG.text.heading.weight,
+    color: colors.text,
+    margin: CONFIG.text.heading.margin,
+    letterSpacing: CONFIG.text.heading.letterSpacing,
+  };
+
+  const bodyStyle = {
+    fontFamily: effectiveFont,
+    fontSize: CONFIG.text.body.size,
+    fontWeight: CONFIG.text.body.weight,
+    color: colors.text,
+    lineHeight: CONFIG.text.body.lineHeight,
+    opacity: CONFIG.text.body.opacity,
+    margin: `0 0 ${CONFIG.text.body.gap} 0`,
+    textAlign: CONFIG.text.body.align,
+  };
+
+  const imgAlt = isCn ? "画廊肖像" : "Gallery portrait";
+
+  // 左侧文本列：桌面用 space-between，把联系块压到与图片底部对齐
+  const leftColumnSx = {
+    flex: CONFIG.text.flex,
+    minWidth: 0,
+    maxWidth: CONFIG.text.maxWidth,
+    display: { xs: "block", md: "flex" },
+    flexDirection: "column",
+    justifyContent: { md: "space-between" },
+  };
+
+  return (
+    <Box sx={{ backgroundColor: colors.background, color: colors.text, minHeight: "100vh" }}>
+      <Box
+        sx={{
+          maxWidth: CONFIG.page.maxWidth,
+          ...CONTENT_MX,
+          px: CONFIG.page.paddingX,
+          py: CONFIG.page.paddingY,
+        }}
+      >
+        <motion.div variants={containerVariants} initial="hidden" animate="visible">
+          <Box
+            sx={{
+              display: { xs: "block", md: "flex" },
+              alignItems: { md: "stretch" },
+              gap: CONFIG.layout.columnGap,
+            }}
+          >
+            {/* ── 左侧文本列（About + 联系信息）── */}
+            <Box sx={leftColumnSx}>
+              <motion.div variants={itemVariants}>
+                <h2 style={headingStyle}>{isCn ? "关于" : "About"}</h2>
+                {hasCaption && <p style={bodyStyle}>{caption.replace(/\\n/g, "\n")}</p>}
+                {hasIntroduction &&
+                  introductions.map((item, i) => (
+                    <p key={i} style={bodyStyle}>
+                      {typeof item === "string" ? item : renderArrayContent([item], {})}
+                    </p>
+                  ))}
+              </motion.div>
+
+              {contact && (
+                <motion.div variants={itemVariants}>
+                  <ContactInfo
+                    contact={contact}
+                    fontFamily={effectiveFont}
+                    sx={{ mt: CONFIG.contact.topGap, color: colors.text }}
+                  />
+                </motion.div>
+              )}
+            </Box>
+
+            {/* ── 右侧图片列（桌面）── */}
+            <Box sx={{ flex: "0 0 auto", display: { xs: "none", md: "block" } }}>
+              <motion.div variants={itemVariants}>
+                <AboutImage src={portrait_image_url} alt={imgAlt} variant="desktop" fontFamily={effectiveFont} />
+              </motion.div>
+            </Box>
+          </Box>
+
+          {/* ── 移动端图片（文本/联系块之后）── */}
+          {portrait_image_url && CONFIG.image.mobile.show && (
+            <Box
+              sx={{
+                display: { xs: "flex", md: "none" },
+                justifyContent: "center",
+                mt: CONFIG.image.mobile.gap,
+              }}
+            >
+              <motion.div
+                variants={itemVariants}
+                style={{ width: "100%", display: "flex", justifyContent: "center" }}
+              >
+                <AboutImage src={portrait_image_url} alt={imgAlt} variant="mobile" fontFamily={effectiveFont} />
+              </motion.div>
+            </Box>
+          )}
+        </motion.div>
+      </Box>
+    </Box>
+  );
+};
+
+export default AboutPageComponent;
