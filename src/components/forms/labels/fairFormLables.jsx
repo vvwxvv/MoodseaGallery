@@ -36,6 +36,7 @@ const FAIR_FORM_LABELS = {
     location: { en: "Location & Organizers", cn: "地点与主办方" },
     content: { en: "Content", cn: "内容" },
     media: { en: "Media", cn: "媒体" },
+    related: { en: "Related", cn: "相关" },
     settings: { en: "Settings", cn: "设置" },
     ordering: { en: "Ordering", cn: "排序" },
   },

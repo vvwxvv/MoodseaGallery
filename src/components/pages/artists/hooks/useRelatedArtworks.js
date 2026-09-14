@@ -50,11 +50,9 @@ const yearOf = (aw) => {
     );
 
     // Order by the artist-page order (`order.artist_page_order`), the exact
-    // same rule the artist page itself uses (ordered first / ascending, the
-    // rest by year desc).
-    return sortArtworksByPageOrder(list, "artist_page_order", {
-      unorderedComparator: (a, b) => yearOf(b) - yearOf(a),
-    });
+    // same rule the artist page itself uses (positioned works first /
+    // ascending, the rest by newest year then title A→Z).
+    return sortArtworksByPageOrder(list, "artist_page_order");
   }, [allArtworks, artist, excludeTitle, isCn]);
 
   return { related, isLoading, error };

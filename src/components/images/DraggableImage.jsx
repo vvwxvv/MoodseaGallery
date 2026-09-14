@@ -4,6 +4,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import ImageViewer from './ImageViewer';
 import { formatImageUrl } from '@/components/pages/manager/constants';
+import { getOrder } from '@/utils/mediaOrder';
 
 const DraggableImage = ({ 
   image, 
@@ -139,7 +140,7 @@ const DraggableImage = ({
 
           {/* Order badge - keeping your original style */}
           <Chip
-            label={image.order !== undefined && image.order !== null ? image.order : (index + 1)}
+            label={getOrder(image, "artist_page_order") || (index + 1)}
             size="small"
             sx={{
               position: 'absolute',

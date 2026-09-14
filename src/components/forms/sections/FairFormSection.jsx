@@ -3,9 +3,12 @@ import React, { useContext } from 'react';
 
 /* ---------- internal imports ---------- */
 import { LanguageContext } from '@/components/contexts/LanguageContext';
+import { Box } from '@mui/material';
 
 /* ---------- reusable component ---------- */
 import TabbedFormManager from '@/components/forms/managers/TabbedFormManager';
+import MultiRelationSelector from '@/components/forms/selectors/MultiRelationSelector';
+import useFormTypeOptions from '@/hooks/useFormTypeOptions';
 
 /* ---------- 标签配置（若无外部文件，此处作为 fallback） ---------- */
 // 推荐在 /components/forms/labels/fairFormLabels.js 中集中管理，但此处提供默认值
@@ -16,6 +19,7 @@ const DEFAULT_FAIR_FORM_LABELS = {
     location: { en: 'Location & Participants', cn: '地点与参与者' },
     content: { en: 'Content', cn: '内容' },
     media: { en: 'Media', cn: '媒体' },
+    related: { en: 'Related', cn: '相关' },
     settings: { en: 'Settings', cn: '设置' },
   },
   fields: {
@@ -95,7 +99,6 @@ const FAIR_SCHEMA = [
   {
     key: 'media',
     fields: [
-      { name: 'cover_img_url', type: 'text' },
       { name: 'video_url', type: 'text' },
       { name: 'web_url', type: 'text' },
     ],
@@ -113,36 +116,11 @@ const FAIR_SCHEMA = [
     rows: 3,
     multiline: true,
   },
+  // 关联字段（同一个“关联”标签）：related_artwork_title + related_gallery_artist
   {
-    key: 'related_artwork_title',
-    type: 'relation',
-    fieldName: 'related_artwork_title',
-    label: { en: 'Related Artwork Title', cn: '相关作品标题' },
-    relation: {
-      endpoint: 'artwork',
-      labelKey: 'title',
-      descriptionKey: 'artist',
-      languageField: 'language',
-      matchLanguage: true,
-      unique: true,
-    },
-    matchField: 'language',
-    placeholder: { en: 'Select or type artworks', cn: '选择或输入作品' },
-  },
-  {
-    key: 'related_gallery_artist',
-    type: 'relation',
-    fieldName: 'related_gallery_artist',
-    label: { en: 'Related Gallery Artist', cn: '相关画廊艺术家' },
-    relation: {
-      endpoint: 'about',
-      labelKey: 'artist',
-      languageField: 'language',
-      matchLanguage: true,
-      unique: true,
-    },
-    matchField: 'language',
-    placeholder: { en: 'Select or type artists', cn: '选择或输入艺术家' },
+    key: 'related',
+    type: 'custom',
+    renderKey: 'relatedSection',
   },
   {
     // 排序：只显示编号 + 跳转排序页
@@ -169,6 +147,47 @@ const FairFormSection = ({
 }) => {
   const { isCn } = useContext(LanguageContext);
 
+  // Type options come from the Meta settings (/manager/meta → formTypes.fair),
+  // falling back to the built-in labels list.
+  const typeFallback = React.useMemo(
+    () =>
+      (FAIR_FORM_LABELS?.typeOptions || []).map((o) => ({
+        value: o.value,
+        label: isCn ? o.cn : o.en,
+      })),
+    [isCn]
+  );
+  const metaTypeOptions = useFormTypeOptions("fair", typeFallback);
+
+  /* ---------- 关联数据源（跨实体） ----------
+     related_artwork_title  → 从 Artwork 取作品标题（与“作品 → 相关展览”同一套逻辑）
+     related_gallery_artist → 从 About 取艺术家名（去重，按语言匹配） */
+  const relatedArtworkSources = [
+    {
+      endpoint: 'artwork',
+      labelKey: 'title',
+      descriptionKey: 'year',
+      languageField: 'language',
+      matchLanguage: true,
+      unique: true,
+    },
+  ];
+  const relatedArtistSources = [
+    {
+      endpoint: 'about',
+      labelKey: 'artist',
+      languageField: 'language',
+      matchLanguage: true,
+      unique: true,
+    },
+  ];
+
+  // The record's own language drives the option lists (an EN fair only lists
+  // EN artworks/artists).
+  const relatedLanguage = String(form.watch('language') || (isCn ? 'CN' : 'EN'))
+    .trim()
+    .toUpperCase();
+
   /* ---------- 将标签注入 Schema ---------- */
   const enhancedSchema = FAIR_SCHEMA.map((section) => {
     const enhancedSection = { ...section };
@@ -180,14 +199,21 @@ const FairFormSection = ({
 
     // 字段标签
     if (section.fields) {
-      enhancedSection.fields = section.fields.map((field) => ({
-        ...field,
-        label:
-          FAIR_FORM_LABELS?.fields?.[field.name] || {
-            en: field.name,
-            cn: field.name,
-          },
-      }));
+      enhancedSection.fields = section.fields.map((field) => {
+        const next = {
+          ...field,
+          label:
+            FAIR_FORM_LABELS?.fields?.[field.name] || {
+              en: field.name,
+              cn: field.name,
+            },
+        };
+        // Type selector → options managed in the site Meta.
+        if (field.name === 'type' && metaTypeOptions.length) {
+          next.options = metaTypeOptions;
+        }
+        return next;
+      });
     }
 
     // 数组字段的“添加”按钮标签
@@ -232,10 +258,51 @@ const FairFormSection = ({
     );
   };
 
-  /* ---------- 自定义渲染器（可选） ---------- */
+  /* ---------- 自定义渲染器 ---------- */
   const customRenderers = {
     relatedMediaSelectors,
     relatedContentSelectors,
+
+    // 同一“关联”标签：相关作品 + 相关画廊/艺术家
+    relatedSection: () => (
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        {/* related_artwork_title —— 从作品列表多选（同“作品 → 相关展览”的 UI/逻辑） */}
+        <MultiRelationSelector
+          name="related_artwork_title"
+          label={getLabelFunc('related_artwork_title')}
+          control={form.control}
+          sources={relatedArtworkSources}
+          language={relatedLanguage}
+          allowCustom={false}
+          disabled={disabled}
+          isCn={isCn}
+          colors={colors}
+          placeholder={isCn ? '选择作品…' : 'Select artworks…'}
+          hint={
+            isCn
+              ? '仅可选择语言相同的作品 · 排序在作品排序页设置'
+              : 'Only artworks in the same language · ordering is set on the artwork order page'
+          }
+          onChange={(vals) => onFieldChange?.('related_artwork_title', vals)}
+        />
+
+        {/* related_gallery_artist —— 跨实体多选 */}
+        <MultiRelationSelector
+          name="related_gallery_artist"
+          label={getLabelFunc('related_gallery_artist')}
+          control={form.control}
+          sources={relatedArtistSources}
+          language={relatedLanguage}
+          disabled={disabled}
+          isCn={isCn}
+          colors={colors}
+          placeholder={
+            isCn ? '选择或输入相关画廊艺术家' : 'Select or type related gallery artists'
+          }
+          onChange={(vals) => onFieldChange?.('related_gallery_artist', vals)}
+        />
+      </Box>
+    ),
   };
 
   return (

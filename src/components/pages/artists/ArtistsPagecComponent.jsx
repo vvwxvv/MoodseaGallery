@@ -249,6 +249,7 @@ const ArtistList = React.memo(function ArtistList({
 const ArtistPreview = React.memo(function ArtistPreview({
   previewImage,
   previewArtist,
+  previewMeta = "",
   isCn,
 }) {
   const [imageFailed, setImageFailed] = useState(false);
@@ -280,7 +281,8 @@ const ArtistPreview = React.memo(function ArtistPreview({
       style={{
         width: CONFIG.PREVIEW.COLUMN_WIDTH,
         display: "flex",
-        justifyContent: "center",
+        flexDirection: "column",
+        alignItems: "center",
         position: "relative",
         top: `${CONFIG.PREVIEW.OFFSET_TOP}px`,
       }}
@@ -324,6 +326,23 @@ const ArtistPreview = React.memo(function ArtistPreview({
           </Link>
         )}
       </div>
+
+      {/* Which artwork the preview is showing (the artist's most recent
+          artwork when no hover image has been chosen). */}
+      {previewMeta ? (
+        <div
+          style={{
+            marginTop: 10,
+            fontSize: 11,
+            letterSpacing: ".04em",
+            opacity: 0.45,
+            textAlign: "center",
+            maxWidth: `${CONFIG.PREVIEW.MAX_WIDTH}px`,
+          }}
+        >
+          {previewMeta}
+        </div>
+      ) : null}
     </div>
   );
 });
@@ -512,6 +531,7 @@ export default function ArtistsPageComponent() {
             <ArtistPreview
               previewImage={previewImage}
               previewArtist={previewArtist}
+              previewMeta={previewArtist?.hoverMeta || ""}
               isCn={isCn}
             />
           )}

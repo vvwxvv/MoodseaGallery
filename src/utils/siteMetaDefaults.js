@@ -4,23 +4,45 @@
  * The single source of truth for the site's "Meta" document shape.
  *
  * The Meta document lives in the `Meta` collection (one doc) and is editable
- * from the manager (`/manager/meta`). These defaults are built from the legacy
- * JSON files in `src/data/` so the app keeps working — and keeps looking the
- * same — before/without the DB doc. Form settings (form_options, form_types,
- * form_marks, form_language_options) intentionally stay in JSON.
+ * from the manager (`/manager/meta`). It is the single source of truth for the
+ * site's settings (identity, footer, website URL, menus, SEO, gallery-entity
+ * mapping, form type options). These defaults only seed it —
+ * and keep the site looking right when the DB is unavailable.
+ *
+ * Form settings (form_options, form_types, form_marks) intentionally stay in
+ * JSON, as does the manager user-guide doc.
  *
  * Consumers should read the Meta doc through `useSiteMeta()` (client) or the
  * `/api/meta` route (server) and fall back to `DEFAULT_SITE_META`.
  */
 
 import basicSettings from "@/data/basic_setting.json";
-import footerConfig from "@/data/footer.json";
 import menuData from "@/data/menuItems.json";
 import galleryEntityConfig from "@/data/image_gallery_entity_config.json";
+import formTypesData from "@/data/form_types.json";
 
 const appInfo = basicSettings.appInfo || {};
 const seo = basicSettings.seo || {};
 const metaTags = basicSettings.meta || {};
+
+/**
+ * Built-in footer defaults. The Meta document is the single source of truth —
+ * these only seed it (and keep the site sane when the DB is unavailable).
+ */
+export const FOOTER_DEFAULTS = {
+  en: { startYear: 2019, companyName: "Moodsea Gallery", rightsText: "All rights reserved" },
+  cn: { startYear: 2019, companyName: "木曦画廊", rightsText: "保留所有权利" },
+};
+
+/* Seeded `*_en` / `*_cn` pairs (the Meta doc overrides them). */
+const APP_TITLE_EN = metaTags.title || seo.title || FOOTER_DEFAULTS.en.companyName;
+const APP_TITLE_CN = FOOTER_DEFAULTS.cn.companyName;
+const APP_DESC_EN = appInfo.description || seo.description || "";
+const FOOTER_COMPANY_EN = FOOTER_DEFAULTS.en.companyName;
+const FOOTER_COMPANY_CN = FOOTER_DEFAULTS.cn.companyName;
+const FOOTER_START_YEAR = FOOTER_DEFAULTS.en.startYear ?? null;
+const FOOTER_RIGHTS_EN = FOOTER_DEFAULTS.en.rightsText;
+const FOOTER_RIGHTS_CN = FOOTER_DEFAULTS.cn.rightsText;
 
 /** Deep-ish merge used to layer a DB doc over the defaults. */
 export function mergeSiteMeta(base, override) {
@@ -50,41 +72,24 @@ const withMetaEntry = (list = [], lang = "en") => [
 
 export const DEFAULT_SITE_META = {
   // ── App identity ────────────────────────────────────────────────────────
-  app_title: metaTags.title || seo.title || "Moodsea Gallery",
-  app_title_cn: footerConfig.cn?.companyName || "木曦画廊",
+  app_title_en: APP_TITLE_EN,
+  app_title_cn: APP_TITLE_CN,
   app_type: appInfo.type || "",
   app_category: appInfo.category || "",
   app_version: appInfo.version || "",
   app_purpose: appInfo.purpose || "",
-  app_description: appInfo.description || seo.description || "",
+  app_description_en: APP_DESC_EN,
   app_description_cn: "",
 
   // ── Footer ──────────────────────────────────────────────────────────────
-  app_footer: footerConfig.en?.companyName || "",
-  app_footer_cn: footerConfig.cn?.companyName || "",
-  app_footer_start_year: footerConfig.en?.startYear ?? footerConfig.cn?.startYear ?? null,
-  app_footer_rights: footerConfig.en?.rightsText || "",
-  app_footer_rights_cn: footerConfig.cn?.rightsText || "",
-  /** Full footer config (kept so the classic shape still resolves). */
-  footer: {
-    en: {
-      startYear: footerConfig.en?.startYear ?? null,
-      companyName: footerConfig.en?.companyName || "",
-      rightsText: footerConfig.en?.rightsText || "",
-    },
-    cn: {
-      startYear: footerConfig.cn?.startYear ?? null,
-      companyName: footerConfig.cn?.companyName || "",
-      rightsText: footerConfig.cn?.rightsText || "",
-    },
-  },
+  app_footer_en: FOOTER_COMPANY_EN,
+  app_footer_cn: FOOTER_COMPANY_CN,
+  app_footer_start_year: FOOTER_START_YEAR,
+  app_footer_rights_en: FOOTER_RIGHTS_EN,
+  app_footer_rights_cn: FOOTER_RIGHTS_CN,
 
-  // ── Contact / social ────────────────────────────────────────────────────
-  socialMedia: [],
+  // ── Website ─────────────────────────────────────────────────────────────
   web_url: "",
-
-  // ── Language ────────────────────────────────────────────────────────────
-  language: "EN",
 
   // ── Menus (public + manager) ────────────────────────────────────────────
   menu: {
@@ -98,9 +103,8 @@ export const DEFAULT_SITE_META = {
     },
   },
 
-  // ── SEO / head tags ─────────────────────────────────────────────────────
+  // ── SEO / head tags (all editable in /manager/meta) ────────────────────
   seo: {
-    ...metaTags,
     title: metaTags.title || seo.title || "",
     description: metaTags.description || seo.description || "",
     keywords: metaTags.keywords || (Array.isArray(seo.keywords) ? seo.keywords.join(", ") : ""),
@@ -111,18 +115,32 @@ export const DEFAULT_SITE_META = {
     author: metaTags.author || appInfo.author || "",
   },
 
-  // ── Theme + feature flags ───────────────────────────────────────────────
-  themes: {
-    supported: basicSettings.themes?.supported || ["light", "dark"],
-    default: basicSettings.themes?.default || "light",
-    autoDetect: basicSettings.themes?.autoDetect ?? true,
-  },
-  features: {
-    showArtworkFilters: basicSettings.features?.showArtworkFilters ?? false,
-  },
-
   // ── Image-gallery entity mapping ────────────────────────────────────────
   galleryEntities: galleryEntityConfig,
+
+  // ── Form "type" options (managed in /manager/meta) ───────────────────────
+  // Seeded from the legacy JSON so existing values keep working; the manager
+  // page can add / remove entries and the entity forms read these into their
+  // type selector.
+  formTypes: {
+    artwork: (formTypesData.artwork || []).map((t) => ({
+      value: t.value,
+      label_en: t.label_en || t.label || t.value,
+      label_cn: t.label_cn || t.label || t.value,
+    })),
+    exhibition: [
+      { value: "Solo Exhibition", label_en: "Solo Exhibition", label_cn: "个展" },
+      { value: "Group Exhibition", label_en: "Group Exhibition", label_cn: "群展" },
+      { value: "Dual Exhibition", label_en: "Dual Exhibition", label_cn: "双人展" },
+      { value: "Museum Exhibition", label_en: "Museum Exhibition", label_cn: "美术馆展览" },
+      { value: "Art Fair", label_en: "Art Fair", label_cn: "艺博会" },
+      { value: "Other", label_en: "Other", label_cn: "其他" },
+    ],
+    fair: [
+      { value: "Art Fair", label_en: "Art Fair", label_cn: "艺博会" },
+      { value: "Other", label_en: "Other", label_cn: "其他" },
+    ],
+  },
 };
 
 /** Fresh copy (never hand out the shared object for mutation). */

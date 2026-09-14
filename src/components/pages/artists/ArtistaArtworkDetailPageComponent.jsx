@@ -48,10 +48,11 @@ function RelatedArtworkThumb({ artwork, fontFamily, isCn, isMobile }) {
 
   const [isHovered, setIsHovered] = useState(false);
 
-  const slug = (artwork.title || "")
+  const slug = String(artwork.title || "")
     .trim()
     .toLowerCase()
-    .replace(/\s+/g, "_");
+    .replace(/\s+/g, "_")
+    .replace(/[^\p{L}\p{N}_-]/gu, "");
 
   return (
     <Link
@@ -398,20 +399,22 @@ export default function ArtistaArtworkDetailPageComponent({
   const [isBtnHovered, setIsBtnHovered] = useState(false);
 
   // 获取主要作品数据
-  const { artwork, loading, error } = useArtworkSlugData(artworkSlug, isCn);
+  const { artwork, loading, error, notFound } = useArtworkSlugData(artworkSlug, isCn);
   // 获取同艺术家的“相关作品”（按 artist_page_order 排序）
   const { related: relatedWorks, isLoading: allArtworksLoading } = useRelatedArtworks(
     artwork?.artist,
     { excludeTitle: artwork?.title, isCn }
   );
 
-  // 🔥 关键：合并加载状态，任何一部分在加载中都显示骨架
+  // 🔥 合并加载状态：任何一部分在加载中 → 纯白屏（绝不显示“未找到”）
   const allLoading = loading || allArtworksLoading;
 
   // ----- 渲染决策（顺序很重要）-----
-  // 1. 加载中 → 骨架屏
+  // 1. 加载中 → 纯白屏（无骨架、无动画、无文字）
   if (allLoading) {
-    return <ArtworkDetailSkeleton isMobile={isMobile} isTablet={isTablet} isCn={isCn} />;
+    return (
+      <div style={{ backgroundColor: "#ffffff", minHeight: "100vh", width: "100%" }} />
+    );
   }
 
   // 2. 错误 → 错误提示
@@ -427,9 +430,9 @@ export default function ArtistaArtworkDetailPageComponent({
     );
   }
 
-  // 3. 只有完全加载完成且无错误时，才判断数据是否存在
-  //    此时如果 artwork 为空，说明确实没有找到
-  if (!artwork) {
+  // 3. 只有完全加载完成（allLoading 已为 false）且无错误时，才判断数据是否存在
+  //    `notFound` 只会由一次真正完成的请求置位，所以加载途中绝不会闪“未找到”。
+  if (notFound || !artwork) {
     return (
       <div
         style={{

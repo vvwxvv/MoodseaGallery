@@ -10,12 +10,14 @@ export default function ExhibitionManagerPage() {
       ...exhibitionSchemaConfig,
       dataConfig: {
         ...exhibitionSchemaConfig.dataConfig,
-        defaultSort: { field: "order", direction: "asc" },
+        // Order every exhibition by YEAR, current → past (newest first).
+        defaultSort: { field: "year", direction: "desc" },
         groupConfig: {
           enabled: true,
           field: "year",
           applyTo: ["grid", "list"],
-          sortGroups: true,
+          // Year boxes run newest → oldest (current → past); Ungrouped last.
+          sortGroups: "desc",
           emptyLabel: "Ungrouped",
         },
       },

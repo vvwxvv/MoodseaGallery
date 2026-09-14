@@ -9,7 +9,7 @@ import React, {
 } from "react";
 import { Box, Container } from "@mui/material";
 import { useRouter } from "next/navigation";
-import { Search, SlidersHorizontal, ListOrdered, Maximize2, AlertCircle } from "lucide-react";
+import { Search, SlidersHorizontal, ListOrdered, Mouse, Maximize2, AlertCircle } from "lucide-react";
 
 // ─── Contexts ──────────────────────────────────────────────────────────────
 import { LanguageContext } from "@/components/contexts/LanguageContext";
@@ -1317,7 +1317,8 @@ export default function ManagerStructureLayout({ managerSchemaConfig }) {
   // header row (so they sit on the same line as the accordion label).
   const renderOrderControls = () => {
     const orderPath = dataConfig.orderPagePath;
-    if (!pinnedControls.length && !orderPath) return null;
+    const hoverPath = dataConfig.hoverPagePath;
+    if (!pinnedControls.length && !orderPath && !hoverPath) return null;
     return (
       <div
         style={{
@@ -1435,6 +1436,34 @@ export default function ManagerStructureLayout({ managerSchemaConfig }) {
                 wording). */}
             {pickText(dataConfig.orderPageLabel, isCn) ||
               (isCn ? "打开排序页" : "Open order page")}
+          </button>
+        )}
+
+        {/* Second shortcut: the mark page for this collection (e.g. the image
+            manager's “Artist Name Hover Image” page). */}
+        {hoverPath && (
+          <button
+            type="button"
+            onClick={() => router.push(hoverPath)}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "7px",
+              padding: "7px 14px",
+              fontSize: "13px",
+              fontFamily: fontStyle?.fontFamily,
+              fontWeight: 500,
+              border: "1px solid #000",
+              borderRadius: 8,
+              background: "#fff",
+              color: "#000",
+              cursor: "pointer",
+              whiteSpace: "nowrap",
+            }}
+          >
+            <Mouse size={14} />
+            {pickText(dataConfig.hoverPageLabel, isCn) ||
+              (isCn ? "悬停图" : "Hover image")}
           </button>
         )}
       </div>

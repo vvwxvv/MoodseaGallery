@@ -143,7 +143,7 @@ export const fairApiConfig = {
       'title', 'section', 'type', 'date_start', 'date_end',
       'vip_preview_date', 'year', 'booth', 'venue', 'location',
       'organiser', 'curator', 'participating_artists', 'caption',
-      'language', 'order', 'mark', 'status'
+      'language', 'order', 'status'
     ];
     for (const field of stringFields) {
       if (data[field] !== undefined) {
@@ -214,7 +214,7 @@ export const fairApiConfig = {
       'title', 'section', 'type', 'date_start', 'date_end',
       'vip_preview_date', 'year', 'booth', 'venue', 'location',
       'organiser', 'curator', 'participating_artists', 'caption',
-      'language', 'order', 'mark', 'status'
+      'language', 'order', 'status'
     ];
     for (const field of stringFields) {
       if (data[field] !== undefined) {

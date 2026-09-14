@@ -125,7 +125,7 @@ export const videoApiConfig = {
     }
     
     // Process string fields - trim and convert empty to null
-    const stringFields = ['type', 'tag_en', 'tag_cn', 'caption_en', 'caption_cn', 'mark'];
+    const stringFields = ['type', 'tag_en', 'tag_cn', 'caption_en', 'caption_cn'];
     for (const field of stringFields) {
       if (data[field] !== undefined) {
         if (data[field] === '' || data[field] === null) {
@@ -195,7 +195,7 @@ export const videoApiConfig = {
     }
     
     // Process string fields - trim and convert empty to null
-    const stringFields = ['type', 'tag_en', 'tag_cn', 'caption_en', 'caption_cn', 'mark'];
+    const stringFields = ['type', 'tag_en', 'tag_cn', 'caption_en', 'caption_cn'];
     for (const field of stringFields) {
       if (data[field] !== undefined) {
         if (data[field] === '' || data[field] === null) {

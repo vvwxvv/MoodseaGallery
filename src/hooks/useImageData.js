@@ -41,7 +41,8 @@ const useImageData = (images, artworks, events, isCn, search) => {
       // Apply search filter if provided
       if (search && typeof search === 'string' && search.trim()) {
         try {
-          const searchKeys = ['tag_en', 'tag_cn', 'type', 'caption_en', 'caption_cn', 'mark', 'order'];
+          // `mark`/`order` are JSON objects on the Image model — not searchable text.
+          const searchKeys = ['tag_en', 'tag_cn', 'type', 'caption_en', 'caption_cn'];
           result = fuzzySearch(result, search, {
             keys: searchKeys,
             threshold: 0.3,

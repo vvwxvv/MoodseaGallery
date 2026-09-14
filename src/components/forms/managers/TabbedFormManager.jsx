@@ -8,6 +8,7 @@ import useFont from '@/hooks/useFont';
 
 import FormTextField from '@/components/forms/fields/FormTextField';
 import FormSelectField from '@/components/forms/fields/FormSelectField';
+import FormAutoCompleteField from '@/components/forms/fields/FormAutoCompleteField';
 import LanguageSelector, {
   languageOptions,
 } from '@/components/forms/selectors/LanguageSelector';
@@ -125,6 +126,24 @@ const TabbedFormManager = ({
           isCn={isCn}
           getLabel={() => label}
           onFieldChange={() => onFieldChange?.(meta.name)}
+        />
+      );
+    }
+
+    if (meta.type === 'autocomplete') {
+      return (
+        <FormAutoCompleteField
+          key={meta.name}
+          name={meta.name}
+          label={label}
+          control={form.control}
+          error={form.formState.errors[meta.name]}
+          disabled={disabled}
+          options={resolveSelectOptions(meta.options)}
+          colors={colors}
+          labelFontFamily={labelFontFamily}
+          inputStyles={inputStyles}
+          onChange={() => onFieldChange?.(meta.name)}
         />
       );
     }

@@ -6,6 +6,7 @@ import { LanguageContext } from '@/components/contexts/LanguageContext';
 
 /* ---------- reusable component ---------- */
 import TabbedFormManager from '@/components/forms/managers/TabbedFormManager';
+import useFormTypeOptions from '@/hooks/useFormTypeOptions';
 
 /* ---------- centralised labels ---------- */
 import ARTWORK_FORM_LABELS from '@/components/forms/labels/artworkFormLables';
@@ -19,7 +20,7 @@ const ARTWORK_SCHEMA = [
     fields: [
       { name: 'artist', type: 'text' },
       { name: 'title', type: 'text' },
-      { name: 'type', type: 'text' },
+      { name: 'type', type: 'autocomplete', options: 'typeOptions' },
       { name: 'medium', type: 'text' },
       // Year dropdown (1980 → current year) — shared YearSelector.
       { name: 'year', type: 'year' },
@@ -39,7 +40,6 @@ const ARTWORK_SCHEMA = [
   {
     key: 'media',
     fields: [
-      { name: 'cover_img_url', type: 'text' },   // 新增：封面图片
       { name: 'video_url', type: 'text' },
       { name: 'web_url', type: 'text' },
     ],
@@ -113,6 +113,10 @@ const ArtworkFormSection = ({
 }) => {
   const { isCn } = useContext(LanguageContext);
 
+  // Type options come from the Meta settings (/manager/meta → formTypes.artwork).
+  // The artwork "type" stays free text but now SUGGESTS these values.
+  const metaTypeOptions = useFormTypeOptions("artwork", []);
+
   /* ---------- 将集中标签注入到 schema ---------- */
   const enhancedSchema = ARTWORK_SCHEMA.map((section) => {
     const enhancedSection = { ...section };
@@ -122,14 +126,21 @@ const ArtworkFormSection = ({
     }
 
     if (section.fields) {
-      enhancedSection.fields = section.fields.map((field) => ({
-        ...field,
-        label:
-          ARTWORK_FORM_LABELS?.fields?.[field.name] || {
-            en: field.name,
-            cn: field.name,
-          },
-      }));
+      enhancedSection.fields = section.fields.map((field) => {
+        const next = {
+          ...field,
+          label:
+            ARTWORK_FORM_LABELS?.fields?.[field.name] || {
+              en: field.name,
+              cn: field.name,
+            },
+        };
+        // Type → suggestions from the site Meta.
+        if (field.name === 'type' && metaTypeOptions.length) {
+          next.options = metaTypeOptions;
+        }
+        return next;
+      });
     }
 
     if (section.key === 'introduction') {

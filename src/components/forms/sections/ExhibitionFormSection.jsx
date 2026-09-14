@@ -1,8 +1,7 @@
-// ExhibitionFormSection.jsx — matches updated Prisma Exhibition model (related_artwork = JSON 对象数组)
+// ExhibitionFormSection.jsx — matches updated Prisma Exhibition model
+// (related_artwork = string[] of artwork titles, picked with the shared relation selector)
 import React, { useContext } from 'react';
-import { Box, IconButton, TextField, Button, Typography } from '@mui/material';
-import { Controller } from 'react-hook-form';
-import { Plus, Trash2 } from 'lucide-react';
+import { Box } from '@mui/material';
 
 /* ---------- internal imports ---------- */
 import { LanguageContext } from '@/components/contexts/LanguageContext';
@@ -10,102 +9,10 @@ import { LanguageContext } from '@/components/contexts/LanguageContext';
 /* ---------- reusable component ---------- */
 import TabbedFormManager from '@/components/forms/managers/TabbedFormManager';
 import MultiRelationSelector from '@/components/forms/selectors/MultiRelationSelector';
+import useFormTypeOptions from '@/hooks/useFormTypeOptions';
 
 /* ---------- centralised labels ---------- */
 import EXHIBITION_FORM_LABELS from '@/components/forms/labels/exhibitionFormLables';
-
-/* =============================================================================
-  Object-array editor for related_artwork —— 每行 { title, order, mark }。
-  逻辑对齐 GalleryContact.social_media 的对象数组编辑：可增删行、逐字段编辑，
-  空行（无 title）在 API 层 beforeCreate/beforeUpdate 会被丢弃。
-
-  ⚠️ 占位实现：如果 social_media 在你项目里用的是某个现成的对象数组编辑器
-  组件，请贴出来，用它替换本组件、props 对齐即可。
-============================================================================= */
-const RelatedArtworkEditor = ({ control, name, label, disabled, isCn, colors = {}, hint }) => {
-  const columns = [
-    { key: 'title', label: isCn ? '作品标题' : 'Title', flex: 2 },
-    { key: 'order', label: isCn ? '排序' : 'Order', flex: 1 },
-    { key: 'mark', label: isCn ? '标记' : 'Mark', flex: 1 },
-  ];
-
-  return (
-    <Controller
-      control={control}
-      name={name}
-      defaultValue={[]}
-      render={({ field }) => {
-        // 规范成对象数组；兼容旧的字符串数组（每个字符串当作 title）
-        const rows = Array.isArray(field.value)
-          ? field.value.map((v) =>
-              v && typeof v === 'object'
-                ? { title: v.title || '', order: v.order || '', mark: v.mark || '' }
-                : { title: String(v ?? ''), order: '', mark: '' }
-            )
-          : [];
-
-        const commit = (next) => field.onChange(next);
-
-        const updateCell = (idx, key, val) => {
-          const next = rows.map((r, i) => (i === idx ? { ...r, [key]: val } : r));
-          commit(next);
-        };
-        const addRow = () => commit([...rows, { title: '', order: '', mark: '' }]);
-        const removeRow = (idx) => commit(rows.filter((_, i) => i !== idx));
-
-        return (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-            {label && (
-              <Typography sx={{ fontSize: 14, fontWeight: 500, color: colors.text }}>
-                {label}
-              </Typography>
-            )}
-            {hint && (
-              <Typography sx={{ fontSize: 12, opacity: 0.6, color: colors.text }}>
-                {hint}
-              </Typography>
-            )}
-
-            {rows.map((row, idx) => (
-              <Box key={idx} sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}>
-                {columns.map((col) => (
-                  <TextField
-                    key={col.key}
-                    value={row[col.key]}
-                    onChange={(e) => updateCell(idx, col.key, e.target.value)}
-                    placeholder={col.label}
-                    size="small"
-                    disabled={disabled}
-                    sx={{ flex: col.flex }}
-                  />
-                ))}
-                <IconButton
-                  aria-label="remove"
-                  onClick={() => removeRow(idx)}
-                  disabled={disabled}
-                  size="small"
-                  sx={{ mt: 0.5 }}
-                >
-                  <Trash2 size={16} />
-                </IconButton>
-              </Box>
-            ))}
-
-            <Button
-              onClick={addRow}
-              disabled={disabled}
-              startIcon={<Plus size={16} />}
-              size="small"
-              sx={{ alignSelf: 'flex-start', textTransform: 'none' }}
-            >
-              {isCn ? '添加作品' : 'Add Artwork'}
-            </Button>
-          </Box>
-        );
-      }}
-    />
-  );
-};
 
 /* =============================================================================
   Exhibition Form Schema Definition (matches updated Prisma Exhibition model)
@@ -175,7 +82,7 @@ const EXHIBITION_SCHEMA = [
     rows: 3,
     multiline: true,
   },
-  // 关联字段：related_artwork（对象数组编辑器）+ related_gallery_artist（跨实体多选）
+  // 关联字段（同一个“关联”标签）：related_artwork + related_gallery_artist
   {
     key: 'related',
     type: 'custom',
@@ -206,6 +113,18 @@ const ExhibitionFormSection = ({
 }) => {
   const { isCn } = useContext(LanguageContext);
 
+  // Type options come from the Meta settings (/manager/meta → formTypes.exhibition),
+  // falling back to the built-in labels list.
+  const typeFallback = React.useMemo(
+    () =>
+      (EXHIBITION_FORM_LABELS?.typeOptions || []).map((o) => ({
+        value: o.value,
+        label: isCn ? o.cn : o.en,
+      })),
+    [isCn]
+  );
+  const metaTypeOptions = useFormTypeOptions("exhibition", typeFallback);
+
   /* ---------- 将标签注入 Schema ---------- */
   const enhancedSchema = EXHIBITION_SCHEMA.map(section => {
     const enhancedSection = { ...section };
@@ -217,10 +136,17 @@ const ExhibitionFormSection = ({
 
     // 为每个字段添加 label
     if (section.fields) {
-      enhancedSection.fields = section.fields.map(field => ({
-        ...field,
-        label: EXHIBITION_FORM_LABELS?.fields?.[field.name] || { en: field.name, cn: field.name }
-      }));
+      enhancedSection.fields = section.fields.map(field => {
+        const next = {
+          ...field,
+          label: EXHIBITION_FORM_LABELS?.fields?.[field.name] || { en: field.name, cn: field.name },
+        };
+        // Type selector → options managed in the site Meta.
+        if (field.name === 'type' && metaTypeOptions.length) {
+          next.options = metaTypeOptions;
+        }
+        return next;
+      });
     }
 
     // 为数组字段添加"添加"按钮标签
@@ -264,7 +190,18 @@ const ExhibitionFormSection = ({
   };
 
   /* ---------- 关联数据源（跨实体） ----------
+     related_artwork        → 从 Artwork 取作品标题（与“作品 → 相关展览”同一套逻辑）
      related_gallery_artist → 从 About 取艺术家名（去重，按语言匹配） */
+  const relatedArtworkSources = [
+    {
+      endpoint: 'artwork',
+      labelKey: 'title',
+      descriptionKey: 'year',
+      languageField: 'language',
+      matchLanguage: true,
+      unique: true,
+    },
+  ];
   const relatedArtistSources = [
     {
       endpoint: 'about',
@@ -275,29 +212,45 @@ const ExhibitionFormSection = ({
     },
   ];
 
+  // The record's own language drives the option lists (an EN exhibition only
+  // lists EN artworks/artists).
+  const relatedLanguage = String(form.watch('language') || (isCn ? 'CN' : 'EN'))
+    .trim()
+    .toUpperCase();
+
   /* ---------- 自定义渲染器 ---------- */
   const customRenderers = {
     relatedMediaSelectors,
     relatedContentSelectors,
     relatedSection: () => (
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {/* related_artwork —— 对象数组编辑器（title / order / mark 每行可编辑） */}
-        <RelatedArtworkEditor
-          control={form.control}
+        {/* related_artwork —— 从作品列表多选（与“作品 → 相关展览”同一套 UI/逻辑） */}
+        <MultiRelationSelector
           name="related_artwork"
           label={getLabelFunc('related_artwork')}
+          control={form.control}
+          sources={relatedArtworkSources}
+          language={relatedLanguage}
+          allowCustom={false}
           disabled={disabled}
           isCn={isCn}
           colors={colors}
-          hint={EXHIBITION_FORM_LABELS?.hints?.relatedArtwork?.[isCn ? 'cn' : 'en']}
+          placeholder={isCn ? '选择作品…' : 'Select artworks…'}
+          hint={
+            isCn
+              ? '仅可选择语言相同的作品 · 排序在作品排序页设置'
+              : 'Only artworks in the same language · ordering is set on the artwork order page'
+          }
+          onChange={(vals) => onFieldChange?.('related_artwork', vals)}
         />
 
-        {/* related_gallery_artist —— 保留跨实体多选（字符串数组） */}
+        {/* related_gallery_artist —— 跨实体多选（字符串数组） */}
         <MultiRelationSelector
           name="related_gallery_artist"
           label={getLabelFunc('related_gallery_artist')}
           control={form.control}
           sources={relatedArtistSources}
+          language={relatedLanguage}
           disabled={disabled}
           isCn={isCn}
           colors={colors}

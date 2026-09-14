@@ -151,7 +151,6 @@ export const writingApiConfig = {
       'type',
       'caption',
       'status',
-      'mark',
       'tag',
     ];
     for (const field of stringFields) {
@@ -236,7 +235,6 @@ export const writingApiConfig = {
       'type',
       'caption',
       'status',
-      'mark',
       'tag',
     ];
     for (const field of stringFields) {

@@ -25,10 +25,7 @@ function formatRelatedArtwork(list, sep = "; ") {
       if (it && typeof it === "object") {
         const title = String(it.title || "").trim();
         if (!title) return "";
-        const meta = [
-          it.order ? `order:${String(it.order).trim()}` : "",
-          it.mark ? `mark:${String(it.mark).trim()}` : "",
-        ].filter(Boolean);
+        const meta = [it.order ? `order:${String(it.order).trim()}` : ""].filter(Boolean);
         return meta.length ? `${title} (${meta.join(", ")})` : title;
       }
       return String(it || "").trim();

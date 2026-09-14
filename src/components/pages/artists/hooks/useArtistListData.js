@@ -4,7 +4,8 @@ import { useMemo, useCallback } from "react";
 import useData from "@/hooks/useData";
 import { filterByLanguage } from "@/utils/filterByLanguage";
 import { artworkOrderValue } from "@/utils/artworkOrder";
-import { filterArtworksHiddenForPage } from "@/utils/mediaMarks";
+import { filterArtworksHiddenForPage, isArtistHoverImage } from "@/utils/mediaMarks";
+import { buildImageSourceIndex } from "@/components/pages/images/hooks/useImageSourceIndex";
 
 // ── Name normalization for matching About <-> Artwork ──
 // Trims, lowercases, and collapses internal whitespace so minor
@@ -82,6 +83,35 @@ function buildArtworkCoverMap(artworks) {
 }
 
 /**
+ * Map of normalized artist name -> the artist's MOST RECENT artwork
+ * ({ image, title, year }) — highest `year` wins; ties break on the lowest
+ * artist-page order, so the pick is stable. Only artworks with a cover image.
+ *
+ * Used as the hover-preview fallback: when an artist has no image flagged
+ * `artist_hover_image`, hovering the artist name shows this artwork instead.
+ */
+function buildRecentArtworkMap(artworks) {
+  const map = new Map();
+
+  for (const aw of artworks || []) {
+    const rawName = (aw?.artist || "").trim();
+    const url = aw?.cover_img_url;
+    if (!rawName || !url) continue;
+
+    const key = normalizeName(rawName);
+    const year = Number(String(aw?.year ?? "").replace(/[^\d]/g, "")) || 0;
+    const order = artworkOrderValue(aw, "artist_page_order");
+    const prev = map.get(key);
+
+    if (!prev || year > prev.year || (year === prev.year && order < prev.order)) {
+      map.set(key, { image: url, title: aw.title || "", year, order });
+    }
+  }
+
+  return map;
+}
+
+/**
  * Builds one profile per unique artist found in the About collection.
  * This is the source of truth for who shows up in the artist list —
  * every unique About artist is included, regardless of whether a
@@ -90,7 +120,8 @@ function buildArtworkCoverMap(artworks) {
  * The returned list is ordered by artist name's first letter (A→Z),
  * pinyin-aware when isCn is true.
  */
-function buildArtistProfilesFromAbout(aboutRows, artworkCoverMap, isCn) {
+function buildArtistProfilesFromAbout(aboutRows, artworkCoverMap, isCn, opts = {}) {
+  const { hoverImageByArtist, recentArtworkByArtist, sourceIndex } = opts;
   const byName = new Map();
 
   for (const row of aboutRows || []) {
@@ -101,12 +132,30 @@ function buildArtistProfilesFromAbout(aboutRows, artworkCoverMap, isCn) {
     if (!byName.has(key)) {
       const artworkEntry = artworkCoverMap.get(key);
 
+      // The image flagged `artist_hover_image` for this artist (if any). Keys
+      // come from the source index, so canonicalise the About name the same way.
+      const hoverKey = sourceIndex
+        ? String(sourceIndex.canonicalArtist(name) || name).toLowerCase()
+        : key;
+      const hoverImage = hoverImageByArtist?.get(hoverKey) || null;
+      // Nothing flagged → fall back to the artist's most recent artwork.
+      const recent = recentArtworkByArtist?.get(key) || null;
+      const hoverMeta =
+        hoverImage || !recent
+          ? ""
+          : [recent.title, recent.year || ""].filter(Boolean).join(" · ");
+
       byName.set(key, {
         id: name,
         name,
         // Prefer a cover image pulled from Artwork; fall back to the
         // artist's own About portrait if no Artwork match exists.
         image: artworkEntry?.image || row.portrait_image_url || null,
+        // Explicitly chosen hover image (image manager mouse icon), otherwise
+        // the most recent artwork's cover.
+        hoverImage: hoverImage || recent?.image || null,
+        hoverIsFlagged: !!hoverImage,
+        hoverMeta,
         order: Number(row.order) || 0,
         worksCount: artworkEntry?.worksCount || 0,
         caption: row.caption || null,
@@ -149,6 +198,15 @@ export default function useArtistListData(isCn) {
     refetch: refetchAbout,
   } = useData("/api/about");
 
+  // Extra collections used ONLY to resolve an image's tag back to an artist,
+  // so the image flagged `artist_hover_image` can be matched to the right
+  // artist on this page. (Same index the image manager/order page uses.)
+  const { data: rawImages = [] } = useData("/api/image");
+  const { data: rawExhibitions = [] } = useData("/api/exhibition");
+  const { data: rawFairs = [] } = useData("/api/fair");
+  const { data: rawEvents = [] } = useData("/api/event");
+  const { data: rawBibliographies = [] } = useData("/api/bibliography");
+
   // ── Language-filter first, so EN/CN artist strings never mix ──
   // Artworks hidden from the artist page (mark.hide includes "artist_page")
   // are dropped here, so they can't become an artist's cover or be counted.
@@ -172,12 +230,65 @@ export default function useArtistListData(isCn) {
     [artworks]
   );
 
+  // ── Hover image (set from the image manager, mouse icon) ──
+  // Built from the same source index the image manager uses, so an image
+  // tagged with an artwork OR an exhibition/fair title resolves to its artist.
+  const sourceIndex = useMemo(
+    () =>
+      buildImageSourceIndex({
+        artworks: Array.isArray(rawArtworks) ? rawArtworks : [],
+        images: Array.isArray(rawImages) ? rawImages : [],
+        exhibitions: Array.isArray(rawExhibitions) ? rawExhibitions : [],
+        fairs: Array.isArray(rawFairs) ? rawFairs : [],
+        events: Array.isArray(rawEvents) ? rawEvents : [],
+        bibliographies: Array.isArray(rawBibliographies) ? rawBibliographies : [],
+        abouts: Array.isArray(rawAbout) ? rawAbout : [],
+      }),
+    [
+      rawArtworks,
+      rawImages,
+      rawExhibitions,
+      rawFairs,
+      rawEvents,
+      rawBibliographies,
+      rawAbout,
+    ]
+  );
+
+  const hoverImageByArtist = useMemo(() => {
+    const map = new Map();
+    const images = Array.isArray(rawImages) ? rawImages : [];
+    for (const img of images) {
+      if (!isArtistHoverImage(img)) continue;
+      const url = img?.img_url || img?.image_url;
+      if (!url) continue;
+      const artists = sourceIndex.resolveImageSource(img)?.artists || [];
+      for (const artist of artists) {
+        const key = String(sourceIndex.canonicalArtist(artist) || artist).toLowerCase();
+        if (!map.has(key)) map.set(key, url); // first flagged wins
+      }
+    }
+    return map;
+  }, [rawImages, sourceIndex]);
+
+  // Fallback for artists with no flagged hover image: their most recent
+  // artwork (highest year, then lowest artist-page order).
+  const recentArtworkByArtist = useMemo(
+    () => buildRecentArtworkMap(artworks),
+    [artworks]
+  );
+
   // ── The list itself: every unique About artist, enriched with a
   //    cover image from Artwork where available, ordered by the first
   //    letter of the artist name ──
   const allProfiles = useMemo(
-    () => buildArtistProfilesFromAbout(aboutRows, artworkCoverMap, isCn),
-    [aboutRows, artworkCoverMap, isCn]
+    () =>
+      buildArtistProfilesFromAbout(aboutRows, artworkCoverMap, isCn, {
+        hoverImageByArtist,
+        recentArtworkByArtist,
+        sourceIndex,
+      }),
+    [aboutRows, artworkCoverMap, isCn, hoverImageByArtist, recentArtworkByArtist, sourceIndex]
   );
 
   // ── Group by first letter ──

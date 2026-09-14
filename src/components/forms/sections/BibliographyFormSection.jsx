@@ -73,7 +73,6 @@ const BIBLIOGRAPHY_SCHEMA = [
     fields: [
       { name: 'title', type: 'text' },
       { name: 'subtitle', type: 'text' },
-      { name: 'cover_img_url', type: 'text' },
       { name: 'author', type: 'text' },
       { name: 'type', type: 'text' },
       // Year dropdown (1980 → current year) — shared YearSelector.

@@ -117,10 +117,8 @@ function sortByOrder(list) {
 function sortArtworksByArtistPageOrder(list) {
   // Shared rule (utils/artworkOrder.sortArtworksByPageOrder): artworks that
   // carry an `artist_page_order` come first, ascending; the rest follow by
-  // year (desc) so un-ordered works still land in a sensible spot.
-  return sortArtworksByPageOrder(list, "artist_page_order", {
-    unorderedComparator: (a, b) => getYearValue(b) - getYearValue(a),
-  });
+  // newest year, then title A→Z.
+  return sortArtworksByPageOrder(list, "artist_page_order");
 }
 
 function buildArtistProfile(about, artworks, exhibitions, fairs, events, bibliographies) {

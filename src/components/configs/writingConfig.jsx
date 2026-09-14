@@ -1,234 +1,175 @@
-import WritingEditForm from "@/components/forms/WritingEditForm";
-import WritingForm from "@/components/forms/WritingForm";
-import {
-  writingLabels,
-  pageLabels,
-  fieldGroupLabels,
-} from "@/components/labels/writing_labels";
-import {
-  languageOptions,
-} from "@/components/forms/utils/formOptionsUtils";
-import {
-  ANIMATION_VARIANTS,
-} from "./general_config";
-import { getFieldGroupsWithLabels } from "@/components/forms/utils/formFieldsUtils";
-import formTypes from "@/data/form_types.json";
-import formOptions from "@/data/form_options.json";
+// writingConfig.jsx — fully matches the Prisma Writing model,
+// same structure & conventions as artworkConfig.jsx.
+import { ANIMATION_VARIANTS } from './general_config';
 
-// Field groupings
-export const getFieldGroupsWriting = (isCn = false) => {
-  const fieldGroups = {
-    BASIC: {
-      title: fieldGroupLabels.basic.title(isCn),
-      fields: [
-        { key: "title" },
-        { key: "subtitle" },
-        { key: "author" },
-        { key: "category" },
-        { key: "type" },
-        { key: "year" },
-        { key: "summary" },
-        { key: "keywords" },
-        { key: "tag" },
-        { key: "cover_img_url" },
-        { key: "language" },
-      ],
-    },
-    CONTENT: {
-      title: fieldGroupLabels.content?.title(isCn) || (isCn ? "内容" : "Content"),
-      fields: [
-        { key: "paragraphs" },
-        { key: "caption" },
-      ],
-    },
-    METADATA: {
-      title: fieldGroupLabels.metadata?.title(isCn) || (isCn ? "元数据" : "Metadata"),
-      fields: [
-        { key: "status" },
-        { key: "mark" },
-        { key: "createdAt" },
-        { key: "updatedAt" },
-      ],
-    },
-  };
+// ============================================================
+// LABELS CONFIGURATION
+// ============================================================
+export const writingLabels = {
+  page: {
+    title: { en: 'Writings', cn: '文章' },
+    subtitle: { en: 'Writing Management', cn: '文章管理' },
+    description: { en: 'Manage writings & texts', cn: '管理文章与文本' },
+  },
 
-  return getFieldGroupsWithLabels("writing", fieldGroups, isCn);
+  fields: {
+    cover_img_url: { en: 'Cover Image', cn: '封面图片' },
+    author: { en: 'Author', cn: '作者' },
+    title: { en: 'Title', cn: '标题' },
+    subtitle: { en: 'Subtitle', cn: '副标题' },
+    summary: { en: 'Summary', cn: '摘要' },
+    keywords: { en: 'Keywords', cn: '关键词' },
+    category: { en: 'Category', cn: '类别' },
+    type: { en: 'Type', cn: '类型' },
+    year: { en: 'Year', cn: '年份' },
+    paragraphs: { en: 'Paragraphs', cn: '段落' },
+    caption: { en: 'Caption', cn: '说明' },
+    status: { en: 'Status', cn: '状态' },
+    tag: { en: 'Tag', cn: '标签' },
+    mark: { en: 'Mark', cn: '标记' },
+    language: { en: 'Language', cn: '语言' },
+    createdAt: { en: 'Created At', cn: '创建时间' },
+    updatedAt: { en: 'Last Updated', cn: '最后更新' },
+  },
+
+  UI_TEXT: {
+    writingManagement: { en: 'Writing Management', cn: '文章管理' },
+    create: { en: 'Create New', cn: '创建新文章' },
+    edit: { en: 'Edit', cn: '编辑' },
+    delete: { en: 'Delete', cn: '删除' },
+    save: { en: 'Save', cn: '保存' },
+    cancel: { en: 'Cancel', cn: '取消' },
+    confirmDelete: { en: 'Confirm Delete', cn: '确认删除' },
+    noData: { en: 'No writings available', cn: '暂无文章数据' },
+  },
 };
 
-// Writing-specific constants
-export const FALLBACK_IMAGE = "/error.png";
+export const getWritingLabel = (key, language = 'en') => {
+  const lang = language === 'cn' ? 'cn' : 'en';
+  if (writingLabels.fields[key]) return writingLabels.fields[key][lang];
+  if (writingLabels.UI_TEXT[key]) return writingLabels.UI_TEXT[key][lang];
+  if (writingLabels.page[key]) return writingLabels.page[key][lang];
+  return key;
+};
 
+// ============================================================
+// MAIN CONFIGURATION
+// ============================================================
 export const writingConfig = {
-  // Schema identifier
   itemUrl: "writing",
   schemaName: "Writing",
 
-  // API Configuration
   api: {
     endpoints: {
-      base: "/api/writing",
-      create: "/api/writing",
+      base: '/api/writing',
+      create: '/api/writing',
       update: (id) => `/api/writing/${id}`,
       delete: (id) => `/api/writing/${id}`,
-      list: "/api/writing",
+      list: '/api/writing',
       detail: (id) => `/api/writing/${id}`,
+      upload: '/api/upload',
+      bulk: '/api/writing/batch_edit',
+      // The Writing model has no `order` field (no per-page ordering), so
+      // there is no reorder endpoint — kept as null for structural parity.
+      reorder: null,
     },
     methods: {
-      create: "POST",
-      update: "PUT",
-      delete: "DELETE",
-      list: "GET",
-      detail: "GET",
+      create: 'POST', update: 'PUT', delete: 'DELETE',
+      list: 'GET', detail: 'GET', upload: 'POST',
+      bulk: 'PUT', reorder: 'PUT',
     },
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: { 'Content-Type': 'application/json' },
+    uploadHeaders: {},
+    languageParam: 'language',
+    defaultLimit: 10000,
     config: {
-      enablePagination: true,
+      enableSoftDelete: false,
+      enablePagination: false,
       enableSearch: true,
       enableSorting: true,
-      defaultPageSize: 20,
-      maxPageSize: 100,
-      defaultSortField: "createdAt",
+      defaultPageSize: 10000,
+      maxPageSize: 10000,
+      // Newest first — the Writing model's own default (see writing_api_config).
       defaultSortOrder: -1,
-      collectionName: "Writing",
+      defaultSortField: 'createdAt',
+      collectionName: 'Writing',
     },
   },
 
-  // Page Configuration
   page: {
-    ...pageLabels,
-    animationVariants: ANIMATION_VARIANTS.container,
+    title: writingLabels.page.title,
+    subtitle: writingLabels.page.subtitle,
+    description: writingLabels.page.description,
+    animationVariants: ANIMATION_VARIANTS?.container || {
+      hidden: { opacity: 0, y: 20 },
+      visible: {
+        opacity: 1, y: 0,
+        transition: { delayChildren: 0.15, staggerChildren: 0.08 },
+      },
+    },
   },
 
-  // Field Configuration
   fields: {
-    // Fields that can be searched through
-    searchableFields: [
-      "title",
-      "subtitle",
-      "author",
-      "summary",
-      "keywords",
-      "tag",
-      "category",
-      "type",
-    ],
-
-    // Fields that can be sorted
-    sortableFields: [
-      "title",
-      "author",
-      "year",
-      "createdAt",
-      "updatedAt",
-    ],
-
-    // Fields for filtering
-    filterableFields: ["status", "category", "year", "author", "tag", "keywords"],
-
-    // Main fields for card display
-    mainFields: ["title", "author", "category", "year"],
-
-    // Extended fields for detailed view
-    expandedFields: ["subtitle", "summary", "caption", "keywords", "tag"],
-
-    // Image fields for upload and display
-    imagesField: ["cover_img_url"],
-
-    // Required fields for validation
-    requiredFields: ["title"],
-
-    // All data fields available
+    imagesField: ['cover_img_url'],
+    urlField: ['cover_img_url'],
+    arrayFields: ['paragraphs'],
+    requiredFields: [],
+    searchableFields: ['title', 'subtitle', 'author', 'summary', 'keywords'],
+    sortableFields: ['createdAt', 'updatedAt', 'year', 'title', 'author'],
+    filterableFields: ['type', 'category', 'status', 'tag', 'mark', 'language'],
+    mainFields: ['title', 'author', 'year', 'type'],
+    expandedFields: ['summary', 'caption', 'category', 'status', 'tag'],
     dataField: [
-      "id",
-      "cover_img_url",
-      "title",
-      "subtitle",
-      "author",
-      "summary",
-      "keywords",
-      "tag",
-      "category",
-      "type",
-      "year",
-      "paragraphs",
-      "caption",
-      "status",
-      "mark",
-      "language",
-      "createdAt",
-      "updatedAt",
+      'cover_img_url', 'author', 'title', 'subtitle', 'summary',
+      'keywords', 'category', 'type', 'year', 'paragraphs',
+      'caption', 'status', 'tag', 'mark', 'language',
     ],
-
-    // Display order for fields
     fieldShowOrder: [
-      "title",
-      "subtitle",
-      "author",
-      "category",
-      "type",
-      "year",
-      "summary",
-      "keywords",
-      "tag",
-      "cover_img_url",
-      "paragraphs",
-      "caption",
-      "status",
-      "mark",
-      "language",
-      "createdAt",
-      "updatedAt",
+      'cover_img_url', 'title', 'subtitle', 'author', 'type',
+      'category', 'year', 'summary', 'keywords', 'paragraphs',
+      'caption', 'status', 'tag', 'mark', 'language',
     ],
-
-    // Array fields for special handling
-    arrayFields: ["paragraphs"],
-
-    // Date fields for special handling
-    dateFields: ["createdAt", "updatedAt"],
-
-    // Valid fields for API operations
     validFields: [
-      "id",
-      "cover_img_url",
-      "title",
-      "subtitle",
-      "author",
-      "summary",
-      "keywords",
-      "tag",
-      "category",
-      "type",
-      "year",
-      "paragraphs",
-      "caption",
-      "status",
-      "mark",
-      "language",
-      "createdAt",
-      "updatedAt",
+      'id',                  // 仅保留 Prisma 字段名，移除 _id
+      'cover_img_url', 'author', 'title', 'subtitle', 'summary',
+      'keywords', 'category', 'type', 'year', 'paragraphs',
+      'caption', 'status', 'tag', 'mark', 'language', 'updatedAt',
     ],
   },
 
-  // Component Configuration
-  components: {
-    createFormComponent: WritingForm,
-    editFormComponent: WritingEditForm,
+  components: {},
+
+  settings: {
+    useLanguage: true,
+    languageField: 'language',
+    pagination: {
+      defaultPageSize: 20,
+      pageSizeOptions: [10, 20, 50, 100],
+    },
+    upload: {
+      maxFileSize: 10 * 1024 * 1024,
+      acceptedFormats: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
+      uploadPath: '/uploads/writings/',
+    },
+    validation: {
+      maxSummaryLength: 2000,
+      maxParagraphLength: 4000,
+    },
+    display: {
+      cardImageAspectRatio: 'aspect-square',
+      defaultImagePlaceholder: '/placeholder.png',
+      showFieldLabels: true,
+      showExpandArrow: true,
+      showDetailButton: true,
+    },
   },
 
-  // Labels Configuration
   labels: writingLabels,
-
-  // Category Options
-  categoryOptions: formTypes.writing,
-
-  // Publish Status Options
-  publishStatusOptions: formOptions.common.publishStatus,
-
-  // Language Options
-  languageOptions: languageOptions,
+  typeOptions: [],
+  languageOptions: [
+    { value: 'CN', label_en: 'Chinese', label_cn: '中文' },
+    { value: 'EN', label_en: 'English', label_cn: '英文' },
+  ],
 };
 
-// Export default writingConfig
 export default writingConfig;

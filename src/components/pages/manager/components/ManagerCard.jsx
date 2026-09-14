@@ -6,7 +6,7 @@ import { Edit2, Trash2, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import ImageZoomModal from "@/components/images/ImageZoomModal";
 import RedDotToggleForSold from "@/components/buttons/RedDotToggleForSold";
-import SliderDotToggleForMark from "@/components/buttons/SliderDotToggleForMark";
+import MarkChips from "@/components/marks/MarkChips";
 import DividerLine from "@/components/others/DividerLine";
 import EditAndDeleteButtonOnManagerCard from "@/components/buttons/EditAndDeleteButtonOnManagerCard";
 import useAppType from "@/hooks/useAppType";
@@ -161,6 +161,12 @@ const formatFieldValue = (
     return null;
   }
 
+  // `mark` is a JSON object — show it as chips with the raw token, so a
+  // manager can tell which mark is which (never "[object Object]").
+  if (fieldKey === "mark" && typeof value === "object") {
+    return <MarkChips mark={value} showToken />;
+  }
+
   if (isImageField(fieldKey) && typeof value === "string" && value.trim()) {
     if (isInlineDisplay) {
       return null;
@@ -236,6 +242,17 @@ const formatFieldValue = (
         </div>
       </div>
     ));
+  }
+
+  // JSON fields (mark / order) are objects now — never fall through to
+  // String(value) ("[object Object]").
+  if (typeof value === "object") {
+    const markValue = getMarkValue(value);
+    if (markValue) return markValue;
+    const parts = Object.entries(value)
+      .filter(([, v]) => v !== "" && v !== null && v !== undefined)
+      .map(([k, v]) => `${k}: ${v}`);
+    return parts.length ? parts.join(" · ") : null;
   }
 
   return String(value);
@@ -684,9 +701,6 @@ const ManagerCard = ({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
       >
-        {/* Mark Toggle Dot */}
-        <SliderDotToggleForMark mark={getMarkValue(item)} isCn={isCn} />
-
         {/* Inline Image Fields Display */}
         <InlineImageDisplay
           fields={fields}
@@ -1022,8 +1036,6 @@ const ManagerCard = ({
               {...mediaSizingProps}
             />
 
-            <SliderDotToggleForMark mark={getMarkValue(item)} isCn={isCn} />
-
             {renderCardBody()}
           </div>
         ) : (
@@ -1049,8 +1061,6 @@ const ManagerCard = ({
               isCn={isCn}
               {...mediaSizingProps}
             />
-
-            <SliderDotToggleForMark mark={getMarkValue(item)} isCn={isCn} />
 
             {renderCardBody()}
           </>

@@ -42,6 +42,9 @@ const EXHIBITIONS_TEXT = {
     noCurrentExhibitions: { en: "No current exhibitions", cn: "暂无当前展览" },
     noPastExhibitions: { en: "No past exhibitions", cn: "暂无过往展览" },
     noExhibitionsForYear: { en: "No exhibitions for this year", cn: "该年份暂无展览" },
+    // Unified list heading (all exhibitions, current → past)
+    allHeading: { en: "Exhibitions", cn: "展览" },
+    noExhibitions: { en: "No exhibitions", cn: "暂无展览" },
     loadingFailedTitle: { en: "Loading Failed", cn: "加载失败" },
     loadingFailedSubtitle: { en: "Check connection and retry", cn: "请检查网络连接后重试" },
     retryButton: { en: "Retry", cn: "重试" },
@@ -703,6 +706,7 @@ export default function ExhibitionPage() {
       });
   }, [allExhibitions, selectedYear, isFiltering]);
 
+  // Current section shows first (above Past); a year filter narrows the Past list.
   const pastSectionResults = isFiltering ? yearResults : past;
 
   const dropdownTriggerOffsetStyle = useMemo(
@@ -758,6 +762,7 @@ export default function ExhibitionPage() {
         margin: "0 auto",
       }}
     >
+      {/* Current — shown first, above Past */}
       {!isFiltering && (
         <>
           <div
@@ -801,6 +806,7 @@ export default function ExhibitionPage() {
         </>
       )}
 
+      {/* Past — below Current */}
       <div>
         <div
           style={{
@@ -819,7 +825,9 @@ export default function ExhibitionPage() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: isMobile ? "1fr" : "repeat(2, 1fr)",
+              gridTemplateColumns: isMobile
+                ? "1fr"
+                : "repeat(auto-fill, minmax(300px, 1fr))",
               gap: isMobile ? LAYOUT.GRID_GAP_MOBILE : LAYOUT.GRID_GAP_DESKTOP,
             }}
           >

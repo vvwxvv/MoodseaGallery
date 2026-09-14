@@ -82,13 +82,6 @@ const CONFIG = Object.freeze({
 
     // 图片真实比例读取前的占位比例（w / h）
     fallbackAspect: 0.85,
-
-    // 图上文字叠层（设计稿：MOODSEA / 木曦画廊）
-    overlay: {
-      show: true,
-      title: "MOODSEA",
-      subtitle: "木曦画廊",
-    },
   },
 });
 
@@ -132,50 +125,7 @@ const getDesktopBox = (aspect) => {
 //  图片组件（next/image，fill）
 //  盒子按图片真实比例生成 → contain 无留白、无裁切、比例不变
 // ─────────────────────────────────────────────────────────────────────────────
-// 图上文字叠层（设计稿：MOODSEA / 木曦画廊）
-const ImageOverlay = ({ fontFamily }) => {
-  const { show, title, subtitle } = CONFIG.image.overlay;
-  if (!show) return null;
-  return (
-    <Box
-      sx={{
-        position: "absolute",
-        left: 0,
-        right: 0,
-        bottom: "15%",
-        textAlign: "center",
-        pointerEvents: "none",
-        color: "rgba(120,120,120,0.9)",
-        lineHeight: 1.15,
-      }}
-    >
-      <Box
-        sx={{
-          fontFamily,
-          fontSize: { xs: "20px", md: "24px" },
-          letterSpacing: "0.26em",
-          fontWeight: 300,
-          pl: "0.26em",
-        }}
-      >
-        {title}
-      </Box>
-      <Box
-        sx={{
-          fontFamily,
-          fontSize: { xs: "12px", md: "14px" },
-          letterSpacing: "0.34em",
-          mt: "6px",
-          pl: "0.34em",
-        }}
-      >
-        {subtitle}
-      </Box>
-    </Box>
-  );
-};
-
-const AboutImage = React.memo(function AboutImage({ src, alt, variant, fontFamily }) {
+const AboutImage = React.memo(function AboutImage({ src, alt, variant }) {
   const [failed, setFailed] = useState(false);
   const [aspect, setAspect] = useState(CONFIG.image.fallbackAspect);
 
@@ -222,7 +172,6 @@ const AboutImage = React.memo(function AboutImage({ src, alt, variant, fontFamil
         }}
       >
         <Image {...shared} sizes={`${CONFIG.image.desktop.maxWidth}px`} priority />
-        <ImageOverlay fontFamily={fontFamily} />
       </Box>
     );
   }
@@ -240,7 +189,6 @@ const AboutImage = React.memo(function AboutImage({ src, alt, variant, fontFamil
       }}
     >
       <Image {...shared} sizes={`${CONFIG.image.mobile.maxWidth}px`} />
-      <ImageOverlay fontFamily={fontFamily} />
     </Box>
   );
 });
@@ -401,7 +349,7 @@ const AboutPageComponent = () => {
             {/* ── 右侧图片列（桌面）── */}
             <Box sx={{ flex: "0 0 auto", display: { xs: "none", md: "block" } }}>
               <motion.div variants={itemVariants}>
-                <AboutImage src={portrait_image_url} alt={imgAlt} variant="desktop" fontFamily={effectiveFont} />
+                <AboutImage src={portrait_image_url} alt={imgAlt} variant="desktop" />
               </motion.div>
             </Box>
           </Box>
@@ -419,7 +367,7 @@ const AboutPageComponent = () => {
                 variants={itemVariants}
                 style={{ width: "100%", display: "flex", justifyContent: "center" }}
               >
-                <AboutImage src={portrait_image_url} alt={imgAlt} variant="mobile" fontFamily={effectiveFont} />
+                <AboutImage src={portrait_image_url} alt={imgAlt} variant="mobile" />
               </motion.div>
             </Box>
           )}

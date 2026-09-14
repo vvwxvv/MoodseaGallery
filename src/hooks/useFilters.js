@@ -82,9 +82,10 @@ const useFilters = (data, isCn, options = {}) => {
     // Use fuzzy search for better matching
     if (searchTerm && searchTerm.trim()) {
       try {
-        // Use different search keys based on the data structure
+        // `mark` is a JSON object now ({ value, hide, marks }) — not searchable
+        // text, so it is left out of the fuzzy keys (Image/Video/Artwork).
         const searchKeys = data.length > 0 && data[0].tag_en !== undefined 
-          ? ['tag_en', 'tag_cn', 'type', 'caption_en', 'caption_cn', 'mark', 'order'] // Image/Video model
+          ? ['tag_en', 'tag_cn', 'type', 'caption_en', 'caption_cn'] // Image/Video model
           : ['title', 'artist', 'type', 'year', 'series', 'caption', 'material', 'work_value']; // Artwork model
         
         filtered = fuzzySearch(filtered, searchTerm, {

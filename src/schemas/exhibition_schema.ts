@@ -36,8 +36,11 @@ export const exhibitionSchema = z.object({
   introduction: z.array(z.string()).optional(),
   press_release: z.array(z.string()).optional(),
 
-  // 关联作品：JSON 对象数组，每条可单独设 order / mark
-  related_artwork: z.array(relatedArtworkSchema).optional(),
+  // 关联作品：字符串数组（作品标题）——与 related_gallery_exhibition 同一套逻辑。
+  // 排序不在这里保存：作品在展览页的顺序由作品自身的
+  // `order.exhibition_page_order` 决定（在作品排序页设置）。
+  // 旧的 `[{ title, order, mark }]` 数据仍可通过校验（读取时由表单折叠为标题）。
+  related_artwork: z.array(z.union([z.string(), relatedArtworkSchema])).optional(),
 
   related_gallery_artist: z.array(z.string()).optional(),
 

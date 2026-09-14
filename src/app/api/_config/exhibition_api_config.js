@@ -1,4 +1,19 @@
 // exhibitionApiConfig.js — 适配 Prisma Exhibition 模型（related_artwork 为 JSON 对象数组，清洗逻辑对齐 GalleryContact.social_media）
+/**
+ * related_artwork is a plain STRING array of artwork titles — the same shape the
+ * artwork form uses for related_gallery_exhibition. Older rows stored
+ * `[{ title, order, mark }]`; those are collapsed to their title.
+ *
+ * Ordering is NOT stored here any more: the position of a work inside an
+ * exhibition comes from that artwork's own `order.exhibition_page_order`, set
+ * on the artwork order page.
+ */
+const normalizeRelatedArtwork = (value) =>
+  (Array.isArray(value) ? value : [])
+    .map((item) => (item && typeof item === 'object' ? item.title : item))
+    .map((title) => String(title ?? '').trim())
+    .filter(Boolean);
+
 export const exhibitionApiConfig = {
   // Basic configuration
   collectionName: 'Exhibition',
@@ -41,6 +56,9 @@ export const exhibitionApiConfig = {
     'introduction',
     'press_release',
     'related_gallery_artist',
+    // Related artworks are picked from the artwork list → plain string array
+    // of titles (same shape as related_gallery_artist).
+    'related_artwork',
   ],
   jsonFields: ['mark'],
   validFields: [
@@ -138,7 +156,7 @@ export const exhibitionApiConfig = {
       'title', 'subtitle', 'type', 'date_start', 'date_end',
       'opening_date', 'year', 'venue', 'location', 'curator',
       'organiser', 'participating_artists', 'caption', 'description',
-      'language', 'order', 'mark', 'status'
+      'language', 'order', 'status'
     ];
     exhibitionApiConfig._trimStringFields(data, stringFields);
 
@@ -146,7 +164,7 @@ export const exhibitionApiConfig = {
     const arrayFields = [
       'introduction',
       'press_release',
-      'related_gallery_artist'
+      'related_gallery_artist',
     ];
     for (const field of arrayFields) {
       if (field in data) {
@@ -154,26 +172,9 @@ export const exhibitionApiConfig = {
       }
     }
 
-    // 处理 related_artwork 数组（对象数组）—— 逻辑对齐 social_media：
-    // filter → map(trim 各字段) → filter(丢弃空条目)。
-    // 区别：order / mark 可选，最终只要求 title 存在即保留
-    // （social_media 要求三字段全有；这里作品常只填标题）。
+    // related_artwork is normalised by itself (it may arrive as legacy objects).
     if (data.related_artwork !== undefined) {
-      if (Array.isArray(data.related_artwork)) {
-        data.related_artwork = data.related_artwork
-          .filter(item => item !== null && typeof item === 'object')
-          .map(item => {
-            const { title, order, mark } = item;
-            const newItem = {};
-            if (title) newItem.title = String(title).trim();
-            if (order) newItem.order = String(order).trim();
-            if (mark) newItem.mark = String(mark).trim();
-            return newItem;
-          })
-          .filter(item => item.title);
-      } else {
-        data.related_artwork = [];
-      }
+      data.related_artwork = normalizeRelatedArtwork(data.related_artwork);
     }
 
     // 如果 language 未设置，默认英文
@@ -196,7 +197,7 @@ export const exhibitionApiConfig = {
       'title', 'subtitle', 'type', 'date_start', 'date_end',
       'opening_date', 'year', 'venue', 'location', 'curator',
       'organiser', 'participating_artists', 'caption', 'description',
-      'language', 'order', 'mark', 'status'
+      'language', 'order', 'status'
     ];
     exhibitionApiConfig._trimStringFields(data, stringFields);
 
@@ -204,7 +205,7 @@ export const exhibitionApiConfig = {
     const arrayFields = [
       'introduction',
       'press_release',
-      'related_gallery_artist'
+      'related_gallery_artist',
     ];
     for (const field of arrayFields) {
       if (field in data) {
@@ -212,23 +213,9 @@ export const exhibitionApiConfig = {
       }
     }
 
-    // 处理 related_artwork 数组（对象数组）—— 同 beforeCreate
+    // related_artwork is normalised by itself (it may arrive as legacy objects).
     if (data.related_artwork !== undefined) {
-      if (Array.isArray(data.related_artwork)) {
-        data.related_artwork = data.related_artwork
-          .filter(item => item !== null && typeof item === 'object')
-          .map(item => {
-            const { title, order, mark } = item;
-            const newItem = {};
-            if (title) newItem.title = String(title).trim();
-            if (order) newItem.order = String(order).trim();
-            if (mark) newItem.mark = String(mark).trim();
-            return newItem;
-          })
-          .filter(item => item.title);
-      } else {
-        data.related_artwork = [];
-      }
+      data.related_artwork = normalizeRelatedArtwork(data.related_artwork);
     }
 
     return data;

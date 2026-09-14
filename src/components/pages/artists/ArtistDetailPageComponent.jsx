@@ -10,6 +10,7 @@ import { useReverseTheme } from "@/hooks/useReverseTheme";
 import AlertInfo from "@/components/alerts/AlertInfo";
 import useArtistDetailData from "@/components/pages/artists/hooks/useArtistDetailData";
 import useArtistRollingImages from "@/components/pages/artists/hooks/useArtistRollingImages";
+import useArtistHoverImageFor from "@/components/pages/artists/hooks/useArtistHoverImageFor";
 import PDFViewer from "@/components/others/PDFViewer";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 
@@ -168,6 +169,14 @@ const CONFIG = {
     COUNTER_OPACITY: 0.55,
     COUNTER_LETTER_SPACING: "0.08em",
     SHOW_COUNTER: true,
+
+    // 🎞️ AUTO-PLAY — advances through the rolling images
+    // (order.rolling_img_order, hidden ones excluded) on a timer.
+    // The timer pauses while the pointer is over the slider and while the
+    // browser tab is in the background, then resumes automatically.
+    AUTOPLAY: true,
+    AUTOPLAY_INTERVAL_MS: 4000,
+    PAUSE_ON_HOVER: true,
   },
 
   CAPTION: {
@@ -250,8 +259,8 @@ const makeSlug = (t = "") =>
     .toString()
     .trim()
     .toLowerCase()
-    .replace(/\s+/g, "")
-    .replace(/[^\p{L}\p{N}-]/gu, "");
+    .replace(/\s+/g, "_")
+    .replace(/[^\p{L}\p{N}_-]/gu, "");
 
 const artistHref = (title, artistName) =>
   `/artworks/${makeSlug(title)}?artist=${encodeURIComponent(
@@ -677,6 +686,7 @@ const ArtworkCaption = memo(function ArtworkCaption({
 // ============================================================================
 const FeaturedArtworkSlideshow = memo(function FeaturedArtworkSlideshow({
   artworks,
+  hoverUrl = "",
   artistName,
   isMobile,
   textColor,
@@ -686,7 +696,20 @@ const FeaturedArtworkSlideshow = memo(function FeaturedArtworkSlideshow({
 }) {
   const S = CONFIG.SLIDESHOW;
   const [index, setIndex] = useState(0);
+  const [hoverPaused, setHoverPaused] = useState(false);
+  const [docHidden, setDocHidden] = useState(false);
   const count = artworks.length;
+
+  // The artist's marked hover image (artist_hover_image) — hovering the
+  // slideshow reveals it, which is what the Hover Image manager page picks.
+  const hoverIndex = useMemo(
+    () => (hoverUrl ? artworks.findIndex((a) => a?.cover_img_url === hoverUrl) : -1),
+    [artworks, hoverUrl]
+  );
+
+  useEffect(() => {
+    if (hoverPaused && hoverIndex >= 0) setIndex(hoverIndex);
+  }, [hoverPaused, hoverIndex]);
 
   useEffect(() => {
     if (index > count - 1) setIndex(0);
@@ -726,6 +749,32 @@ const FeaturedArtworkSlideshow = memo(function FeaturedArtworkSlideshow({
     return () => window.removeEventListener("keydown", onKey);
   }, [isMobile, next, prev]);
 
+  // ── Pause the auto-play while the tab is in the background ──
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const onVisibility = () => setDocHidden(document.hidden);
+    onVisibility();
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, []);
+
+  // ── AUTO-PLAY: advance through the rolling images on a timer ──
+  // The images arrive already ordered by `order.rolling_img_order` with the
+  // hidden ones filtered out (see useArtistRollingImages), so this simply
+  // steps forward through them. Always advances from the LATEST index (read
+  // inside the updater) so the interval keeps a steady cadence.
+  useEffect(() => {
+    if (!S.AUTOPLAY || count < 2 || hoverPaused || docHidden) return;
+    const id = setInterval(() => {
+      setIndex((i) => {
+        if (count === 0) return 0;
+        const raw = i + 1;
+        return S.LOOP ? (raw + count) % count : Math.min(count - 1, raw);
+      });
+    }, S.AUTOPLAY_INTERVAL_MS);
+    return () => clearInterval(id);
+  }, [S.AUTOPLAY, S.AUTOPLAY_INTERVAL_MS, S.LOOP, count, hoverPaused, docHidden]);
+
   const current = artworks[index] || null;
 
   if (!current) {
@@ -760,6 +809,10 @@ const FeaturedArtworkSlideshow = memo(function FeaturedArtworkSlideshow({
   const multi = count > 1;
   const canPrev = S.LOOP || index > 0;
   const canNext = S.LOOP || index < count - 1;
+  // When auto-play is on there are no arrow / click controls — the slider
+  // just plays through the rolling images on its own.
+  const showArrows = multi && !S.AUTOPLAY;
+  const canTap = multi && S.TAP_IMAGE_TO_ADVANCE && !S.AUTOPLAY;
 
   const ArrowBtn = ({ dir, onClick, disabled, label }) => {
     const [hover, setHover] = useState(false);
@@ -797,15 +850,19 @@ const FeaturedArtworkSlideshow = memo(function FeaturedArtworkSlideshow({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
+      onMouseEnter={() => S.PAUSE_ON_HOVER && setHoverPaused(true)}
+      onMouseLeave={() => S.PAUSE_ON_HOVER && setHoverPaused(false)}
+      onFocusCapture={() => S.PAUSE_ON_HOVER && setHoverPaused(true)}
+      onBlurCapture={() => S.PAUSE_ON_HOVER && setHoverPaused(false)}
       style={{ display: "inline-block", maxWidth: "100%", verticalAlign: "top" }}
     >
       <div
-        onClick={multi && S.TAP_IMAGE_TO_ADVANCE ? next : undefined}
-        role={multi && S.TAP_IMAGE_TO_ADVANCE ? "button" : undefined}
-        aria-label={multi && S.TAP_IMAGE_TO_ADVANCE ? (isCn ? "下一张作品" : "Next artwork") : undefined}
+        onClick={canTap ? next : undefined}
+        role={canTap ? "button" : undefined}
+        aria-label={canTap ? (isCn ? "下一张作品" : "Next artwork") : undefined}
         style={{
           display: "block",
-          cursor: multi && S.TAP_IMAGE_TO_ADVANCE ? "pointer" : "default",
+          cursor: canTap ? "pointer" : "default",
           touchAction: "manipulation",
         }}
       >
@@ -830,18 +887,20 @@ const FeaturedArtworkSlideshow = memo(function FeaturedArtworkSlideshow({
         />
       </div>
 
-      {multi && (
+      {multi && (showArrows || S.SHOW_COUNTER) && (
         <div
           style={{
             display: "flex",
             alignItems: "center",
-            justifyContent: "space-between",
+            justifyContent: showArrows ? "space-between" : "center",
             marginTop: `${S.NAV_MARGIN_TOP}px`,
             marginBottom: `${S.NAV_MARGIN_BOTTOM}px`,
             width: "100%",
           }}
         >
-          <ArrowBtn dir="prev" onClick={prev} disabled={!canPrev} label={isCn ? "上一张" : "Previous"} />
+          {showArrows && (
+            <ArrowBtn dir="prev" onClick={prev} disabled={!canPrev} label={isCn ? "上一张" : "Previous"} />
+          )}
           {S.SHOW_COUNTER && (
             <span
               style={{
@@ -857,7 +916,9 @@ const FeaturedArtworkSlideshow = memo(function FeaturedArtworkSlideshow({
               {index + 1} / {count}
             </span>
           )}
-          <ArrowBtn dir="next" onClick={next} disabled={!canNext} label={isCn ? "下一张" : "Next"} />
+          {showArrows && (
+            <ArrowBtn dir="next" onClick={next} disabled={!canNext} label={isCn ? "下一张" : "Next"} />
+          )}
         </div>
       )}
 
@@ -1116,6 +1177,13 @@ export default function ArtistDetailPageComponent({ artistSlug }) {
     isCn
   );
 
+  // The image flagged `artist_hover_image` for this artist (set on
+  // Manager → Media → Hover Image). Null when nothing is chosen.
+  const hoverSlide = useArtistHoverImageFor(
+    profile?.artist || profile?.name || artistName,
+    isCn
+  );
+
   const { execute: safeRefetch, isExecuting: isRefetching } = useAsyncAction(
     async () => {
       await refetch();
@@ -1216,12 +1284,21 @@ export default function ArtistDetailPageComponent({ artistSlug }) {
 
   // Prefer the IMAGE-SCHEMA rolling images (sorted by order.rolling_img_order,
   // hidden ones excluded); then exhibition images; then artwork covers.
-  const featuredSlides =
+  const baseSlides =
     rollingSlides.length > 0
       ? rollingSlides
       : exhibitionSlides.length > 0
       ? exhibitionSlides
       : withImages;
+
+  // The artist's marked hover image leads the slideshow (deduped by URL), so
+  // the picture chosen on the Hover Image page is the one the detail page
+  // shows — and hovering the slideshow brings it back.
+  const featuredSlides = (() => {
+    const url = hoverSlide?.cover_img_url;
+    if (!url) return baseSlides;
+    return [hoverSlide, ...baseSlides.filter((s) => s?.cover_img_url !== url)];
+  })();
 
   const related = dedupedArtworks;
 
@@ -1393,6 +1470,7 @@ export default function ArtistDetailPageComponent({ artistSlug }) {
               {featuredSlides.length > 0 ? (
                 <FeaturedArtworkSlideshow
                   artworks={featuredSlides}
+                  hoverUrl={hoverSlide?.cover_img_url || ""}
                   artistName={profile.name || profile.artist}
                   isMobile={isMobile}
                   textColor={textColor}

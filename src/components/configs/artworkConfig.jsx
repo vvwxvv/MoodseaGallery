@@ -94,7 +94,7 @@ export const artworkConfig = {
       defaultPageSize: 10000,
       maxPageSize: 10000,
       defaultSortOrder: 1,
-      defaultSortField: 'order',
+      defaultSortField: 'order.artist_page_order',
       collectionName: 'Artwork',
     },
   },

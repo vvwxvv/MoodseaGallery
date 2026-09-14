@@ -45,6 +45,28 @@ export const artworkOrderValue = (artwork, pageKey = "artist_page_order") =>
 export const compareArtworkOrder = (pageKey = "artist_page_order") =>
   compareOrder(pageKey);
 
+/** Numeric `year` of a record (missing / non-numeric → 0). */
+export const artworkYear = (record) => {
+  const n = Number(String(record?.year ?? "").replace(/[^\d]/g, ""));
+  return Number.isFinite(n) && n > 0 ? n : 0;
+};
+
+/**
+ * THE fallback order for related artworks that carry no position: newest year
+ * first, then the artwork title A→Z (numeric-aware).
+ *
+ * So a page where nothing is ordered and nothing is hidden still reads
+ * sensibly instead of inheriting an arbitrary API order.
+ */
+export const compareByYearThenTitle = (a, b) => {
+  const d = artworkYear(b) - artworkYear(a);
+  if (d) return d;
+  return String(a?.title || "").localeCompare(String(b?.title || ""), undefined, {
+    numeric: true,
+    sensitivity: "base",
+  });
+};
+
 /**
  * True when the artwork carries a usable numeric position for `pageKey`.
  * Empty strings, null, undefined and non-numeric values count as "not set".
@@ -65,8 +87,8 @@ export const artworkOrderNumber = (artwork, pageKey = "artist_page_order") =>
  * THE shared related-artwork ordering rule for the detail pages.
  *
  *   • artworks WITH a position for this page → first, ascending
- *   • artworks WITHOUT a position           → after them, keeping their
- *     incoming order, unless `unorderedComparator` says otherwise
+ *   • artworks WITHOUT a position           → after them, by newest year
+ *     then title A→Z (`unorderedComparator` can override)
  *
  * Used by:
  *   artist detail page      → "artist_page_order"
@@ -79,7 +101,7 @@ export const artworkOrderNumber = (artwork, pageKey = "artist_page_order") =>
 export const sortArtworksByPageOrder = (
   list,
   pageKey = "artist_page_order",
-  { unorderedComparator } = {}
+  { unorderedComparator = compareByYearThenTitle } = {}
 ) => {
   const ordered = [];
   const unordered = [];

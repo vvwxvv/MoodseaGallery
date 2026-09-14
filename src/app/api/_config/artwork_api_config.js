@@ -30,7 +30,9 @@ export const artworkApiConfig = {
   enableAutoFillArtist: false,
 
   // Sorting
-  defaultSortField: 'order',
+  // `order` is a JSON object — sort by the artist-page position (the key the
+  // artwork order page writes) so the list stays deterministic.
+  defaultSortField: 'order.artist_page_order',
   defaultSortOrder: 1,
 
   // Schema configuration — fully matches Prisma Artwork model

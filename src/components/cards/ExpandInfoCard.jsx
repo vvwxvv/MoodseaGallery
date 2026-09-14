@@ -1,11 +1,9 @@
 "use client";
 
 import React, { useState, useMemo, useCallback } from "react";
-import { getMarkValue, hasMarkValue } from "@/utils/mediaMarks";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation"; // Import useRouter
 import ImageZoomModal from "../images/ImageZoomModal";
-import SliderDotToggleForMark from "@/components/buttons/SliderDotToggleForMark";
 import DividerLine from "@/components/others/DividerLine";
 import useAppType from "@/hooks/useAppType";
 import useFont from "@/hooks/useFont";
@@ -223,9 +221,6 @@ const ExpandInfoCard = ({
           onPreview={handlePreview}
           isCn={isCn}
         />
-
-        {/* Mark Toggle Dot */}
-        <SliderDotToggleForMark mark={getMarkValue(item)} isCn={isCn} />
 
         <div className={`${merged.ui.spacing.cardPadding} flex flex-col flex-grow relative`}>
           {/* Title with underline animation */}

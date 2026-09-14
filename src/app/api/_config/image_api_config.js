@@ -25,7 +25,7 @@ export const imageApiConfig = {
   enableSoftDelete: false,
   enableBulkOperations: true,
 
-  defaultSortField: 'order',
+  defaultSortField: 'order.rolling_img_order',
   defaultSortOrder: 1,
 
   requiredFields: [],
@@ -99,7 +99,7 @@ export const imageApiConfig = {
       }
     }
 
-    const stringFields = ['type', 'tag_en', 'tag_cn', 'caption_en', 'caption_cn', 'mark'];
+    const stringFields = ['type', 'tag_en', 'tag_cn', 'caption_en', 'caption_cn'];
     for (const field of stringFields) {
       if (data[field] !== undefined) {
         if (data[field] === '' || data[field] === null) {
@@ -143,7 +143,7 @@ export const imageApiConfig = {
       }
     }
 
-    const stringFields = ['type', 'tag_en', 'tag_cn', 'caption_en', 'caption_cn', 'mark'];
+    const stringFields = ['type', 'tag_en', 'tag_cn', 'caption_en', 'caption_cn'];
     for (const field of stringFields) {
       if (data[field] !== undefined) {
         if (data[field] === '' || data[field] === null) {

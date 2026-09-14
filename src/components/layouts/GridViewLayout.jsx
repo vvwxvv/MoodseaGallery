@@ -37,9 +37,20 @@ const GridViewLayout = ({
           : style
       }
     >
-      {data.map((item, idx) => (
-        <Component key={item._id || idx} item={item} orderNumber={item.order} {...componentProps} />
-      ))}
+      {data.map((item, idx) => {
+        // `order` is a JSON object on Artwork/Image — never pass it as a scalar
+        // prop. (String-order collections keep their value.)
+        const orderNumber =
+          item?.order && typeof item.order === "object" ? undefined : item?.order;
+        return (
+          <Component
+            key={item._id || idx}
+            item={item}
+            orderNumber={orderNumber}
+            {...componentProps}
+          />
+        );
+      })}
     </div>
   );
 };

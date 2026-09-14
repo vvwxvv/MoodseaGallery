@@ -1,4 +1,5 @@
 import { matchImagesByTagSource } from "@/utils/matchImagesByTagSource";
+import { orderValue } from "@/utils/mediaOrder";
   /**
    * Attach matched images to each item and sort by `order`.
    * @param {Array} items - Array of parent items.
@@ -12,8 +13,10 @@ import { matchImagesByTagSource } from "@/utils/matchImagesByTagSource";
       matchedImages: matchImagesByTagSource(images, item),
     }));
     return withImages.slice().sort((a, b) => {
-      const ao = Number(a?.order) || 0;
-      const bo = Number(b?.order) || 0;
+      // `order` is a JSON object on Artwork/Image — orderValue is JSON-aware
+      // (legacy plain-string order still works).
+      const ao = orderValue(a, "artist_page_order");
+      const bo = orderValue(b, "artist_page_order");
       return ao - bo;
     });
   }

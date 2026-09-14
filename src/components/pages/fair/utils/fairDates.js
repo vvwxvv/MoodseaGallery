@@ -1,58 +1,30 @@
 /**
  * fairDates.js
  * Pure utility functions for classifying fairs as current/past.
- * Uses Fair model fields: date_start, date_end, status.
+ * Uses Fair model fields: date_start, date_end, status, year.
+ *
+ * Same tolerant (EN + CN) parsing + current/past rule as exhibitions
+ * (`@/utils/looseDate`), so fairs behave identically.
  */
+
+import { parseLooseDate, isCurrentEntry } from "@/utils/looseDate";
 
 const MS_PER_DAY = 86400000;
 
 /**
- * Parse a fair date string (YYYY-MM-DD, DD/MM/YYYY, ISO, etc.)
- * Returns a Date object or null.
+ * Parse a fair date string (EN or CN). Returns a Date or null.
  */
 export function parseFairDate(dateStr) {
-  if (!dateStr || typeof dateStr !== "string") return null;
-  const d = new Date(dateStr.trim());
-  return isNaN(d.getTime()) ? null : d;
+  return parseLooseDate(dateStr);
 }
 
 /**
  * Check if a fair is currently active.
- * Logic:
- * - If status is explicitly "current" or "ongoing" → current
- * - If date_start <= today AND date_end >= today → current
- * - If date_end is empty/null AND date_start is in the past or today → current (assumed ongoing)
- * - If neither date defined, falls back to status check
+ * Smart rule (see isCurrentEntry): status override → end-date range →
+ * start-only → `year` fallback (this year or later = current).
  */
 export function isCurrentFair(fair) {
-  const now = new Date();
-
-  // Explicit status override
-  const status = (fair?.status || "").toLowerCase().trim();
-  if (status === "current" || status === "ongoing") return true;
-  if (status === "past" || status === "upcoming") return false;
-
-  // Date-based logic
-  const start = parseFairDate(fair?.date_start);
-  const end = parseFairDate(fair?.date_end);
-
-  if (start && end) {
-    // Both dates defined: check range
-    return start <= now && end >= now;
-  }
-
-  if (start && !end) {
-    // Only start date: current if started
-    return start <= now;
-  }
-
-  if (!start && end) {
-    // Only end date: current if not yet ended
-    return end >= now;
-  }
-
-  // No dates, no status — assume past
-  return false;
+  return isCurrentEntry(fair);
 }
 
 /**

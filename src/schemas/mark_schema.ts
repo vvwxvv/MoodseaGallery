@@ -16,6 +16,7 @@ import { z } from 'zod';
 export const markSchema = z.object({
   value: z.string().optional(),
   hide: z.array(z.string()).optional(),
+  marks: z.array(z.string()).optional(),
 });
 
 export const markFieldSchema = z
@@ -31,3 +32,6 @@ export const MARK_HIDE_TOKENS = [
   'art_fair_page',
   'artist_rolling_image',
 ] as const;
+
+/** Named flags a record can carry (positive marks). */
+export const MARK_FLAGS = ['artist_hover_image'] as const;

@@ -97,6 +97,9 @@ export default function ImageSManagerPage() {
         orderPagePath: "/manager/image/order",
         // Title-cased shortcut label for that page ("Order Rolling Images").
         orderPageLabel: { EN: "Order Rolling Images", CN: "轮播图排序" },
+        // Dedicated page that picks each artist's hover image.
+        hoverPagePath: "/manager/image/hover",
+        hoverPageLabel: { EN: "Hover Image", CN: "悬停图" },
         // "Refresh Images" — pulls cover URLs that exist on other collections
         // but were never added as Image rows (tag_en / tag_cn auto-filled from
         // the language-split siblings). Rendered in the search & filter header,

@@ -123,7 +123,7 @@ export const eventApiConfig = {
     const stringFields = [
       'title', 'subtitle', 'year', 'date_time',
       'type', 'host', 'support', 'special_thanks',
-      'venue', 'address', 'caption', 'mark', 'order', 'language'
+      'venue', 'address', 'caption', 'order', 'language'
     ];
     for (const field of stringFields) {
       if (!(field in data)) continue;
@@ -158,7 +158,7 @@ export const eventApiConfig = {
     const stringFields = [
       'title', 'subtitle', 'year', 'date_time',
       'type', 'host', 'support', 'special_thanks',
-      'venue', 'address', 'caption', 'mark', 'order', 'language'
+      'venue', 'address', 'caption', 'order', 'language'
     ];
     for (const field of stringFields) {
       if (!(field in data)) continue;

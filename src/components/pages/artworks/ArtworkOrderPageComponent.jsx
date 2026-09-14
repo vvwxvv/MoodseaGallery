@@ -1,52 +1,73 @@
 "use client";
 
-import React, { useContext, useMemo, useState, useEffect, useCallback } from "react";
+/**
+ * ArtworkOrderPageComponent — manager page for ordering artworks PER PAGE.
+ *
+ *   /manager/artwork/order
+ *
+ * One tab per page the artworks appear on (artist page / exhibition page / art
+ * fair page). Each tab has its own `order.<key>` position inside the JSON
+ * `order` object, so a work can sit at #3 on the artist page and #9 on the
+ * exhibition page.
+ *
+ *   • artworks are grouped by artist (A→Z, "Ungrouped" last)
+ *   • drag a card (grid) or a row (list) to re-order inside its group
+ *   • the eye icon hides a work from the SELECTED page only — it keeps no
+ *     position there, greys out, drops to half size and moves under the dashed
+ *     line (the other pages' positions are untouched)
+ *   • Save writes every group in one request: POST /api/artwork/reorder
+ *     { groups, orderKey, clearIds }
+ *
+ * Mark handling goes through `utils/mediaMarks` (registry-driven) — never the
+ * raw mark object.
+ */
+
+import React, { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import {
+  ArrowLeft,
+  Eye,
+  EyeOff,
+  GripVertical,
+  LayoutGrid,
+  List,
+  RotateCcw,
+  Save,
+} from "lucide-react";
 import {
   DndContext,
-  closestCenter,
-  PointerSensor,
   KeyboardSensor,
+  PointerSensor,
+  closestCenter,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
 import {
-  arrayMove,
   SortableContext,
+  arrayMove,
   rectSortingStrategy,
   sortableKeyboardCoordinates,
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import {
-  GripVertical,
-  Save,
-  RotateCcw,
-  ArrowLeft,
-  LayoutGrid,
-  List,
-  Eye,
-  EyeOff,
-} from "lucide-react";
 
 import { LanguageContext } from "@/components/contexts/LanguageContext";
 import { useReverseTheme } from "@/hooks/useReverseTheme";
 import useFont from "@/hooks/useFont";
 import useData from "@/hooks/useData";
+import AlertInfo from "@/components/alerts/AlertInfo";
 import { filterByLanguage } from "@/utils/filterByLanguage";
-import { normalizeName } from "@/components/pages/artists/hooks/useArtistDetailData";
 import {
-  getArtworkOrder,
   ARTWORK_ORDER_KEYS,
+  getArtworkOrder,
   normalizeArtworkOrder,
 } from "@/utils/artworkOrder";
 import {
-  isArtworkHiddenForPage,
-  hideTokenForOrderKey,
+  applyMark,
   hideLabelForOrderKey,
-  withMarkHide,
+  hideTokenForOrderKey,
+  isArtworkHiddenForPage,
 } from "@/utils/mediaMarks";
-import LoadingLayer from "@/components/animations/LoadingLayer";
-import AlertInfo from "@/components/alerts/AlertInfo";
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  CONFIG
@@ -87,191 +108,162 @@ const T = {
   },
   hidden: { en: "hidden", cn: "隐藏" },
   noOrder: { en: "Hidden · no order", cn: "已隐藏 · 无排序" },
-  showOnPage: { en: "Show on this page", cn: "在此页显示" },
-  hideFromPage: { en: "Hide from this page", cn: "从此页隐藏" },
+  retry: { en: "Try again", cn: "重试" },
 };
 
-const txt = (entry, isCn) => (isCn ? entry.cn : entry.en);
+const txt = (v, isCn) => (isCn ? v.cn : v.en);
+const idOf = (item) => item?.id || item?._id || "";
+const normalizeName = (value) => String(value ?? "").trim();
+const keyOf = (name) => normalizeName(name).toLowerCase();
 
-const idOf = (item) => item?.id || item?._id;
+const ORDER_KEY_DEFAULT = ARTWORK_ORDER_KEYS[0]; // artist_page_order
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  Sortable item wrapper
-// ─────────────────────────────────────────────────────────────────────────────
-function SortableItem({ id, children, disabled }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-    useSortable({ id, disabled });
-  return (
-    <div
-      ref={setNodeRef}
-      style={{
-        transform: CSS.Transform.toString(transform),
-        transition,
-        opacity: isDragging ? 0.6 : 1,
-        zIndex: isDragging ? 50 : "auto",
-        position: "relative",
-        cursor: disabled ? "default" : "grab",
-        touchAction: "none",
-      }}
-      {...attributes}
-      {...listeners}
-    >
-      {children}
-    </div>
-  );
-}
+/** Numeric position of a work for the active page (Infinity = none). */
+const getOrderValue = (item, orderKey) => {
+  const n = Number(getArtworkOrder(item, orderKey));
+  return Number.isFinite(n) && n > 0 ? n : Infinity;
+};
+
+/** Year, newest first — the tie-breaker for works without a position. */
+const getYearValue = (item) => {
+  const n = Number(String(item?.year ?? "").replace(/[^\d]/g, ""));
+  return Number.isFinite(n) && n > 0 ? n : 0;
+};
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  Card (image + artist + title + work info — no edit/delete)
+//  Sortable card
 // ─────────────────────────────────────────────────────────────────────────────
 function OrderCard({
   item,
-  orderNumber,
-  isCn,
-  fontFamily,
+  groupKey,
+  orderKey,
+  hidden,
+  busy,
   listMode,
   thumbWidth,
-  hidden,
-  hideLabel,
-  onToggleHide,
-  busy,
+  onToggleHidden,
+  isCn,
+  fontFamily,
+  labelFontFamily,
 }) {
-  const info = [
-    item?.type,
-    item?.medium,
-    item?.year,
-    item?.size,
-    item?.series,
-  ].filter(Boolean);
+  const id = idOf(item);
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id, disabled: hidden });
 
-  const img = item?.cover_img_url;
-  const hideHint = hideLabel ? txt(hideLabel, isCn) : txt(T.hideFromPage, isCn);
+  const style = {
+    transform: CSS.Translate.toString(transform),
+    transition,
+    opacity: isDragging ? 0.6 : 1,
+    position: "relative",
+    display: listMode ? "flex" : "block",
+    alignItems: listMode ? "center" : undefined,
+    gap: listMode ? 12 : undefined,
+    border: "1px solid rgba(0,0,0,.12)",
+    borderRadius: 10,
+    background: "#fff",
+    overflow: "hidden",
+    width: listMode ? "100%" : `${thumbWidth}px`,
+    cursor: isDragging ? "grabbing" : "grab",
+  };
+
+  const cover = item?.cover_img_url || item?.image_url || "";
 
   return (
-    <div
-      style={{
-        border: "1px solid #000",
-        borderRadius: "10px",
-        background: "#fff",
-        color: "#000",
-        overflow: "hidden",
-        height: "100%",
-        display: "flex",
-        flexDirection: listMode ? "row" : "column",
-        position: "relative",
-        // Greyed out when the artwork is marked to be hidden from this page.
-        filter: hidden ? "grayscale(1)" : undefined,
-        opacity: hidden ? 0.55 : 1,
-        transition: "filter .15s ease, opacity .15s ease",
-      }}
-      title={hidden ? hideHint : undefined}
-    >
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
       <div
         style={{
-          width: listMode ? `${thumbWidth}px` : "100%",
-          flex: listMode ? "0 0 auto" : undefined,
-          background: "#f2f2f2",
-          aspectRatio: listMode ? undefined : "4 / 3",
-          height: listMode ? `${Math.round(thumbWidth * 0.75)}px` : undefined,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          overflow: "hidden",
+          position: "relative",
+          width: listMode ? thumbWidth : "100%",
+          aspectRatio: listMode ? "1 / 1" : undefined,
+          height: listMode ? thumbWidth : undefined,
+          background: "#f4f4f4",
+          flexShrink: 0,
+          filter: hidden ? "grayscale(1)" : "none",
+          opacity: hidden ? 0.5 : 1,
         }}
       >
-        {img ? (
+        {cover ? (
+          // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={img}
+            src={cover}
             alt={item?.title || ""}
             draggable={false}
             style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
           />
-        ) : (
-          <span style={{ fontSize: 11, opacity: 0.4 }}>{isCn ? "无图" : "No image"}</span>
-        )}
+        ) : null}
       </div>
 
-      <div style={{ padding: "10px 12px", flex: 1, minWidth: 0 }}>
+      <div style={{ padding: 10, minWidth: 0, flex: listMode ? 1 : undefined }}>
         <div
           style={{
-            display: "flex",
-            alignItems: "flex-start",
-            justifyContent: "space-between",
-            gap: 8,
+            fontFamily,
+            fontSize: 12.5,
+            fontWeight: 600,
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
           }}
+          title={item?.title || ""}
         >
-          <span
-            style={{
-              fontFamily,
-              fontWeight: 600,
-              fontSize: 13,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-              minWidth: 0,
-            }}
-          >
-            {item?.title || (isCn ? "无标题" : "Untitled")}
-          </span>
-          <GripVertical size={14} style={{ flex: "0 0 auto", opacity: 0.35 }} />
+          {item?.title || "—"}
         </div>
-        {/* Artist name + order number — same row, number at the right edge */}
         <div
           style={{
-            display: "flex",
-            alignItems: "baseline",
-            justifyContent: "space-between",
-            gap: 8,
+            fontFamily: labelFontFamily,
+            fontSize: 11,
+            color: "rgba(0,0,0,.45)",
             marginTop: 2,
           }}
         >
-          <div
-            style={{
-              fontFamily,
-              fontSize: 12,
-              opacity: 0.7,
-              minWidth: 0,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {item?.artist || "—"}
-          </div>
-          <span
-            style={{
-              flex: "0 0 auto",
-              fontFamily,
-              fontSize: 20,
-              fontWeight: 700,
-              lineHeight: 1,
-              color: "#000",
-              // Hidden works carry no position in this page's order.
-              opacity: orderNumber ? 1 : 0.3,
-            }}
-            title={orderNumber ? undefined : txt(T.noOrder, isCn)}
-          >
-            {orderNumber || "—"}
-          </span>
+          {[item?.year, item?.medium].filter(Boolean).join(" · ")}
         </div>
-        {info.length > 0 && (
-          <div style={{ fontFamily, fontSize: 11, opacity: 0.5, marginTop: 4 }}>
-            {info.join(" · ")}
-          </div>
-        )}
       </div>
 
-      {/* Hide / show toggle for the selected page — sets `mark` immediately */}
+      <span
+        style={{
+          position: "absolute",
+          top: 6,
+          left: 6,
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          width: 24,
+          height: 24,
+          borderRadius: 6,
+          border: "1px solid rgba(0,0,0,.14)",
+          background: "rgba(255,255,255,.9)",
+          color: "rgba(0,0,0,.45)",
+        }}
+        title={isCn ? "拖动排序" : "Drag to reorder"}
+      >
+        <GripVertical size={14} />
+      </span>
+
+      {/* Eye toggle — hides this work from the SELECTED page only */}
       <button
         type="button"
-        className="ordhide"
-        onClick={(event) => {
-          event.stopPropagation();
-          onToggleHide?.();
+        onClick={(e) => {
+          e.stopPropagation();
+          onToggleHidden(item);
         }}
+        onPointerDown={(e) => e.stopPropagation()}
         disabled={busy}
-        title={hidden ? txt(T.showOnPage, isCn) : hideHint}
         aria-pressed={hidden}
+        title={
+          hidden
+            ? isCn
+              ? `取消隐藏（${hideLabelForOrderKey(orderKey)?.cn || ""}）`
+              : `Show on ${hideLabelForOrderKey(orderKey)?.en || ""}`
+            : isCn
+              ? `从此页隐藏（${hideLabelForOrderKey(orderKey)?.cn || ""}）`
+              : `Hide from ${hideLabelForOrderKey(orderKey)?.en || ""}`
+        }
         style={{
           position: "absolute",
           top: 6,
@@ -284,238 +276,88 @@ function OrderCard({
           justifyContent: "center",
           padding: 0,
           borderRadius: 7,
-          border: "1px solid " + (hidden ? "#9a9a9a" : "rgba(0,0,0,.18)"),
-          background: hidden ? "rgba(0,0,0,.06)" : "rgba(255,255,255,.9)",
-          color: "#000",
+          border: "1px solid " + (hidden ? "#000" : "rgba(0,0,0,.18)"),
+          background: hidden ? "#000" : "rgba(255,255,255,.9)",
+          color: hidden ? "#fff" : "#000",
           cursor: busy ? "default" : "pointer",
           opacity: busy ? 0.4 : hidden ? 1 : 0.55,
-          filter: "none",
         }}
       >
         {hidden ? <EyeOff size={15} /> : <Eye size={15} />}
       </button>
-
-      {/* Hidden overlay: one big light grey X across the card */}
-      {hidden && (
-        <div
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            inset: 0,
-            pointerEvents: "none",
-            background: "rgba(255,255,255,0.25)",
-            zIndex: 2,
-          }}
-        >
-          <svg
-            width="100%"
-            height="100%"
-            viewBox="0 0 100 100"
-            preserveAspectRatio="none"
-            style={{ display: "block" }}
-          >
-            <path
-              d="M3 3 L97 97 M97 3 L3 97"
-              stroke="#c9c9c9"
-              strokeWidth="1.6"
-              strokeLinecap="round"
-              vectorEffect="non-scaling-stroke"
-            />
-          </svg>
-        </div>
-      )}
     </div>
   );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  Hidden strip — every hidden artwork of this group, together at the bottom,
-//  half size, above a dashed separator. Not sortable (no position).
+//  Hidden strip (dashed line + half-size cards, no order)
 // ─────────────────────────────────────────────────────────────────────────────
-function HiddenStrip({
-  items,
-  isCn,
-  fontFamily,
-  listMode,
-  thumbWidth,
-  hideLabel,
-  onToggleItemHidden,
-  isItemBusy,
-}) {
+function HiddenStrip({ items, label, hint, fontFamily, labelFontFamily }) {
   if (!items.length) return null;
-
-  const smallWidth = Math.max(70, Math.round(thumbWidth / 2));
-
-  const gridStyle = listMode
-    ? { display: "flex", flexDirection: "column", gap: 8 }
-    : {
-        display: "grid",
-        gridTemplateColumns: `repeat(auto-fill, minmax(${smallWidth}px, 1fr))`,
-        gap: 10,
-      };
-
   return (
-    <div style={{ marginTop: 6 }}>
+    <div style={{ marginTop: 18 }}>
       <div
         style={{
-          borderTop: "1px dashed rgba(0,0,0,.3)",
-          paddingTop: 12,
-          marginBottom: 12,
+          borderTop: "1px dashed rgba(0,0,0,.35)",
+          marginBottom: 10,
+        }}
+      />
+      <div
+        style={{
           display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 12,
-          fontFamily,
+          alignItems: "baseline",
+          gap: 10,
+          marginBottom: 10,
         }}
       >
-        <span
-          style={{ fontSize: 12, fontWeight: 600, letterSpacing: ".02em", opacity: 0.75 }}
-          title={txt(T.hiddenHint, isCn)}
-        >
-          {txt(T.hiddenTitle, isCn)}
+        <span style={{ fontFamily, fontSize: 12.5, fontWeight: 700 }}>{label}</span>
+        <span style={{ fontFamily: labelFontFamily, fontSize: 11, color: "rgba(0,0,0,.45)" }}>
+          {hint}
         </span>
-        <span style={{ fontSize: 12, opacity: 0.55 }}>{items.length}</span>
       </div>
-
-      <div style={gridStyle}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
         {items.map((item) => (
-          <OrderCard
+          <div
             key={idOf(item)}
-            item={item}
-            orderNumber={null}
-            isCn={isCn}
-            fontFamily={fontFamily}
-            listMode={listMode}
-            thumbWidth={smallWidth}
-            hidden
-            hideLabel={hideLabel}
-            onToggleHide={() => onToggleItemHidden?.(item)}
-            busy={isItemBusy ? isItemBusy(item) : false}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-//  Group (header + sortable grid/list + hidden strip)
-// ─────────────────────────────────────────────────────────────────────────────
-function GroupBlock({
-  group,
-  items,
-  isCn,
-  fontFamily,
-  listMode,
-  thumbWidth,
-  hideLabel,
-  onReorder,
-  isItemHidden,
-  onToggleItemHidden,
-  isItemBusy,
-}) {
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
-  );
-
-  const visibleItems = useMemo(
-    () => items.filter((it) => !isItemHidden(it)),
-    [items, isItemHidden]
-  );
-  const hiddenItems = useMemo(
-    () => items.filter((it) => isItemHidden(it)),
-    [items, isItemHidden]
-  );
-
-  // Number the visible works 1..N (hidden works carry no position).
-  const numbers = useMemo(() => {
-    const map = new Map();
-    visibleItems.forEach((it, idx) => map.set(idOf(it), idx + 1));
-    return map;
-  }, [visibleItems]);
-
-  const ids = visibleItems.map(idOf);
-
-  const handleDragEnd = (event) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-    const oldIndex = ids.indexOf(active.id);
-    const newIndex = ids.indexOf(over.id);
-    if (oldIndex < 0 || newIndex < 0) return;
-    onReorder(arrayMove(visibleItems, oldIndex, newIndex));
-  };
-
-  const gridStyle = listMode
-    ? { display: "flex", flexDirection: "column", gap: 10 }
-    : {
-        display: "grid",
-        gridTemplateColumns: `repeat(auto-fill, minmax(${thumbWidth}px, 1fr))`,
-        gap: 12,
-      };
-
-  return (
-    <div
-      style={{
-        border: "1px solid #000",
-        borderRadius: 12,
-        marginBottom: 20,
-        overflow: "hidden",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          padding: "12px 16px",
-          borderBottom: "1px solid #000",
-          fontFamily,
-        }}
-      >
-        <span style={{ fontWeight: 600, fontSize: 14 }}>{group}</span>
-        <span style={{ fontSize: 12, opacity: 0.6, whiteSpace: "nowrap" }}>
-          {visibleItems.length}
-          {hiddenItems.length > 0
-            ? ` + ${hiddenItems.length} ${txt(T.hidden, isCn)}`
-            : ""}
-        </span>
-      </div>
-
-      <div style={{ padding: 16 }}>
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <SortableContext items={ids} strategy={rectSortingStrategy}>
-            <div style={gridStyle}>
-              {visibleItems.map((item) => (
-                <SortableItem key={idOf(item)} id={idOf(item)}>
-                  <OrderCard
-                    item={item}
-                    orderNumber={numbers.get(idOf(item)) ?? null}
-                    isCn={isCn}
-                    fontFamily={fontFamily}
-                    listMode={listMode}
-                    thumbWidth={thumbWidth}
-                    hidden={false}
-                    hideLabel={hideLabel}
-                    onToggleHide={() => onToggleItemHidden?.(item)}
-                    busy={isItemBusy ? isItemBusy(item) : false}
-                  />
-                </SortableItem>
-              ))}
+            style={{
+              width: 120,
+              border: "1px solid rgba(0,0,0,.1)",
+              borderRadius: 8,
+              overflow: "hidden",
+              opacity: 0.55,
+              background: "#fff",
+            }}
+          >
+            <div style={{ width: "100%", height: 120, background: "#f4f4f4" }}>
+              {item?.cover_img_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={item.cover_img_url}
+                  alt=""
+                  draggable={false}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    filter: "grayscale(1)",
+                  }}
+                />
+              ) : null}
             </div>
-          </SortableContext>
-        </DndContext>
-
-        <HiddenStrip
-          items={hiddenItems}
-          isCn={isCn}
-          fontFamily={fontFamily}
-          listMode={listMode}
-          thumbWidth={thumbWidth}
-          hideLabel={hideLabel}
-          onToggleItemHidden={onToggleItemHidden}
-          isItemBusy={isItemBusy}
-        />
+            <div
+              style={{
+                fontFamily,
+                fontSize: 11,
+                padding: "6px 8px",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}
+            >
+              {item?.title || "—"}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -525,43 +367,27 @@ function GroupBlock({
 //  Page
 // ─────────────────────────────────────────────────────────────────────────────
 export default function ArtworkOrderPageComponent() {
+  const router = useRouter();
   const { isCn } = useContext(LanguageContext);
   const { colors } = useReverseTheme();
-  const { fontFamily } = useFont();
+  const { fontFamily, labelFontFamily } = useFont();
 
-  const { data: raw = [], isLoading, error, refetch } = useData("/api/artwork");
+  const { data: rawWorks = [], isLoading, error, refetch } = useData("/api/artwork");
 
-  const [orderKey, setOrderKey] = useState("artist_page_order");
-  const [draft, setDraft] = useState({}); // groupLabel -> ordered items
+  const [orderKey, setOrderKey] = useState(ORDER_KEY_DEFAULT);
+  const [listMode, setListMode] = useState(false);
+  const [thumbWidth, setThumbWidth] = useState(180);
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState(null);
-  const [listMode, setListMode] = useState(false);
-  const [thumbWidth, setThumbWidth] = useState(240);
+  const [draft, setDraft] = useState({});        // groupKey → items[]
+  const [dirtyKeys, setDirtyKeys] = useState({}); // groupKey → true (needs renumber)
+  const [markOverrides, setMarkOverrides] = useState({}); // id → mark (optimistic)
+  const [markBusy, setMarkBusy] = useState({});           // id → true
 
-  // Per-card hide/show state. Optimistic overrides: id → mark value, applied
-  // instantly on toggle and persisted with a PUT to /api/artwork.
-  const [markOverrides, setMarkOverrides] = useState({});
-  const [markBusy, setMarkBusy] = useState({});
-  // Groups touched by a hide/show toggle → re-number them on Save.
-  const [dirtyKeys, setDirtyKeys] = useState({});
-
-  const items = useMemo(() => {
-    const filtered = filterByLanguage(Array.isArray(raw) ? raw : [], isCn);
-    return filtered.map((it) => ({ ...it, id: it.id || it._id, _id: it._id || it.id }));
-  }, [raw, isCn]);
-
-  // The hide token / label that belongs to the page currently being ordered.
   const hideToken = useMemo(() => hideTokenForOrderKey(orderKey), [orderKey]);
-  const hideLabel = useMemo(() => hideLabelForOrderKey(orderKey), [orderKey]);
 
   const markOf = useCallback(
-    (item) => {
-      const id = idOf(item);
-      if (id && Object.prototype.hasOwnProperty.call(markOverrides, id)) {
-        return markOverrides[id];
-      }
-      return item?.mark;
-    },
+    (item) => (idOf(item) in markOverrides ? markOverrides[idOf(item)] : item?.mark),
     [markOverrides]
   );
 
@@ -570,102 +396,94 @@ export default function ArtworkOrderPageComponent() {
     [markOf, orderKey]
   );
 
-  const isItemBusy = useCallback(
-    (item) => {
-      const id = idOf(item);
-      return Boolean(id && markBusy[id]);
-    },
-    [markBusy]
-  );
-
-  // Build groups (by artist), each ordered by the active order key.
-  // NOTE: intentionally does NOT depend on markOverrides / isItemHidden, so a
-  // hide/show toggle never reshuffles the groups mid-session (draft would be
-  // reset). Hidden rows are separated out at render time by GroupBlock.
+  // Language-filtered artworks, then grouped by artist (A→Z, ungrouped last).
   const groups = useMemo(() => {
-    const map = new Map();
-    for (const it of items) {
-      const key = (it.artist || "").trim() || txt(T.ungrouped, isCn);
-      if (!map.has(key)) map.set(key, []);
-      map.get(key).push(it);
-    }
-    const out = [...map.entries()].map(([label, arr]) => ({
-      label,
-      items: [...arr].sort((a, b) => {
-        const av = Number(getArtworkOrder(a, orderKey)) || Infinity;
-        const bv = Number(getArtworkOrder(b, orderKey)) || Infinity;
-        if (av !== bv) return av - bv;
-        return String(a.title || "").localeCompare(String(b.title || ""));
-      }),
-    }));
-    // Artist boxes are ordered A→Z by artist name (pinyin-aware for CN);
-    // the "Ungrouped" bucket always sinks to the bottom.
-    const ungroupedLabel = txt(T.ungrouped, isCn);
-    out.sort((a, b) => {
-      const aU = a.label === ungroupedLabel;
-      const bU = b.label === ungroupedLabel;
-      if (aU !== bU) return aU ? 1 : -1;
-      return a.label.localeCompare(b.label, isCn ? "zh-Hans-CN" : undefined, {
-        numeric: true,
-        sensitivity: "base",
-      });
-    });
-    return out;
-  }, [items, orderKey, isCn]);
+    const works = filterByLanguage(rawWorks, isCn);
 
-  // Reset the draft whenever groups/order key change.
+    const buckets = new Map();
+    for (const item of works) {
+      const artist = normalizeName(item?.artist);
+      const key = artist ? keyOf(artist) : "__ungrouped__";
+      if (!buckets.has(key)) buckets.set(key, { key, label: artist || txt(T.ungrouped, isCn), items: [] });
+      buckets.get(key).items.push(item);
+    }
+
+    const list = [...buckets.values()];
+
+    // Inside a group: numbered first (ascending by this page's order), then the
+    // rest by year (newest first) so unordered works still read sensibly.
+    for (const g of list) {
+      g.items = [...g.items].sort((a, b) => {
+        const av = getOrderValue(a, orderKey);
+        const bv = getOrderValue(b, orderKey);
+        if (av !== bv) return av - bv;
+        const ay = getYearValue(a);
+        const by = getYearValue(b);
+        if (ay !== by) return by - ay;
+        return String(a?.title || "").localeCompare(String(b?.title || ""));
+      });
+    }
+
+    list.sort((a, b) => {
+      if (a.key === "__ungrouped__") return 1;
+      if (b.key === "__ungrouped__") return -1;
+      return a.label.localeCompare(b.label, undefined, { numeric: true, sensitivity: "base" });
+    });
+
+    return list;
+  }, [rawWorks, isCn, orderKey]);
+
+  // Reset the draft whenever the groups/order key change.
   useEffect(() => {
     const next = {};
-    for (const g of groups) next[g.label] = g.items;
+    for (const g of groups) next[g.key] = g.items;
     setDraft(next);
   }, [groups]);
 
-  // Drag inside a group → splice the visible cards back into the group's
-  // running order, leaving hidden rows where they are.
-  const onReorder = useCallback(
-    (groupLabel, nextVisibleItems) => {
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  const onDragEnd = useCallback(
+    (groupKey) => (event) => {
+      const { active, over } = event || {};
+      if (!over || active.id === over.id) return;
       setDraft((prev) => {
-        const list = prev[groupLabel] || [];
-        let cursor = 0;
-        const next = list.map((item) => {
-          if (isItemHidden(item)) return item;
-          return nextVisibleItems[cursor++] || item;
-        });
-        return { ...prev, [groupLabel]: next };
+        const items = prev[groupKey] || [];
+        const visible = items.filter((it) => !isItemHidden(it));
+        const from = visible.findIndex((it) => idOf(it) === active.id);
+        const to = visible.findIndex((it) => idOf(it) === over.id);
+        if (from < 0 || to < 0) return prev;
+        const moved = arrayMove(visible, from, to);
+        const hidden = items.filter((it) => isItemHidden(it));
+        return { ...prev, [groupKey]: [...moved, ...hidden] };
       });
+      setDirtyKeys((prev) => ({ ...prev, [groupKey]: true }));
     },
     [isItemHidden]
   );
 
-  const onToggleItemHidden = useCallback(
+  // Hide / show a work for the ACTIVE page.
+  const onToggleHidden = useCallback(
     async (item) => {
       const id = idOf(item);
-      if (!id || !hideToken) return;
+      if (!id || !hideToken || markBusy[id]) return;
 
       const nextHidden = !isItemHidden(item);
-      // Hide flags live inside the JSON mark, so other pages' hides survive.
-      const nextMark = withMarkHide(markOf(item), hideToken, nextHidden);
+      const nextMark = applyMark(markOf(item), hideToken, nextHidden);
 
-      // Remember that this group needs re-numbering on the next save (both for
-      // hide — which clears the position — and show — which adds it back).
-      const groupLabel = (item.artist || "").trim() || txt(T.ungrouped, isCn);
-      setDirtyKeys((prev) => ({ ...prev, [groupLabel]: true }));
-
-      // Optimistic — the card greys out (or clears) immediately.
+      setNotice(null);
       setMarkOverrides((prev) => ({ ...prev, [id]: nextMark }));
       setMarkBusy((prev) => ({ ...prev, [id]: true }));
 
       try {
         const payload = { mark: nextMark };
         if (nextHidden) {
-          // A hidden work keeps NO position on this page — clear it right away
-          // (the other page orders are preserved).
-          payload.order = {
-            ...normalizeArtworkOrder(item?.order),
-            [orderKey]: "",
-          };
+          // A hidden work keeps no position on this page — clear it now
+          // (the other pages' positions are preserved).
+          payload.order = { ...normalizeArtworkOrder(item?.order), [orderKey]: "" };
         }
-
         const res = await fetch(`/api/artwork?id=${id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -692,7 +510,7 @@ export default function ArtworkOrderPageComponent() {
         });
       }
     },
-    [isItemHidden, hideToken, orderKey, isCn]
+    [hideToken, isCn, isItemHidden, markBusy, markOf, orderKey]
   );
 
   const handleSave = useCallback(async () => {
@@ -700,37 +518,23 @@ export default function ArtworkOrderPageComponent() {
       setSaving(true);
       setNotice(null);
 
-      // Only send groups whose visible order actually changed (single request).
-      // Hidden works are excluded from the numbering and have this page's order
-      // cleared, so "hidden" rows never carry a position.
+      // Every group with at least one visible work is (re)written — that way a
+      // group holding a single work still gets its position persisted.
       const groupsToSave = [];
       const hiddenSet = new Set();
+
       for (const g of groups) {
-        const groupItems = draft[g.label] || g.items;
+        const items = draft[g.key] || g.items;
         const visible = [];
-        let hasHidden = false;
-        for (const it of groupItems) {
+        for (const it of items) {
           const id = idOf(it);
           if (isItemHidden(it)) {
-            hasHidden = true;
             if (id) hiddenSet.add(id);
           } else if (id) {
             visible.push(id);
           }
         }
-
-        const originalVisible = (g.items || [])
-          .filter((it) => !isItemHidden(it))
-          .map((it) => idOf(it));
-
-        if (
-          visible.length &&
-          (hasHidden ||
-            dirtyKeys[g.label] ||
-            visible.join(",") !== originalVisible.join(","))
-        ) {
-          groupsToSave.push(visible);
-        }
+        if (visible.length) groupsToSave.push(visible);
       }
 
       const hiddenIds = [...hiddenSet];
@@ -754,164 +558,96 @@ export default function ArtworkOrderPageComponent() {
       setDirtyKeys({});
       setNotice({ type: "ok", text: txt(T.savedOk, isCn) });
       refetch?.();
-    } catch (e) {
-      console.error(e);
+    } catch (err) {
+      console.error("[artwork order] save failed:", err);
       setNotice({ type: "err", text: txt(T.saveFail, isCn) });
     } finally {
       setSaving(false);
     }
-  }, [groups, draft, dirtyKeys, isItemHidden, orderKey, refetch, isCn]);
+  }, [draft, groups, isCn, isItemHidden, orderKey, refetch]);
 
   const handleReset = useCallback(() => {
     const next = {};
-    for (const g of groups) next[g.label] = g.items;
+    for (const g of groups) next[g.key] = g.items;
     setDraft(next);
+    setDirtyKeys({});
     setNotice(null);
   }, [groups]);
 
-  const hiddenCount = useMemo(() => {
-    const ids = new Set();
-    for (const g of groups) {
-      for (const item of draft[g.label] || g.items) {
-        if (isItemHidden(item)) ids.add(idOf(item));
-      }
-    }
-    return ids.size;
-  }, [groups, draft, isItemHidden]);
+  const btn = (primary) => ({
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 7,
+    padding: "8px 14px",
+    fontSize: 12.5,
+    fontFamily,
+    fontWeight: primary ? 700 : 500,
+    color: primary ? "#fff" : "#000",
+    background: primary ? "#000" : "#fff",
+    border: "1px solid #000",
+    borderRadius: 8,
+    cursor: saving ? "default" : "pointer",
+    opacity: saving ? 0.6 : 1,
+  });
 
-  if (isLoading) return <LoadingLayer isLoading />;
+  if (isLoading) return <div style={{ background: "#fff", minHeight: "60vh" }} />;
+
   if (error) {
     return (
       <AlertInfo
         message={txt(T.loadFail, isCn)}
-        buttonText={isCn ? "重试" : "Retry"}
+        subMessage=""
+        buttonText={txt(T.retry, isCn)}
         onBack={() => refetch?.()}
         isCn={isCn}
       />
     );
   }
 
-  const btn = (primary) => ({
-    display: "inline-flex",
-    alignItems: "center",
-    gap: 6,
-    padding: "8px 14px",
-    fontSize: 13,
-    fontFamily,
-    fontWeight: primary ? 600 : 500,
-    border: "1px solid #000",
-    borderRadius: 8,
-    background: "#fff",
-    color: "#000",
-    cursor: "pointer",
-    whiteSpace: "nowrap",
-  });
+  const total = groups.reduce((n, g) => n + g.items.length, 0);
 
   return (
-    <div style={{ background: colors.background, color: colors.text, minHeight: "100vh" }}>
-      {/* Toolbar button hover: underline the label (monochrome, no black fill) */}
-      <style>{`
-        .ordbtn { transition: opacity 0.15s ease; }
-        .ordbtn:hover:not(:disabled) { text-decoration: underline; text-underline-offset: 2px; }
-        .ordbtn:disabled { opacity: 0.5; cursor: default; }
-        .ordhide { transition: opacity 0.15s ease, background 0.15s ease; }
-        .ordhide:hover:not(:disabled) { opacity: 1 !important; background: rgba(0,0,0,.04); }
-      `}</style>
-      <div style={{ maxWidth: 1400, margin: "0 auto", padding: "24px 20px 80px" }}>
-        {/* Header */}
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 4 }}>
-          <button type="button" className="ordbtn" style={btn(false)} onClick={() => history.back()}>
-            <ArrowLeft size={14} /> {txt(T.back, isCn)}
-          </button>
-          <h1 style={{ fontFamily, fontSize: 22, fontWeight: 700, margin: 0 }}>
-            {txt(T.title, isCn)}
-          </h1>
-        </div>
-        <p style={{ fontFamily, fontSize: 13, opacity: 0.6, margin: "6px 0 16px" }}>
-          {txt(T.subtitle, isCn)}
-        </p>
+    <div
+      style={{
+        width: "100%",
+        maxWidth: 1180,
+        margin: "0 auto",
+        padding: "22px 20px 80px",
+        background: "#fff",
+        color: "#000",
+      }}
+    >
+      {/* ── Header ── */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "flex-start",
+          gap: 12,
+          flexWrap: "wrap",
+          paddingBottom: 12,
+          borderBottom: "1px solid rgba(0,0,0,.14)",
+        }}
+      >
+        <button type="button" style={btn(false)} onClick={() => router.push("/manager/artwork")}>
+          <ArrowLeft size={14} /> {txt(T.back, isCn)}
+        </button>
 
-        {/* Toolbar */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 3, minWidth: 0 }}>
+          <div style={{ fontFamily, fontSize: 17, fontWeight: 700 }}>{txt(T.title, isCn)}</div>
+          <div style={{ fontFamily: labelFontFamily, fontSize: 12, color: "rgba(0,0,0,.55)" }}>
+            {txt(T.subtitle, isCn)}
+          </div>
+        </div>
+
         <div
           style={{
-            position: "sticky",
-            top: 70,
-            zIndex: 40,
-            background: colors.background,
-            borderTop: "1px solid #000",
-            borderBottom: "1px solid #000",
-            padding: "12px 0",
-            display: "flex",
-            flexWrap: "wrap",
+            marginLeft: "auto",
+            display: "inline-flex",
             alignItems: "center",
-            gap: 16,
-            marginBottom: 20,
+            gap: 12,
+            flexWrap: "wrap",
           }}
         >
-          {/* Order dimension + save together */}
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 8, fontFamily }}>
-            <span style={{ fontSize: 13, fontWeight: 500 }}>{txt(T.orderBy, isCn)}:</span>
-            <select
-              value={orderKey}
-              onChange={(e) => setOrderKey(e.target.value)}
-              style={{
-                fontFamily,
-                fontSize: 13,
-                padding: "8px 10px",
-                border: "1px solid #000",
-                borderRadius: 8,
-                background: "#fff",
-                color: "#000",
-                cursor: "pointer",
-              }}
-            >
-              {ARTWORK_ORDER_KEYS.map((k) => (
-                <option key={k} value={k}>
-                  {txt(ORDER_LABELS[k] || { en: k, cn: k }, isCn)}
-                </option>
-              ))}
-            </select>
-          </span>
-
-          {/* Legend: works marked to be hidden from the selected page */}
-          {hiddenCount > 0 && hideLabel && (
-            <span
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-                fontFamily,
-                fontSize: 12,
-                opacity: 0.6,
-              }}
-              title={txt(hideLabel, isCn)}
-            >
-              <svg width="12" height="12" viewBox="0 0 72 72" fill="none" aria-hidden="true">
-                <path
-                  d="M12 12 L60 60 M60 12 L12 60"
-                  stroke="#9a9a9a"
-                  strokeWidth="8"
-                  strokeLinecap="round"
-                />
-              </svg>
-              {isCn
-                ? `${hiddenCount} 个作品不在此页显示`
-                : `${hiddenCount} hidden from this page`}
-            </span>
-          )}
-
-          <button type="button" className="ordbtn" style={btn(true)} onClick={handleSave} disabled={saving}>
-            <Save size={14} /> {saving ? txt(T.saving, isCn) : txt(T.save, isCn)}
-          </button>
-
-          <button type="button" className="ordbtn" style={btn(false)} onClick={handleReset} disabled={saving}>
-            <RotateCcw size={14} /> {txt(T.reset, isCn)}
-          </button>
-
-          <span style={{ fontFamily, fontSize: 12, opacity: 0.55, display: "inline-flex", alignItems: "center", gap: 6 }}>
-            <GripVertical size={14} /> {txt(T.dragHint, isCn)}
-          </span>
-
           {notice && (
             <span
               style={{
@@ -924,91 +660,210 @@ export default function ArtworkOrderPageComponent() {
             </span>
           )}
 
-          {/* Right side: view mode + size slider */}
-          <span style={{ marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: 12 }}>
-            <span style={{ display: "inline-flex", border: "1px solid #000", borderRadius: 8, overflow: "hidden" }}>
-              <button
-                type="button"
-                onClick={() => setListMode(false)}
-                title={txt(T.grid, isCn)}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 4,
-                  padding: "7px 10px",
-                  fontSize: 12,
-                  fontFamily,
-                  border: "none",
-                  borderBottom: listMode ? "2px solid transparent" : "2px solid #000",
-                  cursor: "pointer",
-                  background: "#fff",
-                  color: listMode ? "rgba(0,0,0,0.4)" : "#000",
-                }}
-              >
-                <LayoutGrid size={14} />
-              </button>
-              <button
-                type="button"
-                onClick={() => setListMode(true)}
-                title={txt(T.list, isCn)}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 4,
-                  padding: "7px 10px",
-                  fontSize: 12,
-                  fontFamily,
-                  border: "none",
-                  borderLeft: "1px solid #000",
-                  borderBottom: listMode ? "2px solid #000" : "2px solid transparent",
-                  cursor: "pointer",
-                  background: "#fff",
-                  color: listMode ? "#000" : "rgba(0,0,0,0.4)",
-                }}
-              >
-                <List size={14} />
-              </button>
-            </span>
-
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 8, fontFamily }}>
-              <span style={{ fontSize: 12, opacity: 0.6 }}>{txt(T.size, isCn)}</span>
-              <input
-                type="range"
-                min={140}
-                max={480}
-                step={10}
-                value={thumbWidth}
-                onChange={(e) => setThumbWidth(Number(e.target.value))}
-                style={{ width: 140, accentColor: "#000", cursor: "pointer" }}
-              />
-            </span>
-          </span>
+          <button type="button" style={btn(false)} onClick={handleReset} disabled={saving}>
+            <RotateCcw size={14} /> {txt(T.reset, isCn)}
+          </button>
+          <button type="button" style={btn(true)} onClick={handleSave} disabled={saving}>
+            <Save size={14} /> {saving ? txt(T.saving, isCn) : txt(T.save, isCn)}
+          </button>
         </div>
-
-        {/* Groups */}
-        {groups.length === 0 ? (
-          <div style={{ fontFamily, fontSize: 14, opacity: 0.6, padding: 40, textAlign: "center" }}>
-            {txt(T.empty, isCn)}
-          </div>
-        ) : (
-          groups.map((g) => (
-            <GroupBlock
-              key={g.label}
-              group={g.label}
-              items={draft[g.label] || g.items}
-              isCn={isCn}
-              fontFamily={fontFamily}
-              listMode={listMode}
-              thumbWidth={thumbWidth}
-              hideLabel={hideLabel}
-              onReorder={(next) => onReorder(g.label, next)}
-              isItemHidden={isItemHidden}
-              onToggleItemHidden={onToggleItemHidden}
-              isItemBusy={isItemBusy}
-            />
-          ))
-        )}
       </div>
+
+      {/* ── Per-page order tabs + view controls ── */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          flexWrap: "wrap",
+          margin: "16px 0 22px",
+        }}
+      >
+        <span
+          style={{
+            fontFamily: labelFontFamily,
+            fontSize: 11,
+            letterSpacing: ".06em",
+            textTransform: "uppercase",
+            color: "rgba(0,0,0,.5)",
+          }}
+        >
+          {txt(T.orderBy, isCn)}
+        </span>
+        {ARTWORK_ORDER_KEYS.map((key) => {
+          const active = key === orderKey;
+          return (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setOrderKey(key)}
+              style={{
+                padding: "7px 12px",
+                fontSize: 12.5,
+                fontFamily,
+                fontWeight: active ? 700 : 500,
+                color: active ? "#fff" : "#000",
+                background: active ? "#000" : "#fff",
+                border: "1px solid #000",
+                borderRadius: 8,
+                cursor: "pointer",
+              }}
+            >
+              {txt(ORDER_LABELS[key], isCn)}
+            </button>
+          );
+        })}
+
+        <span style={{ marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: 12 }}>
+          <span
+            style={{
+              display: "inline-flex",
+              border: "1px solid #000",
+              borderRadius: 8,
+              overflow: "hidden",
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => setListMode(false)}
+              title={txt(T.grid, isCn)}
+              style={{
+                padding: "7px 10px",
+                border: "none",
+                background: "#fff",
+                color: listMode ? "rgba(0,0,0,.4)" : "#000",
+                cursor: "pointer",
+              }}
+            >
+              <LayoutGrid size={14} />
+            </button>
+            <button
+              type="button"
+              onClick={() => setListMode(true)}
+              title={txt(T.list, isCn)}
+              style={{
+                padding: "7px 10px",
+                border: "none",
+                borderLeft: "1px solid #000",
+                background: "#fff",
+                color: listMode ? "#000" : "rgba(0,0,0,.4)",
+                cursor: "pointer",
+              }}
+            >
+              <List size={14} />
+            </button>
+          </span>
+
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+            <span style={{ fontFamily, fontSize: 12, opacity: 0.6 }}>{txt(T.size, isCn)}</span>
+            <input
+              type="range"
+              min={120}
+              max={320}
+              step={10}
+              value={thumbWidth}
+              onChange={(e) => setThumbWidth(Number(e.target.value))}
+              style={{ width: 120, accentColor: "#000", cursor: "pointer" }}
+            />
+          </span>
+        </span>
+      </div>
+
+      {total === 0 ? (
+        <div
+          style={{
+            padding: "60px 0",
+            textAlign: "center",
+            fontFamily,
+            fontSize: 13,
+            color: "rgba(0,0,0,.5)",
+          }}
+        >
+          {txt(T.empty, isCn)}
+        </div>
+      ) : (
+        groups.map((g) => {
+          const items = draft[g.key] || g.items;
+          const visible = items.filter((it) => !isItemHidden(it));
+          const hiddenItems = items.filter((it) => isItemHidden(it));
+
+          return (
+            <section key={g.key} style={{ marginBottom: 34 }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "baseline",
+                  gap: 10,
+                  marginBottom: 12,
+                }}
+              >
+                <h2 style={{ fontFamily, fontSize: 14, fontWeight: 700, margin: 0 }}>{g.label}</h2>
+                <span style={{ fontFamily: labelFontFamily, fontSize: 11.5, color: "rgba(0,0,0,.5)" }}>
+                  {visible.length}
+                  {hiddenItems.length ? ` + ${hiddenItems.length} ${txt(T.hidden, isCn)}` : ""}
+                </span>
+                <span style={{ fontFamily: labelFontFamily, fontSize: 11, color: "rgba(0,0,0,.35)" }}>
+                  {txt(T.dragHint, isCn)}
+                </span>
+              </div>
+
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={onDragEnd(g.key)}
+              >
+                <SortableContext
+                  items={visible.map((it) => idOf(it))}
+                  strategy={rectSortingStrategy}
+                >
+                  <div
+                    style={
+                      listMode
+                        ? { display: "flex", flexDirection: "column", gap: 10 }
+                        : {
+                            display: "grid",
+                            gridTemplateColumns: `repeat(auto-fill, minmax(${thumbWidth}px, 1fr))`,
+                            gap: 14,
+                          }
+                    }
+                  >
+                    {visible.map((item) => (
+                      <OrderCard
+                        key={idOf(item)}
+                        item={item}
+                        groupKey={g.key}
+                        orderKey={orderKey}
+                        hidden={false}
+                        busy={!!markBusy[idOf(item)]}
+                        listMode={listMode}
+                        thumbWidth={thumbWidth}
+                        onToggleHidden={onToggleHidden}
+                        isCn={isCn}
+                        fontFamily={fontFamily}
+                        labelFontFamily={labelFontFamily}
+                      />
+                    ))}
+                  </div>
+                </SortableContext>
+
+                <HiddenStrip
+                  items={hiddenItems}
+                  label={txt(T.hiddenTitle, isCn)}
+                  hint={txt(T.hiddenHint, isCn)}
+                  fontFamily={fontFamily}
+                  labelFontFamily={labelFontFamily}
+                />
+              </DndContext>
+            </section>
+          );
+        })
+      )}
+
+      {notice && (
+        <div style={{ marginTop: 8, fontFamily, fontSize: 11, color: "rgba(0,0,0,.4)" }}>
+          {txt({ en: "Hidden works keep their position on the other pages.", cn: "隐藏的作品在其他页面仍保留排序。" }, isCn)}
+        </div>
+      )}
     </div>
   );
 }

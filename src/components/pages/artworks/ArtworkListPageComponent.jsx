@@ -4,7 +4,6 @@ import React, { useContext, useMemo } from "react";
 import { Box, Container, Grid } from "@mui/material";
 import { LanguageContext } from "@/components/contexts/LanguageContext";
 import ArtworkInfoCard from "./ArtworkInfoCard";
-import LoadingLayer from "@/components/animations/LoadingLayer";
 import AlertInfo from "@/components/alerts/AlertInfo";
 import useArtworkData from "./hooks/useArtworkData";
 
@@ -25,7 +24,10 @@ export default function ArtworkListPageComponent({ onArtworkClick }) {
   }, [artworks, isCn]);
 
   if (isLoading) {
-    return <LoadingLayer />;
+    // Plain white loading screen — no skeleton, no loader.
+    return (
+      <div style={{ backgroundColor: "#ffffff", minHeight: "100vh", width: "100%" }} />
+    );
   }
 
   if (error) {

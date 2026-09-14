@@ -1,6 +1,7 @@
 // hooks/useSorting.js
 import { useState, useMemo, useCallback, useContext } from 'react';
 import { getMarkValue, hasMarkValue } from "@/utils/mediaMarks";
+import { orderValue } from "@/utils/mediaOrder";
 import { LanguageContext } from '@/components/contexts/LanguageContext';
 
 export default function useSorting(getLabel) {
@@ -23,7 +24,7 @@ export default function useSorting(getLabel) {
       },
       order: { 
         label: getLabel('order'),
-        getValue: (item) => Number(item.order) || 0
+        getValue: (item) => orderValue(item, 'artist_page_order')
       },
       mark: { 
         label: getLabel('mark'),

@@ -5,7 +5,6 @@ import useFont from "@/hooks/useFont";
 import useBackgroundColor from "@/hooks/useBackgroundColor";
 import { useReverseTheme } from '@/hooks/useReverseTheme';
 import { DeviceContext } from "@/components/contexts/DeviceContext";
-import footerConfig from "@/data/footer.json";   // JSON fallback (Meta doc wins)
 import useSiteMeta from "@/hooks/useSiteMeta";
 
 const Footer = () => {
@@ -29,12 +28,11 @@ const Footer = () => {
     }
   };
 
-  // Meta doc (manager-editable) → falls back to footer.json defaults
+  // Everything comes from the Meta doc (defaults live in siteMetaDefaults).
   const { meta } = useSiteMeta();
-  const langData = (isCn ? meta?.footer?.cn : meta?.footer?.en) || (isCn ? footerConfig.cn : footerConfig.en);
-  const startYear = langData?.startYear;
-  const companyName = langData?.companyName;
-  const rightsText = langData?.rightsText;
+  const startYear = meta?.app_footer_start_year;
+  const companyName = isCn ? meta?.app_footer_cn : meta?.app_footer_en;
+  const rightsText = isCn ? meta?.app_footer_rights_cn : meta?.app_footer_rights_en;
   const currentYear = new Date().getFullYear();
 
   // 构造版权文本

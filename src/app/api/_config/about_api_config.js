@@ -149,7 +149,7 @@ export const aboutApiConfig = {
       data.web_url = null;
     }
 
-    const stringFields = ['caption', 'mark'];
+    const stringFields = ['caption'];
     for (const field of stringFields) {
       if (data[field] && typeof data[field] === 'string') {
         data[field] = data[field].trim() || null;
@@ -233,7 +233,7 @@ export const aboutApiConfig = {
       }
     }
 
-    const stringFields = ['caption', 'mark'];
+    const stringFields = ['caption'];
     for (const field of stringFields) {
       if (data[field] !== undefined) {
         if (data[field] && typeof data[field] === 'string') {

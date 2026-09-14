@@ -23,17 +23,23 @@ export default function useFairSlugData(slugParam, isCn) {
     const rawSlug = Array.isArray(slugParam) ? slugParam[0] : slugParam;
     const slug = rawSlug ? decodeURIComponent(rawSlug) : "";
 
+    let cancelled = false;
+
     if (!slug) {
       setLoading(false);
       setError("No slug provided");
-      return;
+      return () => {
+        cancelled = true;
+      };
     }
+
+    // Loading starts synchronously (before the await) so a superseded run can
+    // never flip `loading` off and flash "not found" for a frame.
+    setLoading(true);
+    setError(null);
 
     const fetchFair = async () => {
       try {
-        setLoading(true);
-        setError(null);
-
         const response = await fetch("/api/fair", { cache: "no-store" });
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
@@ -62,6 +68,8 @@ export default function useFairSlugData(slugParam, isCn) {
           return false;
         });
 
+        if (cancelled) return; // a newer run superseded this one
+
         if (found) {
           setFair(found);
         } else {
@@ -69,14 +77,19 @@ export default function useFairSlugData(slugParam, isCn) {
           setError("Fair not found");
         }
       } catch (err) {
+        if (cancelled) return;
         setFair(null);
         setError(err?.message || "Unknown error");
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
     fetchFair();
+
+    return () => {
+      cancelled = true;
+    };
   }, [slugParam, isCn]);
 
   return { fair, loading, error };

@@ -23,7 +23,7 @@
     "en": "Outline",
     "cn": "目录"
   },
-  "updated": "2026-09-13",
+  "updated": "2026-09-14",
   "parts": [
     {
       "id": "basics",
@@ -401,6 +401,91 @@
               }
             }
           ]
+        }
+      ]
+    },
+    {
+      "id": "marks-intro",
+      "group": "basics",
+      "icon": "tag",
+      "title": {
+        "en": "Marks at a glance",
+        "cn": "标记速览"
+      },
+      "summary": {
+        "en": "The two kinds of mark, what they do, and where you set them — this is what decides what visitors see.",
+        "cn": "两种标记、它们的作用，以及在哪里设置 — 这正是决定访客能看到什么的关键。"
+      },
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": {
+            "en": "A mark is attached to a record and does exactly two things: it can HIDE the record from a page, or switch ON a behaviour (a flag). Marks are never typed by hand — the order pages set them with the eye and mouse buttons, and every manager card shows them as chips.",
+            "cn": "标记附着在记录上，只做两件事：把记录从某个页面隐藏，或开启某个行为（flag）。无需手动输入 — 排序页用眼睛与鼠标按钮设置，每张后台卡片都会以标签显示。"
+          }
+        },
+        {
+          "type": "kv",
+          "rows": [
+            {
+              "k": {
+                "en": "Hide a work from one page",
+                "cn": "把作品从某个页面隐藏"
+              },
+              "v": {
+                "en": "Manager → Artwork → Order artworks → pick the page tab → click the eye on the card → Save order.",
+                "cn": "后台 → 作品 → 作品排序 → 选择页面标签 → 点击卡片上的眼睛 → 保存排序。"
+              }
+            },
+            {
+              "k": {
+                "en": "Hide an image from the slideshow",
+                "cn": "把图片从轮播中隐藏"
+              },
+              "v": {
+                "en": "Manager → Media → Image order → click the eye on the image → Save order.",
+                "cn": "后台 → 媒体 → 图片排序 → 点击图片上的眼睛 → 保存排序。"
+              }
+            },
+            {
+              "k": {
+                "en": "Set an artist’s hover image",
+                "cn": "设置艺术家的悬停图"
+              },
+              "v": {
+                "en": "Manager → Media → Hover Image → click the mouse on the image (one per artist).",
+                "cn": "后台 → 媒体 → 悬停图 → 点击图片上的鼠标按钮（每位艺术家一张）。"
+              }
+            },
+            {
+              "k": {
+                "en": "See a record’s marks",
+                "cn": "查看记录的标记"
+              },
+              "v": {
+                "en": "Every manager card shows chips — ⌀ hidden from a page, ★ a flag, plus the exact mark name.",
+                "cn": "每张卡片都会显示标签 — ⌀ 页面隐藏、★ 功能标记，并附上精确的标记名称。"
+              }
+            },
+            {
+              "k": {
+                "en": "If no mark is set",
+                "cn": "如果未设置任何标记"
+              },
+              "v": {
+                "en": "Nothing is hidden — the record shows on every page it belongs to — and no behaviour is switched on. Example: an artist with no hover image falls back to their most recent artwork’s cover on the artist list.",
+                "cn": "不会隐藏任何内容 — 记录会出现在所有相关页面 — 也不会开启任何行为。例如：未设置悬停图的艺术家，在艺术家列表悬停时显示其最新作品的封面。"
+              }
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "tone": "tip",
+          "text": {
+            "en": "Hiding only affects the page you are on — the other pages keep the record and its position. The full mark chart is in “Marks & visibility” (Ordering part).",
+            "cn": "隐藏只影响当前页面 — 其他页面仍保留该记录及其排序。完整标记对照表见“标记与可见性”（排序部分）。"
+          }
         }
       ]
     },
@@ -1127,16 +1212,16 @@
             ],
             [
               {
-                "en": "related_artwork[].order",
-                "cn": "展览内作品顺序"
+                "en": "Exhibition page (related works)",
+                "cn": "展览页（相关作品）"
               },
               {
-                "en": "Order of works inside one exhibition",
-                "cn": "某个展览内部的作品顺序"
+                "en": "Which works appear inside one exhibition, and their order there",
+                "cn": "某个展览中出现哪些作品，及其顺序"
               },
               {
-                "en": "Exhibition → Related Artwork rows",
-                "cn": "展览 → 相关作品行"
+                "en": "Picked in Exhibition → Related Artworks; the order comes from Artwork → Order Artworks (Exhibition page)",
+                "cn": "在“展览 → 相关作品”中选择作品；顺序在“作品 → 排序页（展览页）”设置"
               }
             ],
             [
@@ -1161,6 +1246,15 @@
           "text": {
             "en": "In every form, the Ordering tab is read-only: it shows the current number and offers Edit Order, which jumps to the drag-and-drop page.",
             "cn": "所有表单的“排序”标签为只读：显示当前编号，并提供“编辑排序”跳转到拖拽排序页。"
+          }
+        },
+        {
+          "id": "no-order-default",
+          "type": "note",
+          "tone": "info",
+          "text": {
+            "en": "No order number yet? A record with no position is never dropped — it simply follows the positioned records and is sorted by NEWEST YEAR first, then by title A→Z. Records hidden from that page are skipped entirely (and keep their position on the other pages). So a page where nothing is ordered and nothing is hidden still reads newest-first, then alphabetically.",
+            "cn": "还没有排序编号？没有编号的记录不会被隐藏 — 它们排在已编号记录之后，按年份由新到旧，再按标题 A→Z 排列。被隐藏的记录则完全不显示（在其他页面仍保留其排序）。因此即使未设置任何排序与隐藏，页面仍按“最新在前、再按字母”显示。"
           }
         }
       ]
@@ -1336,24 +1430,190 @@
       "group": "organise",
       "icon": "tag",
       "title": {
-        "en": "Marks, status & visibility",
-        "cn": "标记、状态与可见性"
+        "en": "Marks & visibility",
+        "cn": "标记与可见性"
       },
       "summary": {
-        "en": "Internal flags and the switches that decide what the public sees.",
-        "cn": "内部标记与决定前台展示的开关。"
+        "en": "One chart for every mark: what it is, where you set it, and exactly what the public site does with it.",
+        "cn": "一张表看懂所有标记：是什么、在哪里设置、前台会如何反应。"
       },
       "blocks": [
+        {
+          "type": "paragraph",
+          "text": {
+            "en": "A record carries a `mark` made of two lists: which pages it is HIDDEN from, and which named behaviours it OPTS INTO (flags). You never type it by hand — the order pages set it with the eye (hide) and mouse (flag) buttons, and the manager shows it as chips ( ⌀ Hidden on Artist Page · artist_page ).",
+            "cn": "记录的 `mark` 由两个列表组成：它在哪些页面被隐藏，以及它启用了哪些具名行为（flag）。无需手动输入 — 排序页用眼睛（隐藏）与鼠标（功能）按钮设置，后台以标签形式显示（ ⌀ 在艺术家页隐藏 · artist_page ）。"
+          }
+        },
         {
           "type": "table",
           "head": [
             {
-              "en": "Field",
-              "cn": "字段"
+              "en": "Mark (token)",
+              "cn": "标记（标识）"
             },
             {
-              "en": "Values you will use",
-              "cn": "常用值"
+              "en": "Kind",
+              "cn": "类型"
+            },
+            {
+              "en": "Where you set it",
+              "cn": "设置位置"
+            },
+            {
+              "en": "What the site does",
+              "cn": "前台反应"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "en": "Hidden on Artist Page · artist_page",
+                "cn": "在艺术家页隐藏 · artist_page"
+              },
+              {
+                "en": "Hide",
+                "cn": "隐藏"
+              },
+              {
+                "en": "Artwork → Order artworks → “Artist” tab → eye icon",
+                "cn": "作品 → 作品排序 → “艺术家页”标签 → 眼睛图标"
+              },
+              {
+                "en": "Dropped from that artist’s works grid on /artists/<name> — it can no longer be the artist’s cover image or count; its artist-page position is cleared. Every other page is untouched.",
+                "cn": "从 /artists/<艺术家> 的作品网格中移除 — 不再作为该艺术家封面或计数；清除艺术家页排序。其他页面不受影响。"
+              }
+            ],
+            [
+              {
+                "en": "Hidden on Exhibition Page · exhibition_page",
+                "cn": "在展览页隐藏 · exhibition_page"
+              },
+              {
+                "en": "Hide",
+                "cn": "隐藏"
+              },
+              {
+                "en": "Artwork → Order artworks → “Exhibition” tab → eye icon",
+                "cn": "作品 → 作品排序 → “展览页”标签 → 眼睛图标"
+              },
+              {
+                "en": "Disappears from every exhibition page that lists the work — whether the exhibition links the artwork or the artwork links the exhibition.",
+                "cn": "从所有列出该作品的展览页消失 — 无论关联来自展览还是作品。"
+              }
+            ],
+            [
+              {
+                "en": "Hidden on Art Fair Page · art_fair_page",
+                "cn": "在艺博会页隐藏 · art_fair_page"
+              },
+              {
+                "en": "Hide",
+                "cn": "隐藏"
+              },
+              {
+                "en": "Artwork → Order artworks → “Art fair” tab → eye icon",
+                "cn": "作品 → 作品排序 → “艺博会页”标签 → 眼睛图标"
+              },
+              {
+                "en": "Same behaviour as the exhibition page, on art-fair pages.",
+                "cn": "与展览页相同，作用于艺博会页面。"
+              }
+            ],
+            [
+              {
+                "en": "Hidden in Artist Rolling Image · artist_rolling_image",
+                "cn": "在艺术家轮播图隐藏 · artist_rolling_image"
+              },
+              {
+                "en": "Hide",
+                "cn": "隐藏"
+              },
+              {
+                "en": "Image → Image order → eye icon (each tab has its own)",
+                "cn": "图片 → 图片排序 → 眼睛图标（每个标签独立）"
+              },
+              {
+                "en": "The image is skipped by the artist page’s rolling slideshow and loses its rolling position.",
+                "cn": "该图片不会出现在艺术家页轮播中，并清除其轮播排序。"
+              }
+            ],
+            [
+              {
+                "en": "Artist Name Hover Image · artist_hover_image",
+                "cn": "艺术家名称悬停图 · artist_hover_image"
+              },
+              {
+                "en": "Flag",
+                "cn": "功能"
+              },
+              {
+                "en": "Image → Hover Image page → mouse icon on the card",
+                "cn": "图片 → 悬停图页面 → 卡片上的鼠标图标"
+              },
+              {
+                "en": "Becomes the artist’s preview when a visitor hovers the artist name on /artists. One per artist — setting a new one clears the old one.",
+                "cn": "访客在 /artists 悬停艺术家名称时显示该图作为预览。每位艺术家仅一张 — 设置新图会清除旧图。"
+              }
+            ]
+          ]
+        },
+        {
+          "type": "steps",
+          "items": [
+            {
+              "en": "Open Manager → Artwork → Order artworks.",
+              "cn": "打开 后台 → 作品 → 作品排序。"
+            },
+            {
+              "en": "Pick the page tab you want to change (Artist / Exhibition / Art fair). Each tab has its own order.",
+              "cn": "选择要修改的页面标签（艺术家页 / 展览页 / 艺博会页）。每个标签的排序互相独立。"
+            },
+            {
+              "en": "Click the eye on a card to hide it from that page (it greys out, shrinks and drops under the dashed line). Click the eye again to show it.",
+              "cn": "点击卡片上的眼睛将其从该页隐藏（变灰、缩小并落到虚线下方）。再次点击即可恢复。"
+            },
+            {
+              "en": "Press “Save order”. Hidden works keep their position on the other pages.",
+              "cn": "点击“保存排序”。隐藏的作品在其他页面仍保留排序。"
+            }
+          ]
+        },
+        {
+          "type": "steps",
+          "items": [
+            {
+              "en": "Open Manager → Media → Hover Image.",
+              "cn": "打开 后台 → 媒体 → 悬停图。"
+            },
+            {
+              "en": "Find the artist’s group and click the mouse button on the image you want.",
+              "cn": "找到该艺术家的分组，点击目标图片上的鼠标按钮。"
+            },
+            {
+              "en": "The card turns orange and jumps to the top of its group — that image is now the artist’s hover preview (choosing another clears this one).",
+              "cn": "卡片会变为橙色并跳到该组最前 — 该图即成为艺术家的悬停预览（选择其他图片会替换它）。"
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "tone": "tip",
+          "text": {
+            "en": "Every manager card shows the record’s marks as chips ( ⌀ hidden-from-page, ★ flag, plus the exact token ), so you can see at a glance what is hidden where without opening the order pages.",
+            "cn": "每张后台卡片都会以标签显示该记录的标记（ ⌀ 页面隐藏、★ 功能，以及精确标识 ），无需打开排序页即可看出隐藏在哪里。"
+          }
+        },
+        {
+          "type": "table",
+          "head": [
+            {
+              "en": "Other flags",
+              "cn": "其他开关"
+            },
+            {
+              "en": "Values",
+              "cn": "取值"
             },
             {
               "en": "Effect",
@@ -1361,20 +1621,6 @@
             }
           ],
           "rows": [
-            [
-              {
-                "en": "mark",
-                "cn": "标记"
-              },
-              {
-                "en": "needs_review, featured, hide_in_artist_page_rolling_image, slider",
-                "cn": "需审核、精选、艺术家页轮播图隐藏、轮播"
-              },
-              {
-                "en": "Internal only — filters, queues and the rolling slideshow",
-                "cn": "仅内部使用 — 筛选、待办与轮播"
-              }
-            ],
             [
               {
                 "en": "sold",
@@ -1385,8 +1631,8 @@
                 "cn": "是 / 否"
               },
               {
-                "en": "Shows a sold state on the artwork",
-                "cn": "在前台显示已售状态"
+                "en": "Shows a sold state on the artwork.",
+                "cn": "在前台显示已售状态。"
               }
             ],
             [
@@ -1395,36 +1641,37 @@
                 "cn": "状态"
               },
               {
-                "en": "draft, published, archived",
-                "cn": "草稿、已发布、已归档"
+                "en": "Current / Past",
+                "cn": "当前 / 过去"
               },
               {
-                "en": "Publication state for writings and exhibitions",
-                "cn": "文章与展览的发布状态"
+                "en": "Publication state of exhibitions & fairs (dates decide this automatically).",
+                "cn": "展览与艺博会的状态（系统按日期自动判断）。"
               }
             ],
             [
               {
-                "en": "language",
-                "cn": "语言"
+                "en": "mark value (optional)",
+                "cn": "标记值（可选）"
               },
               {
-                "en": "EN / CN",
-                "cn": "EN / CN"
+                "en": "free text, e.g. needs_review",
+                "cn": "自由文本，如 needs_review"
               },
               {
-                "en": "Which site the record belongs to",
-                "cn": "记录所属的站点"
+                "en": "Internal only — a personal note; it never changes the public site.",
+                "cn": "仅内部使用 — 作为个人备注，不影响前台。"
               }
             ]
           ]
         },
         {
+          "id": "no-mark-default",
           "type": "note",
-          "tone": "tip",
+          "tone": "info",
           "text": {
-            "en": "Use needs_review as a personal to-do flag: filter by it, fix the records, then clear the mark.",
-            "cn": "可将“需审核”作为个人待办标记：筛选出来、处理完后清除标记。"
+            "en": "No mark set is the normal state: everything shows, nothing is hidden, and nothing changes on the public site. Marks only ever REMOVE something from one page or ADD one behaviour — they never affect anything else.",
+            "cn": "未设置标记是常态：全部显示、不隐藏任何内容，前台不会有任何变化。标记只会让某个页面“不显示”或开启某个行为，不会影响其他内容。"
           }
         }
       ]

@@ -102,7 +102,6 @@ const ImageFormSection = ({
 
   /* ── tab schema ── */
   const IMAGE_SCHEMA = [
-    { key: 'basic',   fields: [{ name: 'img_url', type: 'text' }] },
     { key: 'tags',    type: 'custom', renderKey: 'tagsSection' },
     {
       key: 'content',

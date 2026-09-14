@@ -1,57 +1,60 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import useSiteMeta from '@/hooks/useSiteMeta';
 
-interface MetaInfo {
-  charSet: string;
-  title: string;
-  description: string;
-  og_image: string;
-  manifest: string;
-  icon: string;
-  canonical: string;
-  keywords: string;
-  author: string;
-  viewport: string;
-  apple_mobile_web_app_status_bar_style: string;
-  apple_mobile_web_app_capable: string;
-  mobile_web_app_capable: string;
+/**
+ * Document head / SEO tags.
+ *
+ * Every SEO value comes from the Meta document (`meta.seo`), editable in
+ * `/manager/meta`. The non-editable document tags (charset, viewport, PWA
+ * metas) are hardcoded here — no need to manage them as settings.
+ */
+interface SeoMeta {
+  title?: string;
+  description?: string;
+  keywords?: string;
+  author?: string;
+  og_image?: string;
+  icon?: string;
+  manifest?: string;
+  canonical?: string;
 }
 
 const Meta: React.FC = () => {
   const { meta } = useSiteMeta();
-  const metaInfo: MetaInfo = (meta?.seo || {}) as MetaInfo;
+  const seo: SeoMeta = (meta?.seo || {}) as SeoMeta;
 
   // Keep the document title in sync with the Meta doc.
   useEffect(() => {
-    if (metaInfo?.title) document.title = metaInfo.title;
-  }, [metaInfo?.title]);
+    if (seo?.title) document.title = seo.title;
+  }, [seo?.title]);
+
+  const canonical =
+    seo.canonical || (typeof window !== 'undefined' ? window.location.href : undefined);
 
   return (
-   <>
-    <meta charSet="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta charSet={metaInfo.charSet} />
-    <meta name="viewport" content={metaInfo.viewport} />
-    <meta
-      name="apple-mobile-web-app-status-bar-style"
-      content={metaInfo.apple_mobile_web_app_status_bar_style}
-    />
-    <meta name="apple-mobile-web-app-capable" content={metaInfo.apple_mobile_web_app_capable} />
-    <meta name="mobile-web-app-capable" content={metaInfo.mobile_web_app_capable} />
-    <meta name="apple-mobile-web-app-title" content={metaInfo.title} />
-    <meta name="description" content={metaInfo.description} />
-    <meta name="keywords" content={metaInfo.keywords} />
-    <meta name="author" content={metaInfo.author} />
-    <meta property="og:title" content={metaInfo.title} />
-    <meta property="og:description" content={metaInfo.description} />
-    <meta property="og:image" content={metaInfo.og_image} />
-    <meta property="og:type" content="web" />
-    <link rel="manifest" href={metaInfo.manifest} />
-    <link rel="icon" href={metaInfo.icon} />
-    <link rel="shortcut icon" href={metaInfo.icon} />
-    <link rel="canonical" href={metaInfo.canonical || (typeof window !== 'undefined' ? window.location.href : undefined)} />
-    <link rel="alternate" hrefLang="en" href={metaInfo.canonical || (typeof window !== 'undefined' ? window.location.href : undefined)} />
-    <title>{metaInfo.title}</title>
+    <>
+      {/* Constant document tags — hardcoded, not manager settings */}
+      <meta charSet="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <meta name="apple-mobile-web-app-capable" content="yes" />
+      <meta name="mobile-web-app-capable" content="yes" />
+      <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+      {/* SEO — all from the Meta doc */}
+      <meta name="apple-mobile-web-app-title" content={seo.title} />
+      <meta name="description" content={seo.description} />
+      <meta name="keywords" content={seo.keywords} />
+      <meta name="author" content={seo.author} />
+      <meta property="og:title" content={seo.title} />
+      <meta property="og:description" content={seo.description} />
+      <meta property="og:image" content={seo.og_image} />
+      <meta property="og:type" content="web" />
+      <link rel="manifest" href={seo.manifest} />
+      <link rel="icon" href={seo.icon} />
+      <link rel="shortcut icon" href={seo.icon} />
+      <link rel="canonical" href={canonical} />
+      <link rel="alternate" hrefLang="en" href={canonical} />
+      <title>{seo.title}</title>
     </>
   );
 };

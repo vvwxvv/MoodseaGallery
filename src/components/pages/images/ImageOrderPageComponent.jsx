@@ -35,8 +35,11 @@ import {
 import {
   isHiddenInArtistRollingImage,
   IMAGE_MARK_HIDE_ARTIST_ROLLING_LABEL,
-  withMarkHide,
+  applyMark,
   HIDE_ARTIST_ROLLING_IMAGE,
+  MARK_FLAG_ARTIST_HOVER_IMAGE,
+  MARK_FLAG_LABELS,
+  isMarkFlagged,
 } from "@/utils/mediaMarks";
 import { normalizeImageOrder, getOrder } from "@/utils/mediaOrder";
 import { ARTIST_ROLLING_ORDER_KEY } from "@/components/pages/artists/hooks/useArtistRollingImages";
@@ -125,12 +128,18 @@ function OrderCard({
   hidden,
   onToggleHide,
   busy,
+  hoverMarked,
+  onToggleHover,
+  hoverBusy,
 }) {
   const img = item?.img_url || item?.image_url;
   const meta = [item?.type, item?.tag_source].filter(Boolean);
   const hideHint = isCn
     ? IMAGE_MARK_HIDE_ARTIST_ROLLING_LABEL.cn
     : IMAGE_MARK_HIDE_ARTIST_ROLLING_LABEL.en;
+  const hoverHint = isCn
+    ? MARK_FLAG_LABELS[MARK_FLAG_ARTIST_HOVER_IMAGE].cn
+    : MARK_FLAG_LABELS[MARK_FLAG_ARTIST_HOVER_IMAGE].en;
 
   return (
     <div
@@ -324,6 +333,8 @@ function SourceGroup({
   onReorder,
   isItemHidden,
   onToggleItemHidden,
+  isItemHover,
+  onToggleItemHover,
   isItemBusy,
   showHeader = true,
 }) {
@@ -352,6 +363,9 @@ function SourceGroup({
     hidden: false,
     onToggleHide: () => onToggleItemHidden?.(item, groupKey),
     busy: isItemBusy ? isItemBusy(item) : false,
+    hoverMarked: isItemHover ? isItemHover(item) : false,
+    onToggleHover: () => onToggleItemHover?.(item),
+    hoverBusy: isItemBusy ? isItemBusy(item) : false,
   });
 
   const gridStyle = listMode
@@ -410,6 +424,8 @@ function HiddenStrip({
   listMode,
   thumbWidth,
   onToggleItemHidden,
+  isItemHover,
+  onToggleItemHover,
   isItemBusy,
 }) {
   if (!items.length) return null;
@@ -460,6 +476,9 @@ function HiddenStrip({
             hidden
             onToggleHide={() => onToggleItemHidden?.(item, groupKey)}
             busy={isItemBusy ? isItemBusy(item) : false}
+            hoverMarked={isItemHover ? isItemHover(item) : false}
+            onToggleHover={() => onToggleItemHover?.(item)}
+            hoverBusy={isItemBusy ? isItemBusy(item) : false}
           />
         ))}
       </div>
@@ -481,6 +500,8 @@ function ArtistBlock({
   onReorderSource,
   isItemHidden,
   onToggleItemHidden,
+  isItemHover,
+  onToggleItemHover,
   isItemBusy,
 }) {
   // Number the visible images across the WHOLE artist (Works 1..27, then the
@@ -561,6 +582,8 @@ function ArtistBlock({
             onReorder={(next) => onReorderSource(group.key, source.key, next)}
             isItemHidden={isItemHidden}
             onToggleItemHidden={onToggleItemHidden}
+            isItemHover={isItemHover}
+            onToggleItemHover={onToggleItemHover}
             isItemBusy={isItemBusy}
             showHeader={showSourceHeaders}
           />
@@ -574,6 +597,8 @@ function ArtistBlock({
           listMode={listMode}
           thumbWidth={thumbWidth}
           onToggleItemHidden={onToggleItemHidden}
+          isItemHover={isItemHover}
+          onToggleItemHover={onToggleItemHover}
           isItemBusy={isItemBusy}
         />
       </div>
@@ -591,9 +616,18 @@ export default function ImageOrderPageComponent() {
 
   const { data: rawImages = [], isLoading: l1, error: e1, refetch: refetchImages } = useData("/api/image");
   const { data: rawArtworks = [], isLoading: l2, error: e2 } = useData("/api/artwork");
+  // The other places an artist can hide. An image's tag may name an exhibition,
+  // a fair, an event, a bibliography or a biography — those records are what
+  // resolve the tag back to an artist, so without them every non-work image
+  // falls into "Ungrouped" instead of joining its artist's box.
+  const { data: rawExhibitions = [], isLoading: l3, error: e3 } = useData("/api/exhibition");
+  const { data: rawFairs = [], isLoading: l4, error: e4 } = useData("/api/fair");
+  const { data: rawEvents = [], isLoading: l5, error: e5 } = useData("/api/event");
+  const { data: rawBibliographies = [], isLoading: l6, error: e6 } = useData("/api/bibliography");
+  const { data: rawAbouts = [], isLoading: l7, error: e7 } = useData("/api/about");
 
-  const isLoading = l1 || l2;
-  const error = e1 || e2;
+  const isLoading = l1 || l2 || l3 || l4 || l5 || l6 || l7;
+  const error = e1 || e2 || e3 || e4 || e5 || e6 || e7;
 
   const [draft, setDraft] = useState({}); // group key -> ordered items
   const [saving, setSaving] = useState(false);
@@ -609,12 +643,30 @@ export default function ImageOrderPageComponent() {
   const artworks = useMemo(() => (Array.isArray(rawArtworks) ? rawArtworks : []), [rawArtworks]);
 
   // ── Structure: artist box → source sub-boxes (Works / Exhibition / Fair) ──
-  // Same rule as the manager page: a tag is resolved against Artwork +
-  // Exhibition + Fair + Event + Bibliography + About, so exhibition images sit
-  // under their artist instead of "Ungrouped".
+  // A tag is resolved against Artwork + Exhibition + Fair + Event +
+  // Bibliography + About, so an image whose tag names a show or a fair is
+  // placed under EVERY artist of that show/fair (all their images end up in
+  // the artist's box) instead of falling into "Ungrouped".
   const sourceIndex = useMemo(
-    () => buildImageSourceIndex({ artworks, images }),
-    [artworks, images]
+    () =>
+      buildImageSourceIndex({
+        artworks,
+        images,
+        exhibitions: Array.isArray(rawExhibitions) ? rawExhibitions : [],
+        fairs: Array.isArray(rawFairs) ? rawFairs : [],
+        events: Array.isArray(rawEvents) ? rawEvents : [],
+        bibliographies: Array.isArray(rawBibliographies) ? rawBibliographies : [],
+        abouts: Array.isArray(rawAbouts) ? rawAbouts : [],
+      }),
+    [
+      artworks,
+      images,
+      rawExhibitions,
+      rawFairs,
+      rawEvents,
+      rawBibliographies,
+      rawAbouts,
+    ]
   );
 
   const groups = useMemo(() => {
@@ -752,6 +804,12 @@ export default function ImageOrderPageComponent() {
     [markOf]
   );
 
+  // Is this image flagged as its artist's hover preview?
+  const isItemHoverImage = useCallback(
+    (item) => isMarkFlagged({ mark: markOf(item) }, MARK_FLAG_ARTIST_HOVER_IMAGE),
+    [markOf]
+  );
+
   // Drag inside one source box → splice those cards back into the artist's
   // running order, leaving every other source box where it was.
   const onReorder = useCallback(
@@ -788,7 +846,7 @@ export default function ImageOrderPageComponent() {
 
       const nextHidden = !isItemHidden(item);
       // Hide flags live inside the JSON mark, so a form-set `value` survives.
-      const nextMark = withMarkHide(markOf(item), HIDE_ARTIST_ROLLING_IMAGE, nextHidden);
+      const nextMark = applyMark(markOf(item), HIDE_ARTIST_ROLLING_IMAGE, nextHidden);
 
       // Optimistic — the card greys out (or clears) immediately.
       setMarkOverrides((prev) => ({ ...prev, [id]: nextMark }));
@@ -844,6 +902,111 @@ export default function ImageOrderPageComponent() {
   );
 
 
+  // Set / clear the `artist_hover_image` flag. Turning it ON also clears the
+  // flag from any OTHER image that resolves to the same artist(s), so each
+  // artist keeps exactly one hover image.
+  const onToggleItemHover = useCallback(
+    async (item) => {
+      const id = item?.id || item?._id;
+      if (!id) return;
+
+      const nextOn = !isItemHoverImage(item);
+      const nextMark = applyMark(markOf(item), MARK_FLAG_ARTIST_HOVER_IMAGE, nextOn);
+
+      // Which other images must lose the flag (same artist)?
+      const cleared = [];
+      if (nextOn) {
+        const artists = new Set(
+          (sourceIndex.resolveImageSource(item)?.artists || []).map((a) =>
+            String(a).toLowerCase()
+          )
+        );
+        if (artists.size) {
+          for (const other of images) {
+            const oid = other?.id || other?._id;
+            if (!oid || oid === id) continue;
+            if (!isMarkFlagged({ mark: markOf(other) }, MARK_FLAG_ARTIST_HOVER_IMAGE)) continue;
+            const oArtists = sourceIndex.resolveImageSource(other)?.artists || [];
+            if (oArtists.some((a) => artists.has(String(a).toLowerCase()))) {
+              cleared.push(other);
+            }
+          }
+        }
+      }
+
+      // Optimistic update — this image + any cleared ones.
+      setMarkOverrides((prev) => {
+        const next = { ...prev, [id]: nextMark };
+        for (const other of cleared) {
+          const oid = other?.id || other?._id;
+          if (oid) next[oid] = applyMark(markOf(other), MARK_FLAG_ARTIST_HOVER_IMAGE, false);
+        }
+        return next;
+      });
+      setMarkBusy((prev) => {
+        const next = { ...prev, [id]: true };
+        for (const other of cleared) {
+          const oid = other?.id || other?._id;
+          if (oid) next[oid] = true;
+        }
+        return next;
+      });
+
+      const put = (iid, mark) =>
+        fetch(`/api/image?id=${iid}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ mark }),
+        });
+
+      try {
+        const res = await put(id, nextMark);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        await Promise.all(
+          cleared.map((other) => {
+            const oid = other?.id || other?._id;
+            return oid
+              ? put(oid, applyMark(markOf(other), MARK_FLAG_ARTIST_HOVER_IMAGE, false))
+              : null;
+          })
+        );
+        setNotice({
+          type: "ok",
+          text: nextOn
+            ? isCn
+              ? "已设为艺术家悬停图"
+              : "Set as artist hover image"
+            : isCn
+            ? "已取消悬停图"
+            : "Hover image cleared",
+        });
+      } catch (err) {
+        console.error("[image order] hover flag update failed:", err);
+        setMarkOverrides((prev) => {
+          const next = { ...prev };
+          delete next[id];
+          for (const other of cleared) {
+            const oid = other?.id || other?._id;
+            if (oid) delete next[oid];
+          }
+          return next;
+        });
+        setNotice({ type: "err", text: isCn ? "标记保存失败" : "Failed to save mark" });
+      } finally {
+        setMarkBusy((prev) => {
+          const next = { ...prev };
+          delete next[id];
+          for (const other of cleared) {
+            const oid = other?.id || other?._id;
+            if (oid) delete next[oid];
+          }
+          return next;
+        });
+      }
+    },
+    [images, sourceIndex, isItemHoverImage, markOf, isCn]
+  );
+
   const handleSave = useCallback(async () => {
     try {
       setSaving(true);
@@ -857,27 +1020,18 @@ export default function ImageOrderPageComponent() {
       for (const g of groups) {
         const items = draft[g.key] || g.items;
         const visible = [];
-        let hasHidden = false;
         for (const it of items) {
           const id = it.id || it._id;
           if (isItemHidden(it)) {
-            hasHidden = true;
             if (id) hiddenSet.add(id);
           } else if (id) {
             visible.push(id);
           }
         }
 
-        const originalVisible = (g.items || [])
-          .filter((it) => !isItemHidden(it))
-          .map((it) => it.id || it._id);
-
-        if (
-          visible.length &&
-          (hasHidden ||
-            dirtyKeys[g.key] ||
-            visible.join(",") !== originalVisible.join(","))
-        ) {
+        // Always write every group with at least one visible item — a group
+        // holding a single item still needs its position initialised/persisted.
+        if (visible.length) {
           groupsToSave.push(visible);
         }
       }
@@ -963,6 +1117,8 @@ export default function ImageOrderPageComponent() {
         .ordbtn:disabled { opacity: 0.5; cursor: default; }
         .ordhide { transition: opacity 0.15s ease, background 0.15s ease; }
         .ordhide:hover:not(:disabled) { opacity: 1 !important; background: rgba(0,0,0,.04); }
+        .ordhover { transition: opacity 0.15s ease, background 0.15s ease, color 0.15s ease; }
+        .ordhover:hover:not(:disabled) { opacity: 1 !important; }
       `}</style>
       <div style={{ maxWidth: 1400, margin: "0 auto", padding: "24px 20px 80px" }}>
         {/* Header */}
@@ -1128,6 +1284,8 @@ export default function ImageOrderPageComponent() {
               onReorderSource={onReorder}
               isItemHidden={isItemHidden}
               onToggleItemHidden={onToggleItemHidden}
+              isItemHover={isItemHoverImage}
+              onToggleItemHover={onToggleItemHover}
               isItemBusy={isItemBusy}
             />
           ))

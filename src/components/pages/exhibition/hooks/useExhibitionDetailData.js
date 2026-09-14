@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import useData from "@/hooks/useData";
-import { getArtworkOrder, hasArtworkOrder } from "@/utils/artworkOrder";
+import { getArtworkOrder, hasArtworkOrder, compareByYearThenTitle } from "@/utils/artworkOrder";
 import { filterArtworksHiddenForPage } from "@/utils/mediaMarks";
 import useImageGallery from "@/hooks/useImageGallery";
 import useWebGallery from "@/hooks/useWebGallery";
@@ -128,7 +128,7 @@ export default function useExhibitionDetailData(slug, isCn) {
         ? exhibition.related_artwork
         : toArray(exhibition.related_artwork_title);
 
-    // Map: normalized title → { order, mark }
+    // Map: normalized title → { order }
     const relatedMap = new Map();
     for (const entry of toArray(relatedSource)) {
       const isObj = entry && typeof entry === "object";
@@ -137,7 +137,6 @@ export default function useExhibitionDetailData(slug, isCn) {
       if (!key || relatedMap.has(key)) continue;
       relatedMap.set(key, {
         order: isObj ? entry.order : undefined,
-        mark: isObj ? entry.mark : undefined,
       });
     }
 
@@ -173,10 +172,9 @@ export default function useExhibitionDetailData(slug, isCn) {
         if (id) seen.add(id);
         result.push({
           ...aw,
-          // Per-exhibition custom order / mark pulled from related_artwork.
-          // Namespaced so they don't overwrite the artwork's own order / mark.
+          // Per-exhibition custom order pulled from related_artwork.
+          // Namespaced so it doesn't overwrite the artwork's own order.
           related_order: relatedMeta?.order,
-          related_mark: relatedMeta?.mark,
         });
       }
     }
@@ -206,7 +204,8 @@ export default function useExhibitionDetailData(slug, isCn) {
       const oa = orderValue(a.related_order);
       const ob = orderValue(b.related_order);
       if (oa !== ob) return oa - ob;
-      return titleCollator.compare(a.title || "", b.title || "");
+      // Nothing positioned → newest year first, then title A→Z.
+      return compareByYearThenTitle(a, b);
     });
 
     return result;

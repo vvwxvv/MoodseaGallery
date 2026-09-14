@@ -37,7 +37,9 @@ export function useArtistHoverImage(allProfiles) {
 
   const hoveredProfile = hoveredName ? profileByName.get(hoveredName) : null;
 
-  const hoverImage = hoveredProfile?.image || null;
+  // Prefer the image explicitly flagged `artist_hover_image` in the image
+  // manager; fall back to the artist's derived cover image.
+  const hoverImage = hoveredProfile?.hoverImage || hoveredProfile?.image || null;
   const hoverCount = hoveredProfile?.artworks?.length || 0;
 
   return { hoveredName, hoverImage, hoverCount, onHover, onLeave };

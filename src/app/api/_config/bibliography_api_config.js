@@ -49,6 +49,7 @@ export const bibliographyApiConfig = {
     'web_url',
     'video_url',
     'order',
+    'mark',
     'language',
     'updatedAt',
   ],

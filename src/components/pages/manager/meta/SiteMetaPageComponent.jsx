@@ -4,16 +4,16 @@
  * SiteMetaPageComponent — `/manager/meta`
  *
  * One page for EVERYTHING the site itself is configured with: app identity,
- * footer, social links, website URL, both navigation menus, SEO tags and the
- * theme/feature flags. Backed by the singleton `Meta` document (`/api/meta`),
+ * footer, website URL, both navigation menus, SEO tags, the gallery entity
+ * mapping and the form type options. Backed by the singleton `Meta` document (`/api/meta`),
  * so nothing here needs a JSON edit any more.
  *
- * Form settings (form_options / form_types / form_marks / language options)
- * deliberately stay in `src/data/*.json`.
+ * Form settings (form_options / form_types / form_marks) deliberately stay in
+ * `src/data/*.json`.
  */
 
 import React, { useContext, useEffect, useMemo, useState } from "react";
-import { Box, Typography, Switch, CircularProgress } from "@mui/material";
+import { Box, Typography, CircularProgress } from "@mui/material";
 import { Check, Disc, Globe, ListTree, Plus, Trash2 } from "lucide-react";
 import { LanguageContext } from "@/components/contexts/LanguageContext";
 import useFont from "@/hooks/useFont";
@@ -239,7 +239,7 @@ export default function SiteMetaPageComponent() {
       isCn
         ? {
             title: "站点信息",
-            subtitle: "站点标题、页脚、社交、导航菜单与 SEO —全部在此维护（表单设置仍在 JSON）",
+            subtitle: "站点标题、页脚、导航菜单与 SEO — 全部在此维护（表单设置仍在 JSON）",
             save: "保存更改",
             saved: "已保存",
             saving: "保存中…",
@@ -277,7 +277,6 @@ export default function SiteMetaPageComponent() {
             purpose: "用途",
             descEn: "简介（英文）",
             descCn: "简介（中文）",
-            defaultLang: "默认语言",
             companyEn: "公司名称（英文）",
             companyCn: "公司名称（中文）",
             startYear: "起始年份",
@@ -296,10 +295,19 @@ export default function SiteMetaPageComponent() {
             on: "开",
             off: "关",
             jsonNote: "图库实体映射（galleryEntities）保持只读，如需修改请告知。",
+            formTypes: "表单类型选项",
+            formTypesHint: "作品 / 展览 / 博览会 的 type 下拉选项（可增删）",
+            value: "值",
+            labelEn: "标签（英文）",
+            labelCn: "标签（中文）",
+            addType: "添加类型",
+            entityArtwork: "作品",
+            entityExhibition: "展览",
+            entityFair: "博览会",
           }
         : {
             title: "Site Meta",
-            subtitle: "Title, footer, social, navigation menus and SEO — all maintained here (form settings stay in JSON)",
+            subtitle: "Title, footer, website, navigation menus and SEO — all maintained here (form settings stay in JSON)",
             save: "Save changes",
             saved: "Saved",
             saving: "Saving…",
@@ -337,7 +345,6 @@ export default function SiteMetaPageComponent() {
             purpose: "Purpose",
             descEn: "Description (EN)",
             descCn: "Description (CN)",
-            defaultLang: "Default language",
             companyEn: "Company name (EN)",
             companyCn: "Company name (CN)",
             startYear: "Start year",
@@ -356,12 +363,26 @@ export default function SiteMetaPageComponent() {
             on: "On",
             off: "Off",
             jsonNote: "The image-gallery entity mapping (galleryEntities) stays read-only — tell me if you want it editable.",
+            formTypes: "Form type options",
+            formTypesHint: "Type dropdown options for artwork / exhibition / fair (add or remove)",
+            value: "Value",
+            labelEn: "Label (EN)",
+            labelCn: "Label (CN)",
+            addType: "Add type",
+            entityArtwork: "Artwork",
+            entityExhibition: "Exhibition",
+            entityFair: "Fair",
           },
     [isCn]
   );
 
   const set = (key) => (value) => setDraft((d) => ({ ...d, [key]: value }));
   const setIn = (key, sub) => (value) => setDraft((d) => ({ ...d, [key]: { ...(d[key] || {}), [sub]: value } }));
+
+  // Form "type" option lists (artwork / exhibition / fair).
+  const formTypes = draft?.formTypes || {};
+  const setFormTypeList = (entity, list) =>
+    setDraft((d) => ({ ...d, formTypes: { ...(d.formTypes || {}), [entity]: list } }));
 
   const handleSave = async () => {
     setStatus(null);
@@ -381,9 +402,6 @@ export default function SiteMetaPageComponent() {
       ...d,
       menu: { ...(d.menu || {}), [menuTab]: { ...(d.menu?.[menuTab] || {}), [menuLang]: items } },
     }));
-
-  const social = draft?.socialMedia || [];
-  const setSocial = (list) => setDraft((d) => ({ ...d, socialMedia: list }));
 
   const pill = (active) => ({
     px: 1.25,
@@ -460,7 +478,7 @@ export default function SiteMetaPageComponent() {
       {/* ── App ── */}
       <Section icon={Disc} title={t.app} subtitle={t.appHint}>
         <Box sx={row}>
-          <TextField label={t.titleEn} value={draft.app_title} onChange={set("app_title")} fontStyle={labelFontStyle} />
+          <TextField label={t.titleEn} value={draft.app_title_en ?? ""} onChange={set("app_title_en")} fontStyle={labelFontStyle} />
           <TextField label={t.titleCn} value={draft.app_title_cn} onChange={set("app_title_cn")} fontStyle={labelFontStyle} />
         </Box>
         <Box sx={row3}>
@@ -469,24 +487,14 @@ export default function SiteMetaPageComponent() {
           <TextField label={t.version} value={draft.app_version} onChange={set("app_version")} fontStyle={labelFontStyle} />
         </Box>
         <TextField label={t.purpose} value={draft.app_purpose} onChange={set("app_purpose")} fontStyle={labelFontStyle} />
-        <TextAreaField label={t.descEn} value={draft.app_description} onChange={set("app_description")} fontStyle={labelFontStyle} />
+        <TextAreaField label={t.descEn} value={draft.app_description_en ?? ""} onChange={set("app_description_en")} fontStyle={labelFontStyle} />
         <TextAreaField label={t.descCn} value={draft.app_description_cn} onChange={set("app_description_cn")} fontStyle={labelFontStyle} />
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, flexWrap: "wrap" }}>
-          <Typography sx={{ fontSize: 11, fontWeight: 600, letterSpacing: ".06em", textTransform: "uppercase", color: "rgba(0,0,0,.55)" }}>
-            {t.defaultLang}
-          </Typography>
-          {["EN", "CN"].map((code) => (
-            <Box key={code} onClick={() => set("language")(code)} sx={pill((draft.language || "EN") === code)}>
-              {code === "EN" ? t.en : t.cn}
-            </Box>
-          ))}
-        </Box>
       </Section>
 
       {/* ── Footer ── */}
       <Section icon={Globe} title={t.footer} subtitle={t.footerHint}>
         <Box sx={row}>
-          <TextField label={t.companyEn} value={draft.app_footer} onChange={set("app_footer")} fontStyle={labelFontStyle} />
+          <TextField label={t.companyEn} value={draft.app_footer_en ?? ""} onChange={set("app_footer_en")} fontStyle={labelFontStyle} />
           <TextField label={t.companyCn} value={draft.app_footer_cn} onChange={set("app_footer_cn")} fontStyle={labelFontStyle} />
         </Box>
         <Box sx={row3}>
@@ -496,65 +504,8 @@ export default function SiteMetaPageComponent() {
             onChange={(v) => set("app_footer_start_year")(v === "" ? null : Number(v))}
             fontStyle={labelFontStyle}
           />
-          <TextField label={t.rightsEn} value={draft.app_footer_rights} onChange={set("app_footer_rights")} fontStyle={labelFontStyle} />
+          <TextField label={t.rightsEn} value={draft.app_footer_rights_en ?? ""} onChange={set("app_footer_rights_en")} fontStyle={labelFontStyle} />
           <TextField label={t.rightsCn} value={draft.app_footer_rights_cn} onChange={set("app_footer_rights_cn")} fontStyle={labelFontStyle} />
-        </Box>
-      </Section>
-
-      {/* ── Social ── */}
-      <Section icon={Globe} title={t.social} subtitle={t.socialHint}>
-        {social.map((item, index) => (
-          <Box key={index} sx={{ display: "flex", gap: 1, alignItems: "flex-end", flexWrap: "wrap" }}>
-            <Box sx={{ flex: "1 1 140px", minWidth: 120 }}>
-              <TextField
-                label={t.platform}
-                value={item.platform}
-                onChange={(v) => setSocial(social.map((s, i) => (i === index ? { ...s, platform: v } : s)))}
-                fontStyle={labelFontStyle}
-              />
-            </Box>
-            <Box sx={{ flex: "1 1 180px", minWidth: 140 }}>
-              <TextField
-                label={t.account}
-                value={item.account}
-                onChange={(v) => setSocial(social.map((s, i) => (i === index ? { ...s, account: v } : s)))}
-                fontStyle={labelFontStyle}
-              />
-            </Box>
-            <Box sx={{ flex: "2 1 260px", minWidth: 180 }}>
-              <TextField
-                label={t.url}
-                value={item.url}
-                onChange={(v) => setSocial(social.map((s, i) => (i === index ? { ...s, url: v } : s)))}
-                fontStyle={labelFontStyle}
-              />
-            </Box>
-            <IconButton title={t.remove} danger onClick={() => setSocial(social.filter((_, i) => i !== index))}>
-              <Trash2 size={14} strokeWidth={1.6} />
-            </IconButton>
-          </Box>
-        ))}
-        <Box
-          component="button"
-          type="button"
-          onClick={() => setSocial([...social, { platform: "", account: "", url: "" }])}
-          sx={{
-            alignSelf: "flex-start",
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "6px",
-            border: BORDER,
-            borderRadius: "8px",
-            backgroundColor: "#fff",
-            px: 1.5,
-            py: 0.75,
-            fontSize: 12,
-            fontWeight: 600,
-            cursor: "pointer",
-            "&:hover": { textDecoration: "underline", textUnderlineOffset: "3px" },
-          }}
-        >
-          <Plus size={14} strokeWidth={1.8} /> {t.addSocial}
         </Box>
       </Section>
 
@@ -612,36 +563,60 @@ export default function SiteMetaPageComponent() {
         </Box>
       </Section>
 
-      {/* ── Theme & features ── */}
-      <Section icon={Disc} title={t.theme}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap", rowGap: 1 }}>
-          <Typography sx={{ fontSize: 11, fontWeight: 600, letterSpacing: ".06em", textTransform: "uppercase", color: "rgba(0,0,0,.55)" }}>
-            {t.defaultTheme}
-          </Typography>
-          {["light", "dark"].map((theme) => (
-            <Box key={theme} onClick={() => setIn("themes", "default")(theme)} sx={pill(draft.themes?.default === theme)}>
-              {theme}
+      {/* ── Form type options ── */}
+      <Section icon={ListTree} title={t.formTypes} subtitle={t.formTypesHint}>
+        {[
+          ["artwork", t.entityArtwork],
+          ["exhibition", t.entityExhibition],
+          ["fair", t.entityFair],
+        ].map(([entity, entityLabel]) => {
+          const list = Array.isArray(formTypes[entity]) ? formTypes[entity] : [];
+          const update = (index, patch) =>
+            setFormTypeList(entity, list.map((it, i) => (i === index ? { ...it, ...patch } : it)));
+          return (
+            <Box key={entity} sx={{ border: HAIRLINE, borderRadius: "10px", p: 1.5, backgroundColor: "#fff", display: "flex", flexDirection: "column", gap: 1 }}>
+              <Typography sx={{ fontSize: 12, fontWeight: 700 }}>{entityLabel}</Typography>
+              {list.map((item, index) => (
+                <Box key={index} sx={{ display: "flex", gap: 1, alignItems: "flex-end", flexWrap: "wrap" }}>
+                  <Box sx={{ flex: "1 1 160px", minWidth: 120 }}>
+                    <TextField label={t.value} value={item.value} onChange={(v) => update(index, { value: v })} fontStyle={labelFontStyle} />
+                  </Box>
+                  <Box sx={{ flex: "1 1 180px", minWidth: 130 }}>
+                    <TextField label={t.labelEn} value={item.label_en} onChange={(v) => update(index, { label_en: v })} fontStyle={labelFontStyle} />
+                  </Box>
+                  <Box sx={{ flex: "1 1 180px", minWidth: 130 }}>
+                    <TextField label={t.labelCn} value={item.label_cn} onChange={(v) => update(index, { label_cn: v })} fontStyle={labelFontStyle} />
+                  </Box>
+                  <IconButton title={t.remove} danger onClick={() => setFormTypeList(entity, list.filter((_, i) => i !== index))}>
+                    <Trash2 size={14} strokeWidth={1.6} />
+                  </IconButton>
+                </Box>
+              ))}
+              <Box
+                component="button"
+                type="button"
+                onClick={() => setFormTypeList(entity, [...list, { value: "", label_en: "", label_cn: "" }])}
+                sx={{
+                  alignSelf: "flex-start",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  border: BORDER,
+                  borderRadius: "8px",
+                  backgroundColor: "#fff",
+                  px: 1.5,
+                  py: 0.75,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  "&:hover": { textDecoration: "underline", textUnderlineOffset: "3px" },
+                }}
+              >
+                <Plus size={14} strokeWidth={1.8} /> {t.addType}
+              </Box>
             </Box>
-          ))}
-        </Box>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <Switch
-            size="small"
-            checked={!!draft.themes?.autoDetect}
-            onChange={(e) => setIn("themes", "autoDetect")(e.target.checked)}
-            sx={{ "& .MuiSwitch-switchBase.Mui-checked": { color: "#000" }, "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": { backgroundColor: "#000" } }}
-          />
-          <Typography sx={{ fontSize: 12.5 }}>{t.autoDetect}</Typography>
-        </Box>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <Switch
-            size="small"
-            checked={!!draft.features?.showArtworkFilters}
-            onChange={(e) => setIn("features", "showArtworkFilters")(e.target.checked)}
-            sx={{ "& .MuiSwitch-switchBase.Mui-checked": { color: "#000" }, "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": { backgroundColor: "#000" } }}
-          />
-          <Typography sx={{ fontSize: 12.5 }}>{t.artworkFilters}</Typography>
-        </Box>
+          );
+        })}
       </Section>
 
       {loading ? (

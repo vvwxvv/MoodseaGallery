@@ -11,6 +11,17 @@ import { LanguageContext } from "@/components/contexts/LanguageContext";
 const API_ENDPOINT = "/api/exhibition";
 const titles = { en: "Exhibition", cn: "展览" };
 
+/**
+ * `related_artwork` is a string[] of artwork titles. Legacy rows stored
+ * `[{ title, order, mark }]` — collapse those to their title so the picker
+ * shows the current selection.
+ */
+const toTitles = (value) =>
+  (Array.isArray(value) ? value : [])
+    .map((v) => (v && typeof v === "object" ? v.title : v))
+    .map((t) => String(t ?? "").trim())
+    .filter(Boolean);
+
 const getDefaultValues = (item, isCn) => {
   console.log('ExhibitionEditForm: Creating default values for item:', item);
 
@@ -32,6 +43,7 @@ const getDefaultValues = (item, isCn) => {
     description: item?.description || "",
     introduction: Array.isArray(item?.introduction) ? item.introduction : [],
     press_release: Array.isArray(item?.press_release) ? item.press_release : [],
+    related_artwork: toTitles(item?.related_artwork),
     related_artwork_title: Array.isArray(item?.related_artwork_title) ? item.related_artwork_title : [],
     related_gallery_artist: Array.isArray(item?.related_gallery_artist) ? item.related_gallery_artist : [],
     web_url: item?.web_url || "",

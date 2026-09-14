@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import useData from "@/hooks/useData";
-import { hasArtworkOrder, artworkOrderNumber } from "@/utils/artworkOrder";
+import { hasArtworkOrder, artworkOrderNumber, compareByYearThenTitle } from "@/utils/artworkOrder";
 import { isArtworkHiddenForPage } from "@/utils/mediaMarks";
 import useImageGallery from "@/hooks/useImageGallery";
 import useWebGallery from "@/hooks/useWebGallery";
@@ -83,7 +83,6 @@ export default function useFairDetailData(slug, isCn) {
         return {
           title,
           related_order: isObj ? entry.order : undefined,
-          related_mark: isObj ? entry.mark : undefined,
         };
       })
       .filter(Boolean);
@@ -133,6 +132,9 @@ export default function useFairDetailData(slug, isCn) {
         artworkOrderNumber(a.artwork, "art_fair_page_order") -
         artworkOrderNumber(b.artwork, "art_fair_page_order")
     );
+
+    // Nothing positioned → newest year first, then title A→Z.
+    unordered.sort((a, b) => compareByYearThenTitle(a.artwork, b.artwork));
 
     return [...ordered, ...unordered];
   }, [declaredRelated, artworks]);

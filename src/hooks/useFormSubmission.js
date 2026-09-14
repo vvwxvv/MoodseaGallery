@@ -47,10 +47,12 @@ export const useFormSubmission = (form, formState, getLabel, config) => {
       if (config.fields && config.fields.arrayFields) {
         config.fields.arrayFields.forEach(fieldName => {
           if (formData[fieldName] && Array.isArray(formData[fieldName])) {
-            // Filter out empty strings and ensure all items are strings
+            // Keep plain objects (JSON object arrays, e.g. related_artwork)
+            // untouched — never String() them into "[object Object]".
             formData[fieldName] = formData[fieldName]
-              .filter(item => item && item.trim() !== '')
-              .map(item => String(item));
+              .filter(item => item !== null && item !== undefined &&
+                (typeof item === 'object' || String(item).trim() !== ''))
+              .map(item => (item !== null && typeof item === 'object' ? item : String(item)));
           } else {
             formData[fieldName] = [];
           }
@@ -65,15 +67,16 @@ export const useFormSubmission = (form, formState, getLabel, config) => {
         if (formData[key] === null) {
           formData[key] = '';
         }
-        // Special handling for order field - ensure it's a valid string or empty
+        // `order` may be a JSON object (per-page positions on Artwork / Image) —
+        // pass objects through untouched; only coerce scalar values.
         if (key === 'order') {
-          console.log('useFormSubmission - Processing order field:', formData[key], 'type:', typeof formData[key]);
-          if (formData[key] === undefined || formData[key] === null) {
+          const orderValue = formData[key];
+          if (orderValue === undefined || orderValue === null) {
             formData[key] = '';
-          } else {
-            formData[key] = String(formData[key]);
+          } else if (typeof orderValue !== 'object') {
+            formData[key] = String(orderValue);
           }
-          console.log('useFormSubmission - Order field after processing:', formData[key], 'type:', typeof formData[key]);
+          // objects (JSON order) fall through unchanged
         }
         // Ensure all string fields are properly handled
         if (typeof formData[key] === 'string') {

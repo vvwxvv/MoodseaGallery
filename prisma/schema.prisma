@@ -39,7 +39,7 @@ model Artwork {
   work_value     String?
   sold           String?
   order          Json?
-  mark           String?
+  mark           Json?
   language       String?
   updatedAt      DateTime @updatedAt
 }
@@ -52,7 +52,7 @@ model Video {
   type       String?
   caption_en String?
   caption_cn String?
-  mark       String?
+  mark       Json?
   tag_source String?
   order      String?
   updatedAt  DateTime @updatedAt
@@ -66,7 +66,7 @@ model Web {
   type       String?
   caption_en String?
   caption_cn String?
-  mark       String?
+  mark       Json?
   tag_source String?
   order      String?
   updatedAt  DateTime @updatedAt
@@ -86,7 +86,7 @@ model Writing {
   paragraphs    String[]
   caption       String?
   status        String?
-  mark          String?
+  mark          Json?
   tag           String?
   language      String?
   createdAt     DateTime @default(now()) @map("created_at")
@@ -112,7 +112,7 @@ model Event {
   related_artist        String[]
   web_url               String?
   video_url             String?
-  mark                  String?
+  mark                  Json?
   order                 String?
   language              String?
   updatedAt             DateTime @updatedAt
@@ -135,7 +135,7 @@ model Bibliography{
   video_url String?
   order String?
   language              String?
-  mark                  String?
+  mark                  Json?
   updatedAt DateTime @updatedAt
 }
 
@@ -159,7 +159,7 @@ model Image {
   type         String?
   caption_en   String?
   caption_cn   String?
-  mark         String?
+  mark         Json?
   tag_source   String?
   order        Json?
 }
@@ -189,7 +189,7 @@ model Exhibition {
   video_url             String?
   language              String?
   order                 String?
-  mark                  String?
+  mark                  Json?
   status                String?   
   updatedAt             DateTime   @updatedAt
 }
@@ -219,7 +219,7 @@ model Fair {
   video_url             String?
   language              String?
   order                 String?
-  mark                  String?
+  mark                  Json?
   status                String?   
   updatedAt             DateTime   @updatedAt
 }
@@ -235,7 +235,7 @@ model About{
   web_url String?
   language String?
   order String?
-  mark String?
+  mark Json?
 }
 
 model GalleryContact{
@@ -262,34 +262,30 @@ model Meta {
   id                      String   @id @default(auto()) @map("_id") @db.ObjectId
 
   // ── App identity ────────────────────────────────────────────────────────
-  app_title               String?
+  app_title_en            String?
   app_title_cn            String?
   app_type                String?
   app_category            String?
   app_version             String?
   app_purpose             String?
-  app_description         String?
+  app_description_en      String?
   app_description_cn      String?
 
   // ── Footer ──────────────────────────────────────────────────────────────
-  app_footer              String?
+  app_footer_en           String?
   app_footer_cn           String?
   app_footer_start_year   Int?
-  app_footer_rights       String?
+  app_footer_rights_en    String?
   app_footer_rights_cn    String?
-  footer                  Json?
 
-  // ── Contact / social ────────────────────────────────────────────────────
-  socialMedia             Json?
+  // ── Website ─────────────────────────────────────────────────────────────
   web_url                 String?
-  language                String?
 
-  // ── Menus / SEO / flags ─────────────────────────────────────────────────
+  // ── Menus / SEO / entity + form settings ────────────────────────────────
   menu                    Json?
   seo                     Json?
-  themes                  Json?
-  features                Json?
   galleryEntities         Json?
+  formTypes               Json?
 
   updatedAt               DateTime @updatedAt
 }

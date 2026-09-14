@@ -1,58 +1,39 @@
 /**
  * exhibitionDates.js
  * Pure utility functions for classifying exhibitions as current/past.
- * Uses Exhibition model fields: date_start, date_end, status.
+ * Uses Exhibition model fields: date_start, date_end, status, year.
+ *
+ * Date parsing + the current/past rule live in `@/utils/looseDate` (EN + CN
+ * aware) so exhibitions and fairs behave identically.
  */
+
+import { parseLooseDate, isCurrentEntry } from "@/utils/looseDate";
 
 const MS_PER_DAY = 86400000;
 
 /**
- * Parse an exhibition date string (YYYY-MM-DD, DD/MM/YYYY, ISO, etc.)
- * Returns a Date object or null.
+ * Parse an exhibition date string (EN or CN: "2023-12-24", "24 December 2023",
+ * "2023年12月24日", "Dec 2023", …). Returns a Date or null.
  */
 export function parseExhibitionDate(dateStr) {
-  if (!dateStr || typeof dateStr !== "string") return null;
-  const d = new Date(dateStr.trim());
-  return isNaN(d.getTime()) ? null : d;
+  return parseLooseDate(dateStr);
 }
 
 /**
  * Check if an exhibition is currently active.
- * Logic:
- * - If status is explicitly "current" or "ongoing" → current
- * - If date_start <= today AND date_end >= today → current
- * - If date_end is empty/null AND date_start is in the past or today → current (assumed ongoing)
- * - If neither date defined, falls back to status check
+ *
+ * Smart rule (see isCurrentEntry):
+ *  - status "current"/"ongoing" → current, "past" → past
+ *  - has end date → current while it hasn't ended
+ *  - start only → not past once started (past if it began in an earlier year)
+ *  - no dates → falls back to `year`: current when it is this year or later
+ *
+ * So anything dated in the CURRENT year (EN or CN format) that hasn't passed is
+ * treated as Current — no longer mis-filed as Past when the date string was a
+ * CN one like "2023年12月24日".
  */
 export function isCurrentExhibition(exhibition) {
-  const now = new Date();
-
-  // Explicit status override
-  const status = (exhibition?.status || "").toLowerCase().trim();
-  if (status === "current" || status === "ongoing") return true;
-  if (status === "past" || status === "upcoming") return false;
-
-  // Date-based logic
-  const start = parseExhibitionDate(exhibition?.date_start);
-  const end = parseExhibitionDate(exhibition?.date_end);
-
-  if (start && end) {
-    // Both dates defined: check range
-    return start <= now && end >= now;
-  }
-
-  if (start && !end) {
-    // Only start date: current if started
-    return start <= now;
-  }
-
-  if (!start && end) {
-    // Only end date: current if not yet ended
-    return end >= now;
-  }
-
-  // No dates, no status — assume past
-  return false;
+  return isCurrentEntry(exhibition);
 }
 
 /**

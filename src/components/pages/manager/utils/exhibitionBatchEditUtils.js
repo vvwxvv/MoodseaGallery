@@ -235,7 +235,7 @@ export const filterBySearchTerm = (data, searchTerm) => {
             // 对象数组（related_artwork）：拿子字段拼出来搜；
             // 普通数组：直接字符串化。
             if (v && typeof v === "object") {
-              return [v.title, v.order, v.mark]
+              return [v.title, v.order]
                 .filter(Boolean)
                 .some((s) => String(s).toLowerCase().includes(searchLower));
             }

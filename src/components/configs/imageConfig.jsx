@@ -195,7 +195,7 @@ export const imageConfig = {
       defaultPageSize: 10000,
       maxPageSize: 10000,
       defaultSortOrder: 1,
-      defaultSortField: 'order',
+      defaultSortField: 'order.rolling_img_order',
       collectionName: 'Image'
     }
   },

@@ -14,7 +14,6 @@ import { useIndexData } from '@/hooks/useIndexData';
 import { useNavigationHandlers } from '@/hooks/useNavigationHandlers';
 
 // Components
-import LoadingLayer from '@/components/animations/LoadingLayer';
 import NoDataInfo from '@/components/alerts/NoDataInfo';
 import AlertInfo from '@/components/alerts/AlertInfo';
 import ManagerCard from '@/components/pages/manager/components/ManagerCard';
@@ -387,8 +386,11 @@ const IndexPageLayout = ({
   }, []);
 
   // ── Loading / Error states ─────────────────────────────────────
+  // Plain white loading screen — no skeleton, no loader.
   if (loadingPrimary || loadingSecondary) {
-    return <LoadingLayer isLoading={true} />;
+    return (
+      <div style={{ backgroundColor: "#ffffff", minHeight: "100vh", width: "100%" }} />
+    );
   }
 
   if (errorPrimary || errorSecondary) {

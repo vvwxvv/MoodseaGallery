@@ -1,10 +1,31 @@
 import { useMemo } from "react";
 import IMAGE_GALLERY_ENTITY_CONFIG from "@/data/image_gallery_entity_config.json";
 import useSiteMeta from "@/hooks/useSiteMeta";
+import { getImageOrder } from "@/utils/mediaOrder";
 
 const DEFAULT_ID_FIELD = "_id";
 const DEFAULT_TITLE_FIELD = "title";
 const DEFAULT_COVER_FIELD = "cover_img_url";
+
+/**
+ * Which `Image.order` sub-key drives the gallery order for each entity page.
+ * Images are only ever positioned from the image order page (rolling order),
+ * so `rolling_img_order` is the fallback for every entity.
+ */
+const ORDER_KEY_BY_ENTITY = {
+  artwork: "artist_page_order",
+  exhibition: "exhibition_page_order",
+  fair: "art_fair_page_order",
+};
+
+/** Rank for one image: first usable position wins; none → Infinity (last). */
+const rankOf = (img, orderKeys) => {
+  for (const key of orderKeys) {
+    const v = Number(getImageOrder(img, key));
+    if (Number.isFinite(v) && v > 0) return v;
+  }
+  return Infinity;
+};
 
 /**
  * Match images to a single entity. Safe against null/undefined inputs.
@@ -25,6 +46,15 @@ export const useSingleEntityImagesMaching = (allImages, entity, entityType = "ar
 
     const entityId = entity[idField] || entity._id || entity.id;
     const entityTitle = entity[titleField] || "";
+
+    // Order key chain: the entity's own page order, then the rolling order
+    // (images are positioned from the image order page), then everything else.
+    const primaryKey = ORDER_KEY_BY_ENTITY[entityType] || "artist_page_order";
+    const orderKeys = [
+      primaryKey,
+      "rolling_img_order",
+      ...Object.values(ORDER_KEY_BY_ENTITY).filter((k) => k !== primaryKey),
+    ];
 
     const matchedImages = allImages
       .filter((img) => {
@@ -47,9 +77,11 @@ export const useSingleEntityImagesMaching = (allImages, entity, entityType = "ar
         caption_cn: img.caption_cn || "",
         tag_en: img.tag_en || "",
         tag_cn: img.tag_cn || "",
-        order: img.order || 0,
+        // `order` is a JSON object on Image — expose the resolved position as a
+        // plain string so nothing downstream can render "[object Object]".
+        order: getImageOrder(img, primaryKey),
       }))
-      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+      .sort((a, b) => rankOf(a, orderKeys) - rankOf(b, orderKeys));
 
     const coverImage =
       entity[coverField] || (matchedImages.length > 0 ? matchedImages[0].img_url : null);
