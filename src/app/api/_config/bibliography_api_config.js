@@ -32,6 +32,7 @@ export const bibliographyApiConfig = {
     'related_artist'
   ],
   arrayFields: ['related_gallery_exhibition', 'related_artist'],   // 数组字段
+  jsonFields: ['mark'],
   validFields: [
     'id',                               // Prisma 字段名，数据库映射为 _id
     'related_gallery_exhibition',

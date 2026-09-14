@@ -17,7 +17,6 @@ export const getAboutFields = (lang = 'EN') => [
   { key: 'pdf_url', label: 'PDF URL / PDF链接' },           // 新增
   { key: 'web_url', label: 'Website URL / 网页链接' },       // 新增
   { key: 'order', label: 'Order / 顺序' },
-  { key: 'mark', label: 'Mark / 标记' },
   { key: 'language', label: 'Language / 语言' },
   { key: 'updatedAt', label: 'Updated At / 更新时间' },
 ];
@@ -25,7 +24,6 @@ export const getAboutFields = (lang = 'EN') => [
 export const getDeleteDialogFields = (lang = 'EN') => [
   { key: 'artist', label: 'Artist:' },
   { key: 'caption', label: 'Caption:' },
-  { key: 'mark', label: 'Mark:' },
   { key: 'language', label: 'Language:' },
 ];
 
@@ -47,7 +45,6 @@ export const getEmptyAbout = () => ({
   pdf_url: '',   // 新增
   web_url: '',   // 新增
   order: '',
-  mark: '',
   language: '',
   updatedAt: '',
 });
@@ -73,7 +70,6 @@ export const FIELD_DISPLAY_CONFIG = {
   summaryFields: [
     'artist',
     'caption',
-    'mark',
   ],
   detailFields: [
     'introduction',
@@ -146,7 +142,6 @@ export const aboutSchemaConfig = {
     values: FILTER_VALUES,
     filterFields: [
       { key: "artist", fields: ["artist"] },
-      { key: "mark", fields: ["mark"] },
     ],
     createControlPanelConfig: () => createAboutControlPanelConfig(),
   },
@@ -233,11 +228,6 @@ export const createAboutControlPanelConfig = () => ({
     {
       field: 'artist',
       label: { cn: '艺术家', en: 'Artist' },
-      sortFunction: sortAlphabetically,
-    },
-    {
-      field: 'mark',
-      label: { cn: '标记', en: 'Mark' },
       sortFunction: sortAlphabetically,
     },
   ],

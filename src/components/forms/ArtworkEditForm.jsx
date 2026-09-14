@@ -39,7 +39,6 @@ const getDefaultValues = (item, isCn) => {
     sold: item?.sold || "",
     // `order` is a JSON object now — normalise legacy string values too.
     order: normalizeArtworkOrder(item?.order),
-    mark: item?.mark || "",
     language: item?.language || (isCn ? "CN" : "EN"),
   };
 

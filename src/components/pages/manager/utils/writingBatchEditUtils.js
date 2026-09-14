@@ -33,7 +33,6 @@ export function normalizeRow(raw = {}) {
 
     caption: raw.caption ?? "",
     status: raw.status ?? "",
-    mark: raw.mark ?? "",
     tag: raw.tag ?? "",
     language: raw.language ?? "",
   };
@@ -52,7 +51,7 @@ export const getWritingFieldGroups = (isCn) => {
     core: ["author", "title", "subtitle", "cover_img_url"],
     meta: ["year", "category", "type", "keywords", "summary"],
     content: ["paragraphs", "caption"],
-    classification: ["language", "status", "mark", "tag"],
+    classification: ["language", "status", "tag"],
     groupKeyLabels,
   };
 };
@@ -71,7 +70,6 @@ export const getWritingSchemaFields = () => [
   { name: "paragraphs", labelKey: "paragraphs", label: "Paragraphs" },
   { name: "caption", labelKey: "caption", label: "Caption" },
   { name: "status", labelKey: "status", label: "Status" },
-  { name: "mark", labelKey: "mark", label: "Mark" },
   { name: "tag", labelKey: "tag", label: "Tag" },
   { name: "language", labelKey: "language", label: "Language" },
 ];
@@ -97,7 +95,6 @@ export const exportWritingToCSV = (data, filename) => {
     "paragraphs",
     "caption",
     "status",
-    "mark",
     "tag",
     "language",
   ];

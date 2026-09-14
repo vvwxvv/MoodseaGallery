@@ -4,6 +4,7 @@ import { Select } from 'antd';
 import { Controller } from 'react-hook-form';
 import useFont from '@/hooks/useFont';
 import formMarksData from '@/data/form_marks.json';
+import { getMarkValue } from '@/utils/mediaMarks';
 
 const { Option } = Select;
 
@@ -177,7 +178,7 @@ const MarkSelector = ({
             <Select
               {...sharedSelectProps}
               {...field}
-              value={field.value || EMPTY_VALUE}
+              value={getMarkValue(field.value) || EMPTY_VALUE}
               onChange={makeChangeHandler(field.onChange)}
             >
               {renderedOptions}
@@ -194,7 +195,7 @@ const MarkSelector = ({
       <Select
         {...sharedSelectProps}
         {...registerProps}
-        value={value || EMPTY_VALUE}
+        value={getMarkValue(value) || EMPTY_VALUE}
         onChange={makeChangeHandler(onChange)}
       >
         {renderedOptions}

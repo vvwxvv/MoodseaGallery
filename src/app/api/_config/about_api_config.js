@@ -20,6 +20,7 @@ export const aboutApiConfig = {
   arrayFields: ['introductions'],
   objectIdArrayFields: [],
   dateFields: [],
+  jsonFields: ['mark'],
   validFields: [
     '_id',
     'portrait_image_url',

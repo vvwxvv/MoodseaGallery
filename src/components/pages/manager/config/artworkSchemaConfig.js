@@ -16,7 +16,6 @@ export const getArtworkFields = (lang = 'EN') => [
   { key: 'title', label: 'Title / 标题' },
   { key: 'type', label: 'Type / 类型' },
   { key: 'year', label: 'Year / 年份' },
-  { key: 'mark', label: 'Mark / 标记' },
 
   { key: 'medium', label: 'Medium / 媒介' },
   { key: 'size', label: 'Size / 尺寸' },
@@ -46,7 +45,6 @@ export const getDeleteDialogFields = (lang = 'EN') => [
   { key: 'year', label: 'Year:' },
   { key: 'medium', label: 'Medium:' },
   { key: 'size', label: 'Size:' },
-  { key: 'mark', label: 'Mark:' },
 ];
 
 export const ARTWORK_SORT_FIELDS = [
@@ -82,7 +80,6 @@ export const getEmptyArtwork = () => ({
   work_value: '',
   sold: '',
   order: { artist_page_order: '', exhibition_page_order: '', art_fair_page_order: '' },
-  mark: '',
   language: '',
   updatedAt: '',
 });
@@ -110,7 +107,6 @@ export const FIELD_DISPLAY_CONFIG = {
     'title',
     'type',
     'year',
-    'mark',
   ],
   detailFields: [
     'medium',
@@ -192,7 +188,6 @@ export const artworkSchemaConfig = {
   filterConfig: {
     values: FILTER_VALUES,
     filterFields: [
-      { key: "mark", fields: ["mark"] },
       { key: "artist", fields: ["artist"] },
       { key: "type", fields: ["type"] },
       { key: "medium", fields: ["medium"] },
@@ -285,11 +280,6 @@ export const artworkSchemaConfig = {
 
 export const createArtworkControlPanelConfig = () => ({
   filters: [
-    {
-      field: 'mark',
-      label: { cn: '标记', en: 'Mark' },
-      sortFunction: sortAlphabetically,
-    },
     {
       field: 'artist',
       label: { cn: '艺术家', en: 'Artist' },

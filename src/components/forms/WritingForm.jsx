@@ -66,7 +66,6 @@ export default function WritingForm() {
     paragraphs: [],
     caption: "",
     status: "",
-    mark: "",
     tag: "",
     language: isCn ? "CN" : "EN",
   };

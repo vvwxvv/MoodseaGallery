@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import useData from "@/hooks/useData";
 import { getArtworkOrder, hasArtworkOrder } from "@/utils/artworkOrder";
+import { filterArtworksHiddenForPage } from "@/utils/mediaMarks";
 import useImageGallery from "@/hooks/useImageGallery";
 import useWebGallery from "@/hooks/useWebGallery";
 import { useWebMatching } from "@/hooks/useWebMatching";
@@ -143,7 +144,11 @@ export default function useExhibitionDetailData(slug, isCn) {
     const seen = new Set();
     const result = [];
 
-    for (const aw of artworks) {
+    // Works the manager marked as hidden from the exhibition page are excluded
+    // here (mark = "hide_in_exhibition_page").
+    const visibleArtworks = filterArtworksHiddenForPage(artworks, "exhibition_page_order");
+
+    for (const aw of visibleArtworks) {
       if (!aw) continue;
       const id = aw.id || aw._id;
       if (id && seen.has(id)) continue;

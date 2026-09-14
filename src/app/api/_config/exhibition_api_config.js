@@ -42,6 +42,7 @@ export const exhibitionApiConfig = {
     'press_release',
     'related_gallery_artist',
   ],
+  jsonFields: ['mark'],
   validFields: [
     '_id',
     'cover_img_url',

@@ -276,6 +276,7 @@ export const renderFilter = (
   return (
     <FilterBarDropdown
       key={field}
+      className="mgr-filter-dd"
       label={getBilingualLabel(label)}
       options={options}
       value={value}
@@ -293,6 +294,126 @@ export const renderFilter = (
 };
 
 // ─── Public: renderFilters ────────────────────────────────────────────────────
+
+/**
+ * Styling for the filter bar. Kept as a module constant so the manager pages
+ * get a single, consistent, elegant look without touching each config.
+ *
+ * All filter dropdowns live on ONE row of equal-width pill cells (they only
+ * wrap on narrow viewports):
+ *   • subtle border + soft focus ring
+ *   • label left, chevron right
+ *   • rounded menu panel
+ */
+const MGR_FILTER_CSS = `
+.mgr-filter-grid{
+  display:grid;
+  grid-template-columns:repeat(var(--mgr-cols,4),minmax(0,1fr));
+  gap:10px;
+  width:100%;
+}
+@media (max-width:1000px){ .mgr-filter-grid{ grid-template-columns:repeat(3,minmax(0,1fr)); } }
+@media (max-width:680px){ .mgr-filter-grid{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media (max-width:460px){ .mgr-filter-grid{ grid-template-columns:1fr; } }
+
+/* Filter cell — white background at all times (desktop + mobile) */
+.mgr-filter-cell, .mgr-filter-cell *{ -webkit-tap-highlight-color:transparent; }
+.mgr-filter-cell{
+  min-width:0;
+  display:flex;
+  align-items:center;
+  height:42px;
+  border:1px solid #000;
+  border-radius:10px;
+  background:#fff;
+  transition:box-shadow .15s ease;
+}
+.mgr-filter-cell:hover{ box-shadow:0 2px 10px rgba(0,0,0,.08); }
+.mgr-filter-cell:focus-within{ box-shadow:0 0 0 3px rgba(0,0,0,.10); }
+
+/* Let the dropdown fill + shrink inside its cell */
+.mgr-filter-dd{ width:100%; }
+.mgr-filter-dd > div{ min-width:0 !important; flex:1 1 auto; }
+
+/* Trigger — always white (no grey hover / mobile tap highlight) */
+.mgr-filter-dd > div > button{
+  position:relative;
+  width:100%;
+  height:100%;
+  justify-content:space-between;
+  gap:8px;
+  padding:0 14px !important;
+  border-radius:9px;
+  background:#fff !important;
+  -webkit-tap-highlight-color:transparent;
+}
+.mgr-filter-dd > div > button:hover,
+.mgr-filter-dd > div > button:active,
+.mgr-filter-dd > div > button:focus{ background:#fff !important; }
+.mgr-filter-dd > div > button > span{
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  max-width:100%;
+}
+/* Hover feedback = animated underline (no background change) */
+.mgr-filter-dd > div > button::after{
+  content:'';
+  position:absolute;
+  left:14px;
+  right:14px;
+  bottom:7px;
+  height:1px;
+  background:#000;
+  opacity:.55;
+  transform:scaleX(0);
+  transform-origin:left center;
+  transition:transform .22s ease;
+}
+.mgr-filter-dd > div > button:hover::after{ transform:scaleX(1); }
+/* Keep the label readable on the always-white pill, even in dark mode */
+.mgr-filter-dd > div > button,
+.mgr-filter-dd > div > button *{ color:#000 !important; }
+
+/* Menu panel — always white */
+.mgr-filter-dd > div > div{
+  margin-top:6px;
+  background:#fff !important;
+  border:1px solid rgba(0,0,0,.10);
+  border-radius:10px;
+  box-shadow:0 10px 28px rgba(0,0,0,.12);
+  overflow:hidden;
+}
+
+/* Options — white at all times; hover reveals an animated underline */
+.mgr-filter-dd > div > div button{
+  position:relative;
+  background:#fff !important;
+  color:#000 !important;
+  -webkit-tap-highlight-color:transparent;
+  text-decoration:none !important;
+  letter-spacing:normal !important;
+}
+.mgr-filter-dd > div > div button *{ color:#000 !important; }
+.mgr-filter-dd > div > div button:hover,
+.mgr-filter-dd > div > div button:active,
+.mgr-filter-dd > div > div button:focus{ background:#fff !important; }
+.mgr-filter-dd > div > div button::after{
+  content:'';
+  position:absolute;
+  left:12px;
+  right:12px;
+  bottom:4px;
+  height:1px;
+  background:currentColor;
+  opacity:.75;
+  transform:scaleX(0);
+  transform-origin:left center;
+  transition:transform .22s ease;
+}
+.mgr-filter-dd > div > div button:hover::after{ transform:scaleX(1); }
+.mgr-filter-dd > div > div button[aria-selected="true"]::after{ transform:scaleX(1); }
+`;
 
 /**
  * Renders the complete filter panel — dropdowns + count badge + controls.
@@ -349,19 +470,24 @@ export const renderFilters = ({
   const boundRenderControl = (cc) =>
     renderControl(cc, controlHandlers, fontStyle, isCn);
 
+  // Drop the filters that hide themselves so the row has exactly N real cells.
+  const renderedFilters = filters.map(boundRenderFilter).filter(Boolean);
+  const columnCount = Math.max(renderedFilters.length, 1);
+
   return (
     <div className={`w-full ${isMobile ? 'hidden' : ''}`} style={{ ...fontStyle }}>
-      {/* Filter dropdowns — uniform responsive grid */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))',
-          gap: '12px 16px',
-          width: '100%',
-        }}
-      >
-        {filters.map(boundRenderFilter)}
-      </div>
+      <style>{MGR_FILTER_CSS}</style>
+
+      {/* Filter dropdowns — every filter on ONE row of equal-width cells */}
+      {renderedFilters.length > 0 && (
+        <div className="mgr-filter-grid" style={{ '--mgr-cols': String(columnCount) }}>
+          {renderedFilters.map((element, index) => (
+            <div className="mgr-filter-cell" key={index}>
+              {element}
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Status row — result count (left) · sort/controls (right) */}
       <div
@@ -370,9 +496,9 @@ export const renderFilters = ({
           alignItems: 'center',
           justifyContent: 'space-between',
           gap: 16,
-          marginTop: filters.length ? 18 : 0,
-          paddingTop: filters.length ? 14 : 0,
-          borderTop: filters.length ? '1px solid rgba(0,0,0,0.08)' : 'none',
+          marginTop: renderedFilters.length ? 18 : 0,
+          paddingTop: renderedFilters.length ? 14 : 0,
+          borderTop: renderedFilters.length ? '1px solid rgba(0,0,0,0.08)' : 'none',
         }}
       >
         {renderCountDisplay(filteredCount, fontStyle)}

@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import useData from "@/hooks/useData";
 import { filterByLanguage } from "@/utils/filterByLanguage";
 import { sortArtworksByPageOrder } from "@/utils/artworkOrder";
+import { filterArtworksHiddenForPage } from "@/utils/mediaMarks";
 
 // Year (desc) fallback for works that have no artist-page order yet — the
 // same fallback the artist detail page uses, so both lists agree.
@@ -36,7 +37,12 @@ const yearOf = (aw) => {
 
     const key = String(artist).trim().toLowerCase();
 
-    const list = filterByLanguage(allArtworks, isCn).filter(
+    // Other works by the same artist, minus the ones hidden from the artist
+    // page (mark.hide includes "artist_page") and the artwork being viewed.
+    const list = filterArtworksHiddenForPage(
+      filterByLanguage(allArtworks, isCn),
+      "artist_page_order"
+    ).filter(
       (item) =>
         String(item?.artist || "")
           .trim()

@@ -5,7 +5,6 @@ import { Divider, Grid, Box, Typography } from "@mui/material";
 import EditFormShell from "@/components/forms/shells/EditFormShell";
 import VideoFormSection from "@/components/forms/sections/VideoFormSection";
 import ImageUploadSection from "@/components/forms/images/ImageUploadSection";
-import MarkSelector from "@/components/forms/selectors/MarkSelector";
 import OrderSelector from "@/components/forms/selectors/OrderSelector";
 import { videoSchema } from "@/schemas/video_schema";
 import { IMAGE_UPLOAD_CONFIGS } from "@/components/forms/configs/image_upload_config";
@@ -29,7 +28,6 @@ const getDefaultValues = (item, isCn) => {
     type: item?.type || "",
     caption_en: item?.caption_en || "",
     caption_cn: item?.caption_cn || "",
-    mark: item?.mark || "",
     order: String(item?.order ?? ""),
   };
   
@@ -163,18 +161,6 @@ export default function VideoEditForm({ item }) {
 
             {/* Mark and Order selectors - Use direct Chinese labels like WebEditForm */}
             <Grid container spacing={2} sx={{ mb: 2, mt: 2 }}>
-              <Grid item xs={12} sm={6}>
-                <MarkSelector
-                  form={form}
-                  entityType="video"
-                  disabled={disabled}
-                  getLabel={() => isCn ? "标记" : "Mark"} // Direct Chinese labels like WebEditForm
-                  language={isCn ? "CN" : "EN"}
-                  colors={colors}
-                  isCn={isCn}
-                  onFieldChange={() => {}}
-                />
-              </Grid>
               <Grid item xs={12} sm={6}>
                 <OrderSelector
                   label={getLabel("order") || (isCn ? "排序" : "Order")}

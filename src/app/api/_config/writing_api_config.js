@@ -36,6 +36,7 @@ export const writingApiConfig = {
   ],
   arrayFields: ['paragraphs'],
   dateFields: ['createdAt', 'updatedAt'],
+  jsonFields: ['mark'],
   validFields: [
     'id',
     'cover_img_url',

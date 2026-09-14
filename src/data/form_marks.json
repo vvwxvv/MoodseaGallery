@@ -33,12 +33,6 @@
       "label_cn": "轮播"
     },
     {
-      "id": "mark_image_hide_artist_rolling",
-      "value": "hide_in_artist_page_rolling_image",
-      "label_en": "Hide in Artist Page Rolling Image",
-      "label_cn": "艺术家页轮播图隐藏"
-    },
-    {
       "id": "mark_image_private",
       "value": "Private",
       "label_en": "Private",

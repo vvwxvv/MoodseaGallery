@@ -1,5 +1,6 @@
 // fairSchema.js — 适配 Prisma Fair 模型
 import { z } from 'zod';
+import { markFieldSchema } from "./mark_schema";
 
 // Fair schema – 与 Prisma Fair 模型完全匹配
 export const fairSchema = z.object({
@@ -35,7 +36,7 @@ export const fairSchema = z.object({
   // 系统/管理字段
   language: z.string().optional(),
   order: z.string().optional(),
-  mark: z.string().optional(),
+  mark: markFieldSchema,
   status: z.string().optional(),
 
   // 更新时间（由 Prisma 自动维护）

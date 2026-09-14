@@ -71,7 +71,6 @@ export default function EventForm() {
     related_artist: [],
     web_url: "",
     video_url: "",
-    mark: "",
     order: "",
     language: isCn ? "CN" : "EN",
   };

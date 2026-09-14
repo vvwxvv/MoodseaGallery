@@ -54,7 +54,6 @@ export function normalizeRow(raw = {}) {
     video_url: raw.video_url ?? "",
     language: raw.language ?? "",
     order: raw.order ?? "",
-    mark: raw.mark ?? "",
     status: raw.status ?? "",
   };
 }
@@ -80,7 +79,7 @@ export const getFairFieldGroups = (isCn) => {
     content: ["caption", "press_release"],
     relations: ["related_artwork_title", "related_gallery_artist"],
     links: ["web_url", "video_url"],
-    classification: ["language", "order", "mark", "status"],
+    classification: ["language", "order", "status"],
     groupKeyLabels,
   };
 };
@@ -109,7 +108,6 @@ export const getFairSchemaFields = () => [
   { name: "video_url", labelKey: "videoUrl", label: "Video URL" },
   { name: "language", labelKey: "language", label: "Language" },
   { name: "order", labelKey: "order", label: "Order" },
-  { name: "mark", labelKey: "mark", label: "Mark" },
   { name: "status", labelKey: "status", label: "Status" },
 ];
 
@@ -148,7 +146,6 @@ export const exportFairToCSV = (data, filename) => {
     "video_url",
     "language",
     "order",
-    "mark",
     "status",
   ];
   exportToCSV(data, headers, filename || `fair_${new Date().toISOString().slice(0, 10)}.csv`);

@@ -62,7 +62,6 @@ export function normalizeRow(raw = {}) {
             art_fair_page_order: raw["order.art_fair_page_order"] ?? raw.art_fair_page_order,
           }
     ),
-    mark:       raw.mark       ?? "",
     language:   raw.language   ?? "",
   };
 }
@@ -85,7 +84,7 @@ export const getArtworkFieldGroups = (isCn) => {
       "work_value", "sold", "related_gallery_exhibition"   // <-- added here
     ],
     links:          ["video_url", "web_url"],
-    classification: ["language", "order.artist_page_order", "order.exhibition_page_order", "order.art_fair_page_order", "mark"],
+    classification: ["language", "order.artist_page_order", "order.exhibition_page_order", "order.art_fair_page_order"],
     groupKeyLabels,
   };
 };
@@ -113,7 +112,6 @@ export const getArtworkSchemaFields = () => [
   { name: "order.artist_page_order",     labelKey: "order.artist_page_order",     label: "Artist Page Order" },
   { name: "order.exhibition_page_order", labelKey: "order.exhibition_page_order", label: "Exhibition Page Order" },
   { name: "order.art_fair_page_order",   labelKey: "order.art_fair_page_order",   label: "Art Fair Page Order" },
-  { name: "mark",           labelKey: "mark",           label: "Mark"             },
   { name: "language",       labelKey: "language",       label: "Language"         },
 ];
 
@@ -147,7 +145,6 @@ export const exportArtworkToCSV = (data, filename) => {
     "order.artist_page_order",
     "order.exhibition_page_order",
     "order.art_fair_page_order",
-    "mark",
     "language",
   ];
 

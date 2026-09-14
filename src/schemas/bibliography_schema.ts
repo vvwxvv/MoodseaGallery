@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { markFieldSchema } from "./mark_schema";
 
 export const bibliographySchema = z.object({
   id: z.string().optional(),
@@ -16,7 +17,7 @@ export const bibliographySchema = z.object({
   related_gallery_exhibition: z.array(z.string()).optional(),
   related_artist: z.array(z.string()).optional(),
   order: z.string().optional(),
-  mark: z.string().optional(),
+  mark: markFieldSchema,
   language: z.string().optional(),
 });
 

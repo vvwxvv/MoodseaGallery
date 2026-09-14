@@ -5,6 +5,18 @@ import { revalidatePath } from 'next/cache';
 import { ObjectId } from 'mongodb';
 import { getCurrentFormattedDate } from '@/utils/dateFormatter';
 import { autoFillArtist } from '@/utils/artistUtils';
+import { cleanMarkForStore } from '@/utils/mediaMarks';
+
+/**
+ * `mark` is a JSON object now ({ value, hide }). Normalise it before sanitising,
+ * preserving the record's existing page hides when a scalar was submitted.
+ */
+function normalizeMarkField(config, data, existingMark) {
+  if (!data || typeof data !== 'object') return data;
+  if (!config?.jsonFields?.includes('mark')) return data;
+  if (!('mark' in data)) return data;
+  return { ...data, mark: cleanMarkForStore(data.mark, existingMark) };
+}
 
 // Global connection pool (reuse connections)
 let cachedClient = null;
@@ -27,6 +39,7 @@ export function createApiIdHandler(config) {
     // Schema configuration
     validFields: [],
     arrayFields: [],
+    jsonFields: [],
     
     // Hooks (optional callbacks)
     beforeUpdate: null,  // async (id, data, existing) => modifiedData
@@ -187,7 +200,7 @@ export function createApiIdHandler(config) {
       // Check if document exists
       const existing = await collection.findOne(
         { _id: new ObjectId(id) },
-        { projection: { _id: 1 } }
+        { projection: { _id: 1, mark: 1 } }
       );
       
       if (!existing) {
@@ -198,7 +211,10 @@ export function createApiIdHandler(config) {
       if (CONFIG.beforeUpdate) {
         rawData = await CONFIG.beforeUpdate(id, rawData, existing);
       }
-      
+
+      // `mark` is JSON now — normalise (preserve existing page hides).
+      rawData = normalizeMarkField(CONFIG, rawData, existing?.mark ?? null);
+
       // Sanitize data
       const { _id, ...updateData } = sanitizeData(rawData);
       

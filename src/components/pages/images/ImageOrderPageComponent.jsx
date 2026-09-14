@@ -34,8 +34,9 @@ import {
 } from "@/components/pages/images/hooks/useImageSourceIndex";
 import {
   isHiddenInArtistRollingImage,
-  IMAGE_MARK_HIDE_ARTIST_ROLLING,
   IMAGE_MARK_HIDE_ARTIST_ROLLING_LABEL,
+  withMarkHide,
+  HIDE_ARTIST_ROLLING_IMAGE,
 } from "@/utils/mediaMarks";
 import { normalizeImageOrder, getOrder } from "@/utils/mediaOrder";
 import { ARTIST_ROLLING_ORDER_KEY } from "@/components/pages/artists/hooks/useArtistRollingImages";
@@ -786,7 +787,8 @@ export default function ImageOrderPageComponent() {
       if (groupKey) setDirtyKeys((prev) => ({ ...prev, [groupKey]: true }));
 
       const nextHidden = !isItemHidden(item);
-      const nextMark = nextHidden ? IMAGE_MARK_HIDE_ARTIST_ROLLING : "";
+      // Hide flags live inside the JSON mark, so a form-set `value` survives.
+      const nextMark = withMarkHide(markOf(item), HIDE_ARTIST_ROLLING_IMAGE, nextHidden);
 
       // Optimistic — the card greys out (or clears) immediately.
       setMarkOverrides((prev) => ({ ...prev, [id]: nextMark }));

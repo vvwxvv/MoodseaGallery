@@ -32,7 +32,6 @@ const getDefaultValues = (item, isCn) => {
     paragraphs: Array.isArray(item?.paragraphs) ? item.paragraphs : [],
     caption: item?.caption || "",
     status: item?.status || "",
-    mark: item?.mark || "",
     tag: item?.tag || "",
     language: item?.language || (isCn ? "CN" : "EN"),
   };

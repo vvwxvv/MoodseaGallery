@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { markFieldSchema } from "./mark_schema";
 
 // Per-page ordering for an artwork. A single artwork can appear on the
 // artist page, the exhibition page and the art fair page, and each of those
@@ -36,7 +37,7 @@ export const artworkSchema = z.object({
   // art_fair_page_order. A plain string is still accepted so legacy rows
   // (saved before this change) keep validating.
   order: z.union([artworkOrderSchema, z.string(), z.null()]).optional(),
-  mark: z.string().optional(),
+  mark: markFieldSchema,
   language: z.string().optional(),
   updatedAt: z.string().optional(),
 });

@@ -1,4 +1,5 @@
 import VideoEditForm from "@/components/forms/VideoEditForm";
+import { getMarkValue, hasMarkValue } from "@/utils/mediaMarks";
 import VideoForm from "@/components/forms/VideoForm";
 import { 
   videoLabels, 
@@ -270,7 +271,7 @@ export const videoConfig = {
     mark: {
       label_en: "Sort by Mark",
       label_cn: "按标记排序",
-      compareFn: (a, b) => (a.mark || '').localeCompare(b.mark || ''),
+      compareFn: (a, b) => getMarkValue(a).localeCompare(getMarkValue(b)),
       defaultOrder: 'asc'
     },
     updatedAt: {

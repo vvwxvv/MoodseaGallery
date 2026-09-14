@@ -73,7 +73,6 @@ export default function ArtworkForm() {
     work_value:     "",
     sold:           "",
     order:          { artist_page_order: "", exhibition_page_order: "", art_fair_page_order: "" },
-    mark:           "",
     language:       isCn ? "CN" : "EN",
   };
 

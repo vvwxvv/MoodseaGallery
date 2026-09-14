@@ -95,7 +95,6 @@ const BIBLIOGRAPHY_SCHEMA = [
   {
     key: 'metadata',
     fields: [
-      { name: 'mark', type: 'text' },
     ],
   },
   {

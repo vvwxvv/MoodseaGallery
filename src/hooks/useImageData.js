@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from 'react';
+import { getMarkValue, hasMarkValue } from "@/utils/mediaMarks";
 import { safelyProcessData } from '@/utils/exportUtils';
 import fuzzySearch from '@/utils/fuzzySearch';
 
@@ -110,7 +111,7 @@ const useImageData = (images, artworks, events, isCn, search) => {
   // Get slider images
   const sliderImages = useMemo(() => {
     try {
-      return allImages.filter(img => img?.mark === 'Slider');
+      return allImages.filter(img => hasMarkValue(img, 'Slider'));
     } catch (error) {
       console.warn('Error processing slider images:', error);
       return [];

@@ -1,3 +1,4 @@
+import { getMarkValue } from "@/utils/mediaMarks";
 /**
  * ----------------------------------------------------------------------------
  * Fair Export Utilities – Compatible with Prisma Fair model
@@ -43,7 +44,7 @@ export function createComprehensiveFairExport(fairData, isCn) {
     "Video URL": item.video_url || "",
     Language: item.language || "",
     Order: item.order || "",
-    Mark: item.mark || "",
+    Mark: getMarkValue(item) || "",
     Status: item.status || "",
     "Last Updated": item.updatedAt
       ? new Date(item.updatedAt).toLocaleDateString(isCn ? "zh-CN" : "en-US")
@@ -154,7 +155,7 @@ export const normalizeRow = (row) => {
     video_url: row.video_url || "",
     language: row.language || "",
     order: row.order || "",
-    mark: row.mark || "",
+    mark: getMarkValue(row) || "",
     status: row.status || "",
     updatedAt: row.updatedAt || "",
     isNew: row.isNew || false,

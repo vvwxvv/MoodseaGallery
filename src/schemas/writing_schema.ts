@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { markFieldSchema } from "./mark_schema";
 
 // Writing schema - FIXED to match Prisma exactly
 export const writingSchema = z.object({
@@ -19,7 +20,7 @@ export const writingSchema = z.object({
   // `mark` + `language` live on the Prisma Writing model and the form renders
   // them — without them listed here zodResolver strips the values before
   // submission, so edits never reached the API.
-  mark: z.string().optional().nullable(),
+  mark: markFieldSchema,
   language: z.string().optional().nullable(),
   createdAt: z.string().optional(),
   updatedAt: z.string().optional(),

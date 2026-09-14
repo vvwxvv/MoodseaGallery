@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { markFieldSchema } from "./mark_schema";
 
 // Per-page ordering for an image. Mirrors the artwork order plus a rolling
 // image position:
@@ -20,7 +21,7 @@ export const imageSchema = z.object({
   type: z.string().optional(),
   caption_en: z.string().optional(),
   caption_cn: z.string().optional(),
-  mark: z.string().optional(),
+  mark: markFieldSchema,
   tag_source: z.string().optional(),
   // JSON object (artist_page_order / exhibition_page_order /
   // art_fair_page_order / rolling_img_order). A plain string is still

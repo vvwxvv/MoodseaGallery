@@ -24,6 +24,7 @@ export const webApiConfig = {
   arrayFields: [], // No array fields in the Prisma model
   objectIdArrayFields: [], // No ObjectId array fields in the Prisma model
   dateFields: ['updatedAt'],
+  jsonFields: ['mark'],
   validFields: [
     '_id',
     'web_url',

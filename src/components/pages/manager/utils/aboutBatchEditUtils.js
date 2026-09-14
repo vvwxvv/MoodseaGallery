@@ -11,7 +11,7 @@ export const getAboutFieldGroups = (isCn) => {
   return {
     core: ["artist", "portrait_image_url", "caption"],
     content: ["introduction", "pdf_url", "web_url"],  // 新增 pdf_url, web_url
-    classification: ["language", "order", "mark"],
+    classification: ["language", "order"],
     groupKeyLabels,
   };
 };
@@ -28,7 +28,6 @@ export const getAboutSchemaFields = () => [
   { name: "web_url", labelKey: "webUrl", label: "Website URL" },  // 新增
   { name: "language", labelKey: "language", label: "Language" },
   { name: "order", labelKey: "order", label: "Order" },
-  { name: "mark", labelKey: "mark", label: "Mark" },
 ];
 
 /**

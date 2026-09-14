@@ -34,7 +34,6 @@ export const getFairFields = (lang = 'EN') => [
   { key: 'video_url', label: 'Video URL / 视频链接' },
   { key: 'language', label: 'Language / 语言' },
   { key: 'order', label: 'Order / 顺序' },
-  { key: 'mark', label: 'Mark / 标记' },
   { key: 'status', label: 'Status / 状态' },
   { key: 'updatedAt', label: 'Updated At / 更新时间' },
 ];
@@ -45,7 +44,6 @@ export const getDeleteDialogFields = (lang = 'EN') => [
   { key: 'year', label: 'Year:' },
   { key: 'venue', label: 'Venue:' },
   { key: 'organiser', label: 'Organiser:' },
-  { key: 'mark', label: 'Mark:' },
   { key: 'status', label: 'Status:' },
 ];
 
@@ -87,7 +85,6 @@ export const getEmptyFair = () => ({
   video_url: '',
   language: '',
   order: '',
-  mark: '',
   status: '',
   updatedAt: '',
 });
@@ -116,7 +113,6 @@ export const FIELD_DISPLAY_CONFIG = {
     'year',
     'venue',
     'status',
-    'mark',
   ],
   detailFields: [
     'section',
@@ -201,7 +197,6 @@ export const fairSchemaConfig = {
   filterConfig: {
     values: FILTER_VALUES,
     filterFields: [
-      { key: "mark", fields: ["mark"] },
       { key: "type", fields: ["type"] },
       { key: "year", fields: ["year"] },
       { key: "venue", fields: ["venue"] },
@@ -320,11 +315,6 @@ export const fairSchemaConfig = {
 
 export const createFairControlPanelConfig = () => ({
   filters: [
-    {
-      field: 'mark',
-      label: { cn: '标记', en: 'Mark' },
-      sortFunction: sortAlphabetically,
-    },
     {
       field: 'type',
       label: { cn: '类型', en: 'Type' },

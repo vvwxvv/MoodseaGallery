@@ -34,7 +34,7 @@ export const imageApiConfig = {
   arrayFields: [],
   // `order` is a JSON object now (artist_page_order / exhibition_page_order /
   // art_fair_page_order / rolling_img_order) — keep it as an object.
-  jsonFields: ['order'],
+  jsonFields: ['order', 'mark'],
   objectIdArrayFields: [],
   dateFields: [],
   validFields: [

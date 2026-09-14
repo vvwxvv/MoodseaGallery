@@ -25,7 +25,6 @@ export const getImageFields = (lang = 'EN') => [
   { key: 'order.exhibition_page_order', label: 'Exhibition Page Order / 展览页排序' },
   { key: 'order.art_fair_page_order', label: 'Art Fair Page Order / 艺博会页排序' },
   { key: 'order.rolling_img_order', label: 'Rolling Image Order / 轮播图排序' },
-  { key: 'mark', label: 'Mark / 标记' },
   
   // Details
   { key: 'caption_en', label: 'Caption (EN) / 说明 (英文)' },
@@ -44,7 +43,6 @@ export const getDeleteDialogFields = (lang = 'EN') => [
   { key: 'tag_en', label: 'Tag (EN):' },
   { key: 'tag_cn', label: 'Tag (CN):' },
   { key: 'type', label: 'Type:' },
-  { key: 'mark', label: 'Mark:' },
 ];
 
 export const ARTWORK_SORT_FIELDS = [
@@ -62,7 +60,6 @@ export const IMAGE_SEARCH_FIELDS = [
   'caption_en',
   'caption_cn',
   'tag_source',
-  'mark'
 ];
 
 /**
@@ -75,7 +72,6 @@ export const getEmptyImage = () => ({
   type: '',
   caption_en: '',
   caption_cn: '',
-  mark: '',
   tag_source: '',
   order: { artist_page_order: '', exhibition_page_order: '', art_fair_page_order: '', rolling_img_order: '' },
   updatedAt: '',
@@ -141,7 +137,6 @@ export const FIELD_DISPLAY_CONFIG = {
     'tag_cn',
     'type',
     'order.artist_page_order',
-    'mark',
   ],
   
   // Fields to show in detail accordion (expandable)
@@ -208,7 +203,6 @@ export const imageSchemaConfig = {
         tagField,
         item.type,
         captionField,
-        item.mark,
         item.tag_source,
       ];
 
@@ -237,7 +231,6 @@ export const imageSchemaConfig = {
       { key: "tag",        fields: ["tag_en", "tag_cn"] },  // Filter by tag (checks both EN and CN)
       { key: "type",       fields: ["type"] },              // Filter by image type
       { key: "tag_source", fields: ["tag_source"] },        // Filter by tag source
-      { key: "mark",       fields: ["mark"] },              // Filter by mark/tag
     ],
     createControlPanelConfig: () => createImageControlPanelConfig(),
   },
@@ -345,11 +338,6 @@ export const imageSchemaConfig = {
 export const createImageControlPanelConfig = () => {
   return {
     filters: [
-      {
-        field: 'mark',
-        label: { cn: '标记', en: 'Mark' },
-        sortFunction: sortAlphabetically,
-      },
       {
         field: 'tag',
         label: { cn: '标签', en: 'Tag' },

@@ -10,7 +10,6 @@ import { getFormArtistValue, shouldHideArtistField } from "@/utils/artistUtils";
 
 import FormTitle from "@/components/titles/FormTitle";
 import WebFormSection from "@/components/forms/sections/WebFormSection";
-import MarkSelector from "@/components/forms/selectors/MarkSelector";
 import OrderSelector from "@/components/forms/selectors/OrderSelector";
 
 /**
@@ -50,7 +49,7 @@ export default function WebForm({ relatedData = {} }) {
 
   const defaultValues = {
     web_url: "", tag_en: "", tag_cn: "", type: "",
-    caption_en: "", caption_cn: "", mark: "", order: "", tag_source: "0",
+    caption_en: "", caption_cn: "", order: "", tag_source: "0",
   };
 
   useEffect(() => {
@@ -112,14 +111,6 @@ export default function WebForm({ relatedData = {} }) {
 
             {/* Mark & Order selectors (same as image form) */}
             <Grid container spacing={2} sx={{ mb: 2, mt: 2 }}>
-              <Grid item xs={12} sm={6}>
-                <MarkSelector
-                  form={form} entityType="web" disabled={isSubmitting}
-                  getLabel={() => (isCn ? "标记" : "Mark")}
-                  language={isCn ? "CN" : "EN"} colors={colors} isCn={isCn}
-                  onFieldChange={onFieldChange}
-                />
-              </Grid>
               <Grid item xs={12} sm={6}>
                 <OrderSelector
                   label={getLabel("order") || (isCn ? "排序" : "Order")}

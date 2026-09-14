@@ -25,7 +25,6 @@ export const getWritingFields = (lang = 'EN') => [
   { key: 'paragraphs', label: 'Paragraphs / 段落', isArray: true },
   { key: 'caption', label: 'Caption / 说明' },
   { key: 'status', label: 'Status / 状态' },
-  { key: 'mark', label: 'Mark / 标记' },
   { key: 'language', label: 'Language / 语言' },
   { key: 'createdAt', label: 'Created At / 创建时间' },
   { key: 'updatedAt', label: 'Updated At / 更新时间' },
@@ -37,7 +36,6 @@ export const getDeleteDialogFields = (lang = 'EN') => [
   { key: 'type', label: 'Type:' },
   { key: 'category', label: 'Category:' },
   { key: 'year', label: 'Year:' },
-  { key: 'mark', label: 'Mark:' },
   { key: 'status', label: 'Status:' },
 ];
 
@@ -68,7 +66,6 @@ export const getEmptyWriting = () => ({
   paragraphs: [],
   caption: '',
   status: '',
-  mark: '',
   tag: '',
   language: '',
   createdAt: '',
@@ -100,7 +97,6 @@ export const FIELD_DISPLAY_CONFIG = {
     'category',
     'year',
     'status',
-    'mark',
   ],
   detailFields: [
     'subtitle',
@@ -175,7 +171,6 @@ export const writingSchemaConfig = {
   filterConfig: {
     values: FILTER_VALUES,
     filterFields: [
-      { key: "mark", fields: ["mark"] },
       { key: "type", fields: ["type"] },
       { key: "category", fields: ["category"] },
       { key: "year", fields: ["year"] },
@@ -293,11 +288,6 @@ export const writingSchemaConfig = {
 
 export const createWritingControlPanelConfig = () => ({
   filters: [
-    {
-      field: 'mark',
-      label: { cn: '标记', en: 'Mark' },
-      sortFunction: sortAlphabetically,
-    },
     {
       field: 'type',
       label: { cn: '类型', en: 'Type' },

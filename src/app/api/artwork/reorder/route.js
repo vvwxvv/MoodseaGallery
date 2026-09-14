@@ -24,17 +24,25 @@ async function connectDB() {
 }
 
 // POST /api/artwork/reorder
-// Body: { reorderedImages? | reorderedWorks? | orderedIds, orderKey? }
-//   orderedIds: [id, …]  → index+1 becomes the value for orderKey
-//   orderKey:   which per-page order to write (default artist_page_order)
+// Body: { reorderedImages? | reorderedWorks? | orderedIds | groups, orderKey?, clearIds? }
+//   groups:         [[id,…], …]           — each inner array becomes 1..N for that group
+//   orderedIds:     [id, …]               — index+1 becomes the value for orderKey
+//   reorderedWorks: [{ _id|id, order }]   — `order` is the value for orderKey
+//   orderKey:       which per-page order to write (default artist_page_order)
+//   clearIds:       [id, …]               — remove that page order (no position)
+//                                           for these rows (used by "hidden" ones)
 export async function POST(request) {
   try {
     const db = await connectDB();
     const collection = db.collection(collectionName);
 
     const body = await request.json();
-    const { orderedIds, groups, reorderedWorks, reorderedImages, orderKey } = body;
+    const { orderedIds, groups, reorderedWorks, reorderedImages, orderKey, clearIds } = body;
     const key = orderKey || DEFAULT_ORDER_KEY;
+
+    const clearList = (Array.isArray(clearIds) ? clearIds : []).filter((id) =>
+      ObjectId.isValid(id)
+    );
 
     let pairs = [];
     const explicit = reorderedWorks || reorderedImages;
@@ -52,7 +60,7 @@ export async function POST(request) {
         item._id || item.id,
         item.order !== undefined && item.order !== null ? String(item.order) : String(idx + 1),
       ]);
-    } else {
+    } else if (clearList.length === 0) {
       return NextResponse.json(
         { message: 'orderedIds or groups must be a non-empty array' },
         { status: 400 }
@@ -60,24 +68,51 @@ export async function POST(request) {
     }
 
     // Merge into the existing JSON `order` object — read once, write once.
-    const ids = pairs
-      .map(([id]) => id)
+    const ids = [...pairs.map(([id]) => id), ...clearList]
       .filter((id) => ObjectId.isValid(id))
       .map((id) => new ObjectId(id));
 
-    const existingDocs = await collection
-      .find({ _id: { $in: ids } }, { projection: { order: 1 } })
-      .toArray();
+    const existingDocs = ids.length
+      ? await collection
+          .find({ _id: { $in: ids } }, { projection: { order: 1 } })
+          .toArray()
+      : [];
     const orderById = new Map(existingDocs.map((d) => [d._id.toString(), d.order]));
+
+    const mergeOrder = (raw, mutate) => {
+      const merged = normalizeArtworkOrder(raw);
+      // Legacy numeric `order` (pre-JSON rows) — keep the value, don't drop it.
+      if (typeof raw === 'number' && raw !== null) {
+        if (!merged.artist_page_order) merged.artist_page_order = String(raw);
+      }
+      mutate(merged);
+      // No position left anywhere → store null instead of an empty object.
+      const hasValue = Object.values(merged).some(
+        (v) => v !== null && v !== undefined && String(v).trim() !== ''
+      );
+      return hasValue ? merged : null;
+    };
 
     const ops = pairs
       .filter(([id]) => ObjectId.isValid(id))
       .map(([id, value]) => {
         const _id = new ObjectId(id);
-        const merged = normalizeArtworkOrder(orderById.get(_id.toString()));
-        merged[key] = value;
-        return { updateOne: { filter: { _id }, update: { $set: { order: merged } } } };
+        const raw = orderById.get(_id.toString());
+        const next = mergeOrder(raw, (merged) => {
+          merged[key] = value;
+        });
+        return { updateOne: { filter: { _id }, update: { $set: { order: next } } } };
       });
+
+    // "Hidden" rows carry no position for this key.
+    for (const id of clearList) {
+      const _id = new ObjectId(id);
+      const raw = orderById.get(_id.toString());
+      const next = mergeOrder(raw, (merged) => {
+        merged[key] = null;
+      });
+      ops.push({ updateOne: { filter: { _id }, update: { $set: { order: next } } } });
+    }
 
     if (ops.length) await collection.bulkWrite(ops, { ordered: false });
 

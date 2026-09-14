@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import useData from "@/hooks/useData";
 import { hasArtworkOrder, artworkOrderNumber } from "@/utils/artworkOrder";
+import { isArtworkHiddenForPage } from "@/utils/mediaMarks";
 import useImageGallery from "@/hooks/useImageGallery";
 import useWebGallery from "@/hooks/useWebGallery";
 import { useWebMatching } from "@/hooks/useWebMatching";
@@ -111,9 +112,16 @@ export default function useFairDetailData(slug, isCn) {
       matched: index.has(normalizeTitle(entry.title)),
     }));
 
+    // Works the manager marked as hidden from the art fair page are excluded
+    // (mark = "hide_in_art_fair_page"). Entries that match no artwork are kept.
+    const visibleItems = items.filter(
+      (item) =>
+        !item.artwork || !isArtworkHiddenForPage(item.artwork, "art_fair_page_order")
+    );
+
     const ordered = [];
     const unordered = [];
-    for (const item of items) {
+    for (const item of visibleItems) {
       (hasArtworkOrder(item.artwork, "art_fair_page_order")
         ? ordered
         : unordered

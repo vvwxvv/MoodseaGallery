@@ -119,7 +119,6 @@ const EXHIBITION_SCHEMA = [
       { name: 'type', type: 'select', options: 'typeOptions' },
       // Year dropdown (1980 → current year) — shared YearSelector.
       { name: 'year', type: 'year' },
-      { name: 'mark', type: 'text' },
       // Language dropdown — shared LanguageSelector (EN / CN).
       { name: 'language', type: 'language' },
     ],

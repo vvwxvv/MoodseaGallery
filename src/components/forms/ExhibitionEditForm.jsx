@@ -37,7 +37,6 @@ const getDefaultValues = (item, isCn) => {
     web_url: item?.web_url || "",
     video_url: item?.video_url || "",
     status: item?.status || "",
-    mark: item?.mark || "",
     order: String(item?.order ?? ""),
     language: item?.language || (isCn ? "CN" : "EN"),
   };

@@ -1,12 +1,13 @@
 // exhibitionSchema.js — 适配 Prisma Exhibition 模型（related_artwork 改为 JSON 对象数组）
 import { z } from 'zod';
+import { markFieldSchema } from "./mark_schema";
 
 // 单个关联作品：标题 + 自定义排序 + 标记
 // 对应 Prisma 中的 related_artwork Json?（结构参照 GalleryContact.socialMedia）
 export const relatedArtworkSchema = z.object({
   title: z.string().optional(),
   order: z.string().optional(),
-  mark: z.string().optional(),
+  mark: markFieldSchema,
 });
 
 // Exhibition schema – 与 Prisma Exhibition 模型完全匹配

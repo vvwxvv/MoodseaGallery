@@ -1,3 +1,4 @@
+import { getMarkValue } from "@/utils/mediaMarks";
 /**
  * ----------------------------------------------------------------------------
  * About Export Utilities – Compatible with Prisma About model
@@ -27,7 +28,7 @@ export function createComprehensiveAboutExport(aboutData, isCn) {
     "Website URL": item.web_url || "",             // 新增
     Language: item.language || "",
     Order: item.order || "",
-    Mark: item.mark || "",
+    Mark: getMarkValue(item) || "",
     "Last Updated": item.updatedAt
       ? new Date(item.updatedAt).toLocaleDateString(isCn ? "zh-CN" : "en-US")
       : "",
@@ -329,7 +330,7 @@ export const normalizeAboutRow = (row) => {
     web_url: row.web_url || "",                           // 新增
     language: row.language || "",
     order: row.order || "",
-    mark: row.mark || "",
+    mark: getMarkValue(row) || "",
     updatedAt: row.updatedAt || "",
     isNew: row.isNew || false,
   };

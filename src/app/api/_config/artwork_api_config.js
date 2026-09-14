@@ -40,7 +40,7 @@ export const artworkApiConfig = {
   arrayFields: ['introduction', 'related_gallery_exhibition'],   // 添加了 related_gallery_exhibition
   // `order` is a JSON object now (artist_page_order / exhibition_page_order /
   // art_fair_page_order) — keep it as an object, never stringify it.
-  jsonFields: ['order'],
+  jsonFields: ['order', 'mark'],
   validFields: [
     'id',                                // 改为 id（原 _id 为数据库映射名，Prisma 字段名为 id）
     'cover_img_url',

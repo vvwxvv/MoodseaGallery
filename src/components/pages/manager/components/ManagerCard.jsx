@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useCallback } from "react";
+import { getMarkValue, hasMarkValue } from "@/utils/mediaMarks";
 import { Edit2, Trash2, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import ImageZoomModal from "@/components/images/ImageZoomModal";
@@ -684,7 +685,7 @@ const ManagerCard = ({
         transition={{ duration: 0.3 }}
       >
         {/* Mark Toggle Dot */}
-        <SliderDotToggleForMark mark={item.mark} isCn={isCn} />
+        <SliderDotToggleForMark mark={getMarkValue(item)} isCn={isCn} />
 
         {/* Inline Image Fields Display */}
         <InlineImageDisplay
@@ -1021,7 +1022,7 @@ const ManagerCard = ({
               {...mediaSizingProps}
             />
 
-            <SliderDotToggleForMark mark={item.mark} isCn={isCn} />
+            <SliderDotToggleForMark mark={getMarkValue(item)} isCn={isCn} />
 
             {renderCardBody()}
           </div>
@@ -1049,7 +1050,7 @@ const ManagerCard = ({
               {...mediaSizingProps}
             />
 
-            <SliderDotToggleForMark mark={item.mark} isCn={isCn} />
+            <SliderDotToggleForMark mark={getMarkValue(item)} isCn={isCn} />
 
             {renderCardBody()}
           </>

@@ -40,6 +40,7 @@ export const fairApiConfig = {
     'date_end',
     'vip_preview_date'
   ],
+  jsonFields: ['mark'],
   validFields: [
     '_id',
     'title',

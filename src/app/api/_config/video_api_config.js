@@ -25,6 +25,7 @@ export const videoApiConfig = {
   arrayFields: [],
   objectIdArrayFields: [],
   dateFields: ['updatedAt'],
+  jsonFields: ['mark'],
   validFields: [
     '_id',
     'video_url',

@@ -75,7 +75,6 @@ export default function FairForm() {
     web_url: "",
     video_url: "",
     status: "",
-    mark: "",
     order: "",
     language: isCn ? "CN" : "EN",
   };

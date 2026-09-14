@@ -6,7 +6,6 @@ import { LanguageContext } from "@/components/contexts/LanguageContext";
 import EditFormShell from "@/components/forms/shells/EditFormShell";
 import ImageFormSection from "@/components/forms/sections/ImageFormSection";
 import ImageUploadSection from "@/components/forms/images/ImageUploadSection";
-import MarkSelector from "@/components/forms/selectors/MarkSelector";
 import OrderFieldsDisplay from "@/components/forms/selectors/OrderFieldsDisplay";
 import { imageSchema } from "@/schemas/image_schema";
 import { IMAGE_UPLOAD_CONFIGS } from "@/components/forms/configs/image_upload_config";
@@ -24,7 +23,6 @@ const getDefaultValues = (item, isCn) => ({
   type:       item?.type       ?? "",
   caption_en: item?.caption_en ?? "",
   caption_cn: item?.caption_cn ?? "",
-  mark:       item?.mark       ?? "",
   /* always stringify; default to "0" (None) not empty string */
   tag_source: item?.tag_source !== undefined ? String(item.tag_source) : "0",
   // `order` is a JSON object now — normalise legacy string values too.
@@ -95,20 +93,6 @@ export default function ImageEditForm({ item, relatedData = {} }) {
             />
 
             {/* ③ Mark + per-page Order — order is a JSON object on Image */}
-            <Grid container spacing={2} sx={{ mb: 2, mt: 2 }}>
-              <Grid item xs={12} sm={6}>
-                <MarkSelector
-                  form={form}
-                  entityType="image"
-                  disabled={disabled}
-                  getLabel={() => (isCn ? "标记" : "Mark")}
-                  language={isCn ? "CN" : "EN"}
-                  colors={colors}
-                  isCn={isCn}
-                  onFieldChange={onFieldChange}
-                />
-              </Grid>
-            </Grid>
 
             <OrderFieldsDisplay
               entity="image"

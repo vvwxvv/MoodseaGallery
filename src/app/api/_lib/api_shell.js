@@ -4,6 +4,20 @@ import { NextResponse } from 'next/server';
 import { ObjectId } from 'mongodb';
 import { getCurrentFormattedDate } from '@/utils/dateFormatter';
 import { autoFillArtist } from '@/utils/artistUtils';
+import { cleanMarkForStore } from '@/utils/mediaMarks';
+
+/**
+ * `mark` is a JSON object now ({ value, hide }). Normalise whatever was
+ * submitted (scalar form string or full JSON) before it is sanitised, keeping
+ * the record's existing page hides when a plain string was sent.
+ * Only applies when the collection declares `mark` in `jsonFields`.
+ */
+function normalizeMarkField(config, data, existingMark) {
+  if (!data || typeof data !== 'object') return data;
+  if (!config?.jsonFields?.includes('mark')) return data;
+  if (!('mark' in data)) return data;
+  return { ...data, mark: cleanMarkForStore(data.mark, existingMark) };
+}
 
 // MongoDB connection pooling (shared across all handlers)
 let cachedClient = null;
@@ -269,6 +283,9 @@ export function createApiHandler(config) {
         rawData = await CONFIG.beforeCreate(rawData);
       }
 
+      // `mark` is JSON now — normalise it (scalar string → { value, hide }).
+      rawData = normalizeMarkField(CONFIG, rawData, null);
+
       const sanitized = sanitizeData(rawData);
 
       // Validate required fields
@@ -387,6 +404,10 @@ export function createApiHandler(config) {
       if (CONFIG.beforeUpdate) {
         rawData = await CONFIG.beforeUpdate(id, rawData, existing);
       }
+
+      // `mark` is JSON now — normalise it, preserving existing page hides when
+      // a plain scalar (form) value was submitted.
+      rawData = normalizeMarkField(CONFIG, rawData, existing?.mark ?? null);
 
       // Sanitize and prepare update data
       const sanitizeResult = sanitizeData(rawData);

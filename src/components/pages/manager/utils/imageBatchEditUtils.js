@@ -14,7 +14,7 @@ export const getImageFieldGroups = (isCn) => {
   return {
     core: ["img_url", "tag_en", "tag_cn", "type"],
     content: ["caption_en", "caption_cn"],
-    classification: ["tag_source", "mark", "order.artist_page_order", "order.exhibition_page_order", "order.art_fair_page_order", "order.rolling_img_order"],
+    classification: ["tag_source", "order.artist_page_order", "order.exhibition_page_order", "order.art_fair_page_order", "order.rolling_img_order"],
     groupKeyLabels,
   };
 };
@@ -29,7 +29,6 @@ export const getImageSchemaFields = () => [
   { name: "type", labelKey: "type", label: "Type" },
   { name: "caption_en", labelKey: "captionEn", label: "Caption (EN)" },
   { name: "caption_cn", labelKey: "captionCn", label: "Caption (CN)" },
-  { name: "mark", labelKey: "mark", label: "Mark" },
   { name: "tag_source", labelKey: "tagSource", label: "Tag Source" },
   { name: "order.artist_page_order",     labelKey: "order.artist_page_order",     label: "Artist Page Order" },
   { name: "order.exhibition_page_order", labelKey: "order.exhibition_page_order", label: "Exhibition Page Order" },
@@ -56,7 +55,6 @@ export const exportImageToCSV = (data, filename) => {
     "type",
     "caption_en",
     "caption_cn",
-    "mark",
     "tag_source",
     "order.artist_page_order",
     "order.exhibition_page_order",

@@ -61,7 +61,6 @@ export default function AboutForm() {
     pdf_url: "",
     web_url: "",
     status: "",
-    mark: "",
     order: "",
     language: isCn ? "CN" : "EN",
   };

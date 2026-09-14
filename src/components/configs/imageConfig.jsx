@@ -1,5 +1,6 @@
 // imageConfig.js
 import ImageEditForm from "@/components/forms/ImageEditForm";
+import { getMarkValue, hasMarkValue } from "@/utils/mediaMarks";
 import ImageForm from "@/components/forms/ImageForm";
 import { ArrowUpDown } from 'lucide-react';
 import { 
@@ -616,11 +617,11 @@ export const imageAPI = {
 // UTILITY FUNCTIONS
 // ============================================================
 export const getSliderImageCount = (images) => {
-  return images.filter(image => image.mark === 'Slider' || image.mark === 'slider').length;
+  return images.filter(image => hasMarkValue(image, 'Slider')).length;
 };
 
 export const filterImagesByMark = (images, mark) => {
-  return images.filter(image => image.mark === mark);
+  return images.filter((image) => hasMarkValue(image, mark));
 };
 
 export const getImageTypeOption = (value, language = 'en') => {

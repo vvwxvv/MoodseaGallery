@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { markFieldSchema } from "./mark_schema";
 
 // ObjectId validation regex (24-character hex string)
 const objectIdRegex = /^[0-9a-fA-F]{24}$/;
@@ -12,7 +13,7 @@ export const webSchema = z.object({
   tag_cn: z.string().optional(),
   caption_en: z.string().optional(),
   caption_cn: z.string().optional(),
-  mark: z.string().optional(),
+  mark: markFieldSchema,
   order: z.string().optional(),
   updatedAt: z.string().optional(),
 });

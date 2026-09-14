@@ -35,7 +35,6 @@ const getDefaultValues = (item, isCn) => {
       : [],
     order: String(item?.order ?? ""),
     language: item?.language || (isCn ? "CN" : "EN"),
-    mark: item?.mark || "",
   };
 
   console.log('BibliographyEditForm: Default values created:', defaultValues);

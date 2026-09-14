@@ -1,3 +1,4 @@
+import { getMarkValue } from "@/utils/mediaMarks";
 /**
  * ----------------------------------------------------------------------------
  * Writing Export Utilities – Compatible with Prisma Writing model
@@ -31,7 +32,7 @@ export function createComprehensiveWritingExport(writingData, isCn) {
     Paragraphs: (item.paragraphs || []).join("; "),
     Caption: item.caption || "",
     Status: item.status || "",
-    Mark: item.mark || "",
+    Mark: getMarkValue(item) || "",
     Tag: item.tag || "",
     Language: item.language || "",
     "Cover Image URL": item.cover_img_url || "",
@@ -129,7 +130,7 @@ export const normalizeRow = (row) => {
     paragraphs: Array.isArray(row.paragraphs) ? row.paragraphs : [],
     caption: row.caption || "",
     status: row.status || "",
-    mark: row.mark || "",
+    mark: getMarkValue(row) || "",
     tag: row.tag || "",
     language: row.language || "",
     createdAt: row.createdAt || "",

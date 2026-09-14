@@ -23,6 +23,7 @@
  * @returns {Array} Formatted data ready for export
  */
 import { getImageOrder, normalizeImageOrder } from "@/utils/mediaOrder";
+import { getMarkValue } from "@/utils/mediaMarks";
 
 /** Resolve a possibly-dotted order key (e.g. "order.artist_page_order"). */
 const readImageField = (image, key) =>
@@ -573,7 +574,7 @@ export const normalizeRow = (row) => {
     type: row.type || "",
     caption_en: row.caption_en || "",
     caption_cn: row.caption_cn || "",
-    mark: row.mark || "",
+    mark: getMarkValue(row) || "",
     tag_source: row.tag_source || "",
     order: normalizeImageOrder(
       row.order && typeof row.order === "object"

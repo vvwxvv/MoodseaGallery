@@ -1,4 +1,5 @@
 import WebEditForm from "@/components/forms/WebEditForm";
+import { getMarkValue, hasMarkValue } from "@/utils/mediaMarks";
 import WebForm from "@/components/forms/WebForm";
 import { 
   webLabels, 
@@ -265,7 +266,7 @@ export const webConfig = {
     mark: {
       label_en: "Sort by Mark",
       label_cn: "按标记排序",
-      compareFn: (a, b) => (a.mark || '').localeCompare(b.mark || ''),
+      compareFn: (a, b) => getMarkValue(a).localeCompare(getMarkValue(b)),
       defaultOrder: 'asc'
     },
     updatedAt: {

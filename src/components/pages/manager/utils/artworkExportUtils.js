@@ -11,6 +11,7 @@
  */
 
 import { getArtworkOrder } from "@/utils/artworkOrder";
+import { getMarkValue } from "@/utils/mediaMarks";
 
 // ============ 统一标签配置 ============
 const FIELD_LABELS = {
@@ -121,7 +122,7 @@ export function createComprehensiveArtworkExport(artworkData, isCn = false) {
     [labels.cover_img_url]: item.cover_img_url || "",
     [labels.video_url]: item.video_url || "",
     [labels.web_url]: item.web_url || "",
-    [labels.mark]: item.mark || "",
+    [labels.mark]: getMarkValue(item) || "",
     [labels.language]: item.language || "",
     [labels.updatedAt]: formatDateTime(item.updatedAt),
   }));
@@ -397,7 +398,7 @@ export const normalizeRow = (row) => {
       art_fair_page_order: row["order.art_fair_page_order"] ?? row.art_fair_page_order ?? "",
     },
     cover_img_url: row.cover_img_url || "",
-    mark: row.mark || "",
+    mark: getMarkValue(row) || "",
     language: row.language || "",
     updatedAt: row.updatedAt || "",
     isNew: row.isNew || false,

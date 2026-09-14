@@ -24,6 +24,7 @@ export const eventApiConfig = {
   arrayFields: ['introduction', 'related_artist'],
   objectIdArrayFields: [],
   dateFields: ['updatedAt'],
+  jsonFields: ['mark'],
 
   validFields: [
     '_id',

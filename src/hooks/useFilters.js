@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import getUniqueFilterOptions from '@/utils/getUniqueFilterOptions';
 import fuzzySearch from '@/utils/fuzzySearch';
+import { hasMarkValue } from "@/utils/mediaMarks";
 
 // Reusable Filter Hook
 const useFilters = (data, isCn, options = {}) => {
@@ -70,10 +71,7 @@ const useFilters = (data, isCn, options = {}) => {
     }
     // Filter by mark if provided (e.g., "Feature" for featured artworks)
     if (markFilter) {
-      filtered = filtered.filter(item => {
-        if (!item.mark) return false;
-        return item.mark === markFilter;
-      });
+      filtered = filtered.filter((item) => hasMarkValue(item, markFilter));
     }
     // Filter by tag if selected
     if (selectedTag) {

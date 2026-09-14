@@ -4,6 +4,7 @@ import { useMemo, useCallback } from "react";
 import useData from "@/hooks/useData";
 import { filterByLanguage } from "@/utils/filterByLanguage";
 import { artworkOrderValue } from "@/utils/artworkOrder";
+import { filterArtworksHiddenForPage } from "@/utils/mediaMarks";
 
 // ── Name normalization for matching About <-> Artwork ──
 // Trims, lowercases, and collapses internal whitespace so minor
@@ -149,8 +150,14 @@ export default function useArtistListData(isCn) {
   } = useData("/api/about");
 
   // ── Language-filter first, so EN/CN artist strings never mix ──
+  // Artworks hidden from the artist page (mark.hide includes "artist_page")
+  // are dropped here, so they can't become an artist's cover or be counted.
   const artworks = useMemo(
-    () => filterByLanguage(rawArtworks, isCn),
+    () =>
+      filterArtworksHiddenForPage(
+        filterByLanguage(rawArtworks, isCn),
+        "artist_page_order"
+      ),
     [rawArtworks, isCn]
   );
 

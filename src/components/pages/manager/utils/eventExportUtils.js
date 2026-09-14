@@ -1,3 +1,4 @@
+import { getMarkValue } from "@/utils/mediaMarks";
 /**
  * Event Export Utilities
  * Handles data formatting and export for Event entities
@@ -639,7 +640,7 @@ export const normalizeRow = (row) => {
     related_artist: Array.isArray(row.related_artist) ? row.related_artist : (row.related_artist ? [row.related_artist] : []),
     web_url: row.web_url || "",
     video_url: row.video_url || "",
-    mark: row.mark || "",
+    mark: getMarkValue(row) || "",
     order: row.order || "",
     language: row.language || "",
     updatedAt: row.updatedAt || new Date().toISOString(),

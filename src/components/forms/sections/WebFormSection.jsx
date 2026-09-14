@@ -109,7 +109,6 @@ const WebFormSection = ({
         { name: 'caption_en', type: 'multiline', rows: 3 },
         { name: 'caption_cn', type: 'multiline', rows: 3 },
         { name: 'type', type: 'text' },
-        { name: 'mark', type: 'text' },     // optional internal note
       ],
     },
     {

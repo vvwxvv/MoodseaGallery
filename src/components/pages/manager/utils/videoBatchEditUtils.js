@@ -20,7 +20,6 @@ export function normalizeRow(raw = {}) {
     type: raw.type ?? "",
     caption_en: raw.caption_en ?? "",
     caption_cn: raw.caption_cn ?? "",
-    mark: raw.mark ?? "",
     tag_source: raw.tag_source ?? "",
     order: raw.order ?? "",
   };
@@ -37,7 +36,7 @@ export const getVideoFieldGroups = (isCn) => {
   return {
     core: ["video_url", "tag_en", "tag_cn", "type"],
     content: ["caption_en", "caption_cn"],
-    classification: ["tag_source", "mark", "order"],
+    classification: ["tag_source", "order"],
     groupKeyLabels,
   };
 };
@@ -50,7 +49,6 @@ export const getVideoSchemaFields = () => [
   { name: "type", labelKey: "type", label: "Type" },
   { name: "caption_en", labelKey: "captionEn", label: "Caption (EN)" },
   { name: "caption_cn", labelKey: "captionCn", label: "Caption (CN)" },
-  { name: "mark", labelKey: "mark", label: "Mark" },
   { name: "tag_source", labelKey: "tagSource", label: "Tag Source" },
   { name: "order", labelKey: "order", label: "Order" },
 ];
@@ -70,7 +68,6 @@ export const exportVideoToCSV = (data, filename) => {
     "type",
     "caption_en",
     "caption_cn",
-    "mark",
     "tag_source",
     "order",
   ];

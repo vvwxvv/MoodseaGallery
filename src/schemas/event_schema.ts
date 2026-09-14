@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { markFieldSchema } from "./mark_schema";
 
 // Event schema – exactly matching the Prisma model
 export const eventSchema = z.object({
@@ -19,7 +20,7 @@ export const eventSchema = z.object({
   related_artist: z.array(z.string()).optional(),
   web_url: z.string().optional(),
   video_url: z.string().optional(),
-  mark: z.string().optional(),
+  mark: markFieldSchema,
   order: z.string().optional(),
   language: z.string().optional(),
   updatedAt: z.string().optional(),         // ISO string from API

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useCallback } from "react";
+import { getMarkValue, hasMarkValue } from "@/utils/mediaMarks";
 import useData from "@/hooks/useData";
 import { filterByLanguage } from "@/utils/filterByLanguage";
 
@@ -98,8 +99,6 @@ export function useFilteredAbouts(abouts, isCn) {
 export function useSliderImages(images) {
   return useMemo(() => {
     if (!Array.isArray(images)) return [];
-    return images.filter(
-      (img) => img?.mark && ["slider", "Slider", "SLIDER"].includes(img.mark)
-    );
+    return images.filter((img) => hasMarkValue(img, "Slider"));
   }, [images]);
 }

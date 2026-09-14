@@ -12,7 +12,6 @@ import { IMAGE_UPLOAD_CONFIGS } from "@/components/forms/configs/image_upload_co
 import FormTitle from "@/components/titles/FormTitle";
 import ImageUploadSection from "@/components/forms/images/ImageUploadSection";
 import ImageFormSection from "@/components/forms/sections/ImageFormSection";
-import MarkSelector from "@/components/forms/selectors/MarkSelector";
 import OrderFieldsDisplay from "@/components/forms/selectors/OrderFieldsDisplay";
 import { EMPTY_IMAGE_ORDER } from "@/utils/mediaOrder";
 
@@ -58,7 +57,7 @@ export default function ImageForm({ relatedData = {} }) {
 
   const defaultValues = {
     img_url: "", tag_en: "", tag_cn: "", type: "",
-    caption_en: "", caption_cn: "", mark: "",
+    caption_en: "", caption_cn: "",
     order: { ...EMPTY_IMAGE_ORDER },
     tag_source: "0",
   };
@@ -125,16 +124,6 @@ export default function ImageForm({ relatedData = {} }) {
               relatedData={relatedData}
             />
 
-            <Grid container spacing={2} sx={{ mb: 2, mt: 2 }}>
-              <Grid item xs={12} sm={6}>
-                <MarkSelector
-                  form={form} entityType="image" disabled={isSubmitting}
-                  getLabel={() => (isCn ? "标记" : "Mark")}
-                  language={isCn ? "CN" : "EN"} colors={colors} isCn={isCn}
-                  onFieldChange={onFieldChange}
-                />
-              </Grid>
-            </Grid>
 
             {/* Per-page ordering — order is a JSON object on Image */}
             <OrderFieldsDisplay

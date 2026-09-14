@@ -18,7 +18,6 @@ export const getWebFields = (lang = 'EN') => [
   { key: 'type', label: 'Type / 类型' },
   { key: 'caption_en', label: 'Caption (EN)' },
   { key: 'caption_cn', label: 'Caption (CN) / 说明' },
-  { key: 'mark', label: 'Mark / 标记' },
   { key: 'tag_source', label: 'Tag Source / 标签来源' },
   { key: 'order', label: 'Order / 顺序' },
   { key: 'updatedAt', label: 'Updated At / 更新时间' },
@@ -28,7 +27,6 @@ export const getDeleteDialogFields = (lang = 'EN') => [
   { key: 'tag_en', label: 'Tag:' },
   { key: 'type', label: 'Type:' },
   { key: 'caption_en', label: 'Caption:' },
-  { key: 'mark', label: 'Mark:' },
   { key: 'tag_source', label: 'Tag Source:' },
 ];
 
@@ -51,7 +49,6 @@ export const getEmptyWeb = () => ({
   type: '',
   caption_en: '',
   caption_cn: '',
-  mark: '',
   tag_source: '',
   order: '',
   updatedAt: '',
@@ -79,7 +76,6 @@ export const FIELD_DISPLAY_CONFIG = {
     'tag_en',
     'type',
     'caption_en',
-    'mark',
     'tag_source',
   ],
   detailFields: [
@@ -143,7 +139,6 @@ export const webSchemaConfig = {
   filterConfig: {
     values: FILTER_VALUES,
     filterFields: [
-      { key: "mark", fields: ["mark"] },
       { key: "type", fields: ["type"] },
       { key: "tag_source", fields: ["tag_source"] },
       {
@@ -263,11 +258,6 @@ export const webSchemaConfig = {
 
 export const createWebControlPanelConfig = () => ({
   filters: [
-    {
-      field: 'mark',
-      label: { cn: '标记', en: 'Mark' },
-      sortFunction: sortAlphabetically,
-    },
     {
       field: 'type',
       label: { cn: '类型', en: 'Type' },

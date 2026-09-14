@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { markFieldSchema } from "./mark_schema";
 
 export const aboutSchema = z.object({
   id: z.string().optional(),
@@ -10,7 +11,7 @@ export const aboutSchema = z.object({
   web_url: z.string().nullable().optional(),   // 新增
   language: z.string().optional(),
   order: z.string().optional(),
-  mark: z.string().optional(),
+  mark: markFieldSchema,
 });
 
 export type About = z.infer<typeof aboutSchema>;

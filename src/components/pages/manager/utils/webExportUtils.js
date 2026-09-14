@@ -1,3 +1,4 @@
+import { getMarkValue } from "@/utils/mediaMarks";
 /**
  * Web Export Utilities
  * Handles data formatting and export for Web entities
@@ -104,7 +105,7 @@ export const normalizeRow = (row) => {
     type: row.type || "",
     caption_en: row.caption_en || "",
     caption_cn: row.caption_cn || "",
-    mark: row.mark || "",
+    mark: getMarkValue(row) || "",
     tag_source: row.tag_source || "",
     order: row.order || "",
     updatedAt: row.updatedAt || new Date().toISOString(),

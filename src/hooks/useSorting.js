@@ -1,5 +1,6 @@
 // hooks/useSorting.js
 import { useState, useMemo, useCallback, useContext } from 'react';
+import { getMarkValue, hasMarkValue } from "@/utils/mediaMarks";
 import { LanguageContext } from '@/components/contexts/LanguageContext';
 
 export default function useSorting(getLabel) {
@@ -26,7 +27,7 @@ export default function useSorting(getLabel) {
       },
       mark: { 
         label: getLabel('mark'),
-        getValue: (item) => item.mark || ''
+        getValue: (item) => getMarkValue(item)
       }
     };
 

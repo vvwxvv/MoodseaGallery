@@ -2,6 +2,7 @@
 import {NextResponse} from 'next/server';
 import { ObjectId } from 'mongodb';
 import { getCurrentFormattedDate } from '@/utils/dateFormatter';
+import { cleanMarkForStore } from '@/utils/mediaMarks';
 
 export function createBatchApiHandler(config) {
   const CONF = {
@@ -58,6 +59,8 @@ export function createBatchApiHandler(config) {
         if (v !== undefined && v !== null && v !== '') out[k] = String(v);
       } else out[k] = v;
     });
+    // `mark` is JSON now — normalise scalar form values into { value, hide }.
+    if (CONF.jsonFields.includes('mark') && 'mark' in out) out.mark = cleanMarkForStore(out.mark, null);
     if (!out.updatedAt && CONF.validFields.includes('updatedAt')) out.updatedAt = getCurrentFormattedDate();
     return out;
   }
@@ -224,6 +227,8 @@ export function createFullBatchApiHandler(config) {
         if (v !== undefined && v !== null && v !== '') out[k] = String(v);
       } else out[k] = v;
     });
+    // `mark` is JSON now — normalise scalar form values into { value, hide }.
+    if (CONF.jsonFields.includes('mark') && 'mark' in out) out.mark = cleanMarkForStore(out.mark, null);
     if (!out.createdAt && CONF.validFields.includes('createdAt')) out.createdAt = getCurrentFormattedDate();
     if (!out.updatedAt && CONF.validFields.includes('updatedAt')) out.updatedAt = getCurrentFormattedDate();
     return out;

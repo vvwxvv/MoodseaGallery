@@ -32,7 +32,6 @@ const getDefaultValues = (item, isCn) => {
     related_artist: Array.isArray(item?.related_artist) ? item.related_artist : [],
     web_url: item?.web_url || "",
     video_url: item?.video_url || "",
-    mark: item?.mark || "",
     order: String(item?.order ?? ""),
     language: item?.language || (isCn ? "CN" : "EN"),
   };

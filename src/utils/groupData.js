@@ -104,13 +104,26 @@ export function groupData(items, groupConfig, context = {}) {
   
     if (typeof sortGroupsFn === "function") {
       groups.sort(sortGroupsFn);
-    } else if (sortGroups === "asc" || sortGroups === "desc") {
+    } else if (
+      sortGroups === "asc" ||
+      sortGroups === "desc" ||
+      sortGroups === true
+    ) {
+      // `true` is the common shorthand the manager pages pass (groupConfig
+      // { sortGroups: true }) — treat it as ascending A→Z. The "Ungrouped"
+      // bucket always sinks to the bottom.
+      const direction = sortGroups === "desc" ? -1 : 1;
+      const locale = context.isCn ? "zh-Hans-CN" : undefined;
       groups.sort((a, b) => {
-        const result = String(a.label).localeCompare(String(b.label), undefined, {
+        const aUngrouped = a.key === "__UNGROUPED__";
+        const bUngrouped = b.key === "__UNGROUPED__";
+        if (aUngrouped !== bUngrouped) return aUngrouped ? 1 : -1;
+
+        const result = String(a.label).localeCompare(String(b.label), locale, {
           numeric: true,
           sensitivity: "base",
         });
-        return sortGroups === "desc" ? -result : result;
+        return direction * result;
       });
     }
   

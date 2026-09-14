@@ -45,7 +45,6 @@ const WRITING_SCHEMA = [
       { name: 'category', type: 'text' },
       { name: 'type', type: 'text' },
       { name: 'status', type: 'text' },
-      { name: 'mark', type: 'text' },
       { name: 'tag', type: 'text' },
       // Language dropdown — shared LanguageSelector (EN / CN).
       { name: 'language', type: 'language' },

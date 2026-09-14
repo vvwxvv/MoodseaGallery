@@ -54,7 +54,6 @@ const ARTWORK_SCHEMA = [
   {
     key: 'metadata',
     fields: [
-      { name: 'mark', type: 'text' },
       // Language dropdown — shared LanguageSelector (EN / CN).
       { name: 'language', type: 'language' },
     ],

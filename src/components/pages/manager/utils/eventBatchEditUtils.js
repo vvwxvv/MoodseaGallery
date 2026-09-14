@@ -84,7 +84,7 @@ export const getEventFieldGroups = (isCn) => {
     content: ["caption", "introduction"],
     relations: ["related_artist"],
     links: ["web_url", "video_url"],
-    meta: ["mark", "order", "language"],
+    meta: ["order", "language"],
     groupKeyLabels,
   };
 };
@@ -109,7 +109,6 @@ export const getEventSchemaFields = () => [
   { name: "related_artist", labelKey: "related_artist", label: "Related Artists" },
   { name: "web_url", labelKey: "web_url", label: "Web URL" },
   { name: "video_url", labelKey: "video_url", label: "Video URL" },
-  { name: "mark", labelKey: "mark", label: "Mark" },
   { name: "order", labelKey: "order", label: "Order" },
   { name: "language", labelKey: "language", label: "Language" },
   { name: "updatedAt", labelKey: "updatedAt", label: "Last Updated" },
@@ -144,7 +143,6 @@ export const exportEventToCSV = (data, filename) => {
     "related_artist",
     "web_url",
     "video_url",
-    "mark",
     "order",
     "language",
     "updatedAt",

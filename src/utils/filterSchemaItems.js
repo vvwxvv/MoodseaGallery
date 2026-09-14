@@ -1,5 +1,7 @@
 // utils/filterSchemaItems.js
 
+import { getMarkValue } from '@/utils/mediaMarks';
+
 /**
  * Matches a single field on an item against an expected value.
  *
@@ -8,6 +10,9 @@
  *   expected === null       → item field must be falsy (null / undefined / "")
  *   any other value         → strict equality match
  *
+ * `mark` is JSON now ({ value, hide }), so it is compared on its scalar
+ * `value` (legacy plain-string marks still work).
+ *
  * @param {object} item
  * @param {string} field
  * @param {*}      expected
@@ -15,8 +20,9 @@
  */
 export function matchField(item, field, expected) {
     if (expected === undefined) return true;
-    if (expected === null) return !item?.[field];
-    return item?.[field] === expected;
+    const value = field === 'mark' ? getMarkValue(item) : item?.[field];
+    if (expected === null) return !value;
+    return value === expected;
   }
   
   /**

@@ -22,7 +22,6 @@ const getDefaultValues = (item, isCn) => {
     pdf_url: item?.pdf_url || "",
     web_url: item?.web_url || "",
     order: String(item?.order ?? ""),
-    mark: item?.mark || "",
     language: item?.language || (isCn ? "CN" : "EN"),
   };
 

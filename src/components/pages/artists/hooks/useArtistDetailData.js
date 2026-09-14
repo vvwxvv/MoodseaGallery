@@ -4,6 +4,13 @@ import { useMemo, useCallback } from "react";
 import useData from "@/hooks/useData";
 import { filterByLanguage } from "@/utils/filterByLanguage";
 import { getArtworkOrder, sortArtworksByPageOrder } from "@/utils/artworkOrder";
+import { filterArtworksHiddenForPage } from "@/utils/mediaMarks";
+
+// The artwork order page can mark a work as hidden from the artist page
+// (mark = "hide_in_artist_page"). Such works never render on the artist grid,
+// but they still leave the manager ordering page intact.
+const visibleArtistArtworks = (list) =>
+  filterArtworksHiddenForPage(list, "artist_page_order");
 
 // Normalize a name for cross-collection matching
 export const normalizeName = (s) =>
@@ -120,7 +127,9 @@ function buildArtistProfile(about, artworks, exhibitions, fairs, events, bibliog
   const key = normalizeName(about?.artist);
 
   const artistArtworks = uniqueById(
-    sortArtworksByArtistPageOrder((artworks || []).filter((aw) => normalizeName(aw?.artist) === key))
+    sortArtworksByArtistPageOrder(
+      visibleArtistArtworks(artworks || []).filter((aw) => normalizeName(aw?.artist) === key)
+    )
   );
   const artistExhibitions = uniqueById(
     sortByOrder((exhibitions || []).filter((ex) => recordMatchesArtist(ex, key)))
@@ -190,7 +199,9 @@ export default function useArtistDetailData(artistName, isCn) {
     if (artistName) {
       const key = normalizeName(artistName);
       const artistArtworks = uniqueById(
-        sortArtworksByArtistPageOrder((artworksAll || []).filter((aw) => normalizeName(aw?.artist) === key))
+        sortArtworksByArtistPageOrder(
+          visibleArtistArtworks(artworksAll || []).filter((aw) => normalizeName(aw?.artist) === key)
+        )
       );
       const artistExhibitions = uniqueById(
         sortByOrder((exhibitionsAll || []).filter((ex) => recordMatchesArtist(ex, key)))

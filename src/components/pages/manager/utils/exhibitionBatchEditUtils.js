@@ -64,7 +64,6 @@ export function normalizeRow(raw = {}) {
     video_url: raw.video_url ?? "",
     language: raw.language ?? "",
     order: raw.order ?? "",
-    mark: raw.mark ?? "",
     status: raw.status ?? "",
   };
 }
@@ -92,7 +91,7 @@ export const getExhibitionFieldGroups = (isCn) => {
     // related_gallery_artist。
     relations: ["related_gallery_artist"],
     links: ["web_url", "video_url"],
-    classification: ["language", "order", "mark", "status"],
+    classification: ["language", "order", "status"],
     groupKeyLabels,
   };
 };
@@ -122,7 +121,6 @@ export const getExhibitionSchemaFields = () => [
   { name: "video_url", labelKey: "videoUrl", label: "Video URL" },
   { name: "language", labelKey: "language", label: "Language" },
   { name: "order", labelKey: "order", label: "Order" },
-  { name: "mark", labelKey: "mark", label: "Mark" },
   { name: "status", labelKey: "status", label: "Status" },
 ];
 
@@ -167,7 +165,6 @@ export const exportExhibitionToCSV = (data, filename) => {
     "video_url",
     "language",
     "order",
-    "mark",
     "status",
   ];
   exportToCSV(data, headers, filename || `exhibition_${new Date().toISOString().slice(0, 10)}.csv`);

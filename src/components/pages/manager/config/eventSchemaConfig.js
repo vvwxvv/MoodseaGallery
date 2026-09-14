@@ -27,7 +27,6 @@ export const getEventFields = (lang = 'EN') => [
   { key: 'related_artist', label: 'Related Artists / 相关艺术家', isArray: true },
   { key: 'web_url', label: 'Web URL / 网页链接' },
   { key: 'video_url', label: 'Video URL / 视频链接' },
-  { key: 'mark', label: 'Mark / 标记' },
   { key: 'order', label: 'Order / 顺序' },
   { key: 'language', label: 'Language / 语言' },
   { key: 'updatedAt', label: 'Updated At / 更新时间' },
@@ -40,7 +39,6 @@ export const getDeleteDialogFields = (lang = 'EN') => [
   { key: 'subtitle', label: 'Subtitle:' },
   { key: 'date_time', label: 'Date & Time:' },
   { key: 'venue', label: 'Venue:' },
-  { key: 'mark', label: 'Mark:' },
 ];
 
 export const EVENT_SORT_FIELDS = [
@@ -72,7 +70,6 @@ export const getEmptyEvent = () => ({
   related_artist: [],
   web_url: '',
   video_url: '',
-  mark: '',
   order: '',
   language: '',
   updatedAt: '',
@@ -101,7 +98,6 @@ export const FIELD_DISPLAY_CONFIG = {
     'type',
     'year',
     'venue',
-    'mark',
   ],
   detailFields: [
     'subtitle',
@@ -172,7 +168,6 @@ export const eventSchemaConfig = {
         item.venue,
         item.address,
         item.caption,
-        item.mark,
         item.web_url,
       ];
 
@@ -207,7 +202,6 @@ export const eventSchemaConfig = {
       { key: "host", fields: ["host"] },
       { key: "support", fields: ["support"] },
       { key: "special_thanks", fields: ["special_thanks"] },
-      { key: "mark", fields: ["mark"] },
       { key: "order", fields: ["order"] },
     ],
     createControlPanelConfig: () => createEventControlPanelConfig(),
@@ -325,11 +319,6 @@ export const createEventControlPanelConfig = () => ({
     {
       field: 'special_thanks',
       label: { cn: '特别感谢', en: 'Special Thanks' },
-      sortFunction: sortAlphabetically,
-    },
-    {
-      field: 'mark',
-      label: { cn: '标记', en: 'Mark' },
       sortFunction: sortAlphabetically,
     },
     {
