@@ -85,7 +85,7 @@ const useClipboard = () => {
       setTimeout(() => setCopied(false), 2000);
       return true;
     } catch (err) {
-      console.error('Failed to copy text:', err);
+      console.log('Failed to copy text:', err);
       return false;
     }
   }, []);

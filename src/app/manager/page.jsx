@@ -196,7 +196,7 @@ export default function ManagerPage() {
 
       setStats(next);
     } catch (err) {
-      console.error("Failed to fetch stats:", err);
+      console.log("Failed to fetch stats:", err);
       if (isMountedRef.current) setError(true);
     } finally {
       if (requestId === requestIdRef.current) {

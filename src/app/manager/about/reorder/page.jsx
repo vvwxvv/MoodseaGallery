@@ -28,7 +28,7 @@ function AboutReorderManager() {
         const data = await response.json();
         setAboutItems(data);
       } catch (err) {
-        console.error('Error fetching about items:', err);
+        console.log('Error fetching about items:', err);
         setError('Failed to load about items. Please try again.');
       } finally {
         setLoading(false);
@@ -80,7 +80,7 @@ function AboutReorderManager() {
         throw new Error(result.error || 'Failed to save order');
       }
     } catch (err) {
-      console.error('Error saving about item order:', err);
+      console.log('Error saving about item order:', err);
       setError('Failed to save order. Please try again.');
     } finally {
       setSaving(false);

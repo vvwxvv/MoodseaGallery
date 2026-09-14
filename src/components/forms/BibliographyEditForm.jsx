@@ -63,7 +63,7 @@ export default function BibliographyEditForm({ item }) {
         console.log('BibliographyEditForm: Submit success:', data);
       }}
       onSubmitError={(error) => {
-        console.error('BibliographyEditForm: Submit error:', error);
+        console.log('BibliographyEditForm: Submit error:', error);
       }}
     >
       {({ form, colors, disabled, getLabel }) => {
@@ -83,7 +83,7 @@ export default function BibliographyEditForm({ item }) {
               title={IMAGE_UPLOAD_CONFIGS.bibliography?.title || "Cover Image"}
               imgUrl={form.watch("cover_img_url")}
               onUploadSuccess={(url) => form.setValue("cover_img_url", url)}
-              onUploadError={(err) => console.error(err)}
+              onUploadError={(err) => console.log(err)}
               disabled={disabled}
               getLabel={getLabel}
               register={() => ({})}

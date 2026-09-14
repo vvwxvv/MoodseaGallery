@@ -80,7 +80,7 @@ export function useSortableData(
         return initialSortOrder === 'desc' ? -compareResult : compareResult;
       });
     } catch (error) {
-      console.error('useSortableData: Error during sorting:', error);
+      console.log('useSortableData: Error during sorting:', error);
       return [...data];
     }
   }, [data, initialSortKey, initialSortOrder, sortConfig]);
@@ -159,7 +159,7 @@ export function useSimpleSort(data, sortKey, sortOrder = 'asc', compareFn) {
         return sortOrder === 'desc' ? -compareResult : compareResult;
       });
     } catch (error) {
-      console.error('useSimpleSort: Error during sorting:', error);
+      console.log('useSimpleSort: Error during sorting:', error);
       return data;
     }
   }, [data, sortKey, sortOrder, compareFn]);

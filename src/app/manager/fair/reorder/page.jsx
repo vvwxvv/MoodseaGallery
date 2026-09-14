@@ -28,7 +28,7 @@ function FairReorderManager() {
         const data = await response.json();
         setFairs(data);
       } catch (err) {
-        console.error('Error fetching fairs:', err);
+        console.log('Error fetching fairs:', err);
         setError('Failed to load fairs. Please try again.');
       } finally {
         setLoading(false);
@@ -77,7 +77,7 @@ function FairReorderManager() {
         throw new Error(result.error || 'Failed to save order');
       }
     } catch (err) {
-      console.error('Error saving fair order:', err);
+      console.log('Error saving fair order:', err);
       setError('Failed to save order. Please try again.');
     } finally {
       setSaving(false);

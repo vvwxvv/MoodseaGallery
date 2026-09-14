@@ -456,7 +456,7 @@ export const imageAPI = {
       
       return await response.json();
     } catch (error) {
-      console.error('Error creating image:', error);
+      console.log('Error creating image:', error);
       throw error;
     }
   },
@@ -475,7 +475,7 @@ export const imageAPI = {
       
       return await response.json();
     } catch (error) {
-      console.error('Error updating image:', error);
+      console.log('Error updating image:', error);
       throw error;
     }
   },
@@ -493,7 +493,7 @@ export const imageAPI = {
       
       return await response.json();
     } catch (error) {
-      console.error('Error deleting image:', error);
+      console.log('Error deleting image:', error);
       throw error;
     }
   },
@@ -521,7 +521,7 @@ export const imageAPI = {
       
       return await response.json();
     } catch (error) {
-      console.error('Error fetching image list:', error);
+      console.log('Error fetching image list:', error);
       throw error;
     }
   },
@@ -539,7 +539,7 @@ export const imageAPI = {
       
       return await response.json();
     } catch (error) {
-      console.error('Error fetching image detail:', error);
+      console.log('Error fetching image detail:', error);
       throw error;
     }
   },
@@ -569,7 +569,7 @@ export const imageAPI = {
       
       return await response.json();
     } catch (error) {
-      console.error('Error uploading file:', error);
+      console.log('Error uploading file:', error);
       throw error;
     }
   },
@@ -588,7 +588,7 @@ export const imageAPI = {
       
       return await response.json();
     } catch (error) {
-      console.error('Error performing bulk operation:', error);
+      console.log('Error performing bulk operation:', error);
       throw error;
     }
   },
@@ -607,7 +607,7 @@ export const imageAPI = {
       
       return await response.json();
     } catch (error) {
-      console.error('Error reordering images:', error);
+      console.log('Error reordering images:', error);
       throw error;
     }
   },
@@ -636,7 +636,7 @@ export const validateImageConfig = () => {
   const missing = requiredFields.filter(field => !imageConfig[field]);
   
   if (missing.length > 0) {
-    console.error(`Missing required configuration fields: ${missing.join(', ')}`);
+    console.log(`Missing required configuration fields: ${missing.join(', ')}`);
     return false;
   }
   

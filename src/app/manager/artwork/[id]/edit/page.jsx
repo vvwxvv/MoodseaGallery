@@ -26,7 +26,7 @@ export default function EditArtworkPage() {
 
   useEffect(() => {
     if (!artworkId) {
-      console.error('[DEBUG EditArtworkPage] ❌ No artworkId from params');
+      console.log('[DEBUG EditArtworkPage] ❌ No artworkId from params');
       setError("No artwork ID provided");
       setIsLoading(false);
       return;
@@ -81,7 +81,7 @@ export default function EditArtworkPage() {
           throw new Error("No artwork data received");
         }
       } catch (error) {
-        console.error('[DEBUG EditArtworkPage] ❌ Error:', error.message);
+        console.log('[DEBUG EditArtworkPage] ❌ Error:', error.message);
         setError(error.message);
       } finally {
         setIsLoading(false);

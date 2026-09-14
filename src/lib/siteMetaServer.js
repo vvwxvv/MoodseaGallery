@@ -47,7 +47,7 @@ export async function getMetaMerged() {
     delete plain._id;
     return mergeSiteMeta(getDefaultSiteMeta(), plain);
   } catch (error) {
-    console.error("[siteMetaServer] getMetaMerged failed:", error);
+    console.log("[siteMetaServer] getMetaMerged failed:", error);
     return getDefaultSiteMeta();
   }
 }

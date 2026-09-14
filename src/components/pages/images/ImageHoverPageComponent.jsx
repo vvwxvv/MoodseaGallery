@@ -143,7 +143,7 @@ export default function ImageHoverPageComponent() {
         setNotice({ type: "ok", text: txt(nextOn ? T.okOn : T.okOff, isCn) });
         refetchImages?.();
       } catch (err) {
-        console.error("[hover image] save failed:", err);
+        console.log("[hover image] save failed:", err);
         setOverrides((prev) => {
           const next = { ...prev };
           delete next[id];

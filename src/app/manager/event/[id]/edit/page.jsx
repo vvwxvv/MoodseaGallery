@@ -26,7 +26,7 @@ export default function EditEventPage({ params }) {
         const data = await response.json();
         setEvent(data); // Set the fetched data
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.log("Error fetching data:", error);
         setError(error.message); // Set the error message
       } finally {
         setIsLoading(false); // Set loading to false

@@ -1287,7 +1287,7 @@ export default function ManagerNav() {
   const { execute: executeSubscribe, isExecuting } = useAsyncAction(handleSubscribe, {
     throttleMs: 1000,
     onSuccess: () => console.log("onSuccess callback"),
-    onError: (err) => console.error("Subscription error:", err),
+    onError: (err) => console.log("Subscription error:", err),
   });
 
   // 如果有其他自定义动作，也可以类似包装

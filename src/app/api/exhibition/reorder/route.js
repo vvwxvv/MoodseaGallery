@@ -42,7 +42,7 @@ export async function POST(request) {
 
     return NextResponse.json({ success: true, updated: orderedIds.length }, { status: 200 });
   } catch (error) {
-    console.error('Error updating exhibition order:', error, error?.message || '');
+    console.log('Error updating exhibition order:', error, error?.message || '');
     return NextResponse.json({ error: 'Failed to update exhibition order.', details: error?.message || error }, { status: 500 });
   }
 }
@@ -57,7 +57,7 @@ export async function GET() {
     const exhibitions = await collection.find().sort({ order: 1 }).toArray();
     return NextResponse.json(exhibitions, { status: 200 });
   } catch (error) {
-    console.error('Failed to fetch exhibitions for reorder:', error);
+    console.log('Failed to fetch exhibitions for reorder:', error);
     return NextResponse.json({ message: 'Failed to fetch exhibitions', error: error.message }, { status: 500 });
   }
 }

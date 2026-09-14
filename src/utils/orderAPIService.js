@@ -33,7 +33,7 @@ function createOrderAPIService(config) {
           console.log(`${schemaName} fetch aborted`);
           return null;
         }
-        console.error(`Failed to fetch ${schemaName}:`, error);
+        console.log(`Failed to fetch ${schemaName}:`, error);
         throw new Error(`Failed to load ${schemaName}. Please check your connection and try again.`);
       }
     }
@@ -62,7 +62,7 @@ function createOrderAPIService(config) {
           console.log(`${schemaName} save aborted`);
           return null;
         }
-        console.error(`Failed to save ${schemaName} order:`, error);
+        console.log(`Failed to save ${schemaName} order:`, error);
         throw new Error(`Failed to save ${schemaName} order. Please try again.`);
       }
     }

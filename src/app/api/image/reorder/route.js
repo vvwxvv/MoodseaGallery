@@ -53,9 +53,13 @@ export async function POST(request) {
         );
       }
     } else if (Array.isArray(reorderedImages) && reorderedImages.length > 0) {
+      // `order` here may arrive as a JSON object (a caller echoing the record
+      // back) — never String() it into "[object Object]"; fall back to index.
       pairs = reorderedImages.map((img, idx) => [
         img._id || img.id,
-        img.order !== undefined && img.order !== null ? String(img.order) : String(idx + 1),
+        typeof img.order === 'string' || typeof img.order === 'number'
+          ? String(img.order)
+          : String(idx + 1),
       ]);
     } else if (Array.isArray(orderedIds) && orderedIds.length > 0) {
       pairs = orderedIds.map((id, idx) => [id, String(idx + 1)]);
@@ -85,6 +89,13 @@ export async function POST(request) {
         if (!merged.artist_page_order) merged.artist_page_order = String(raw);
       }
       mutate(merged);
+      // Never store an object / "[object Object]" as a position.
+      for (const k of Object.keys(merged)) {
+        const v = merged[k];
+        merged[k] = v === null || v === undefined || typeof v === 'object' || String(v).trim() === '[object Object]'
+          ? null
+          : String(v).trim();
+      }
       // No position left anywhere → store null instead of an empty object.
       const hasValue = Object.values(merged).some(
         (v) => v !== null && v !== undefined && String(v).trim() !== ''
@@ -117,7 +128,7 @@ export async function POST(request) {
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
-    console.error('Reorder Error:', error);
+    console.log('Reorder Error:', error);
     return NextResponse.json(
       { message: 'Failed to reorder images', error: error.message },
       { status: 500 }
@@ -150,7 +161,7 @@ export async function GET(request) {
 
     return NextResponse.json(cleanedImages, { status: 200 });
   } catch (error) {
-    console.error('Failed to fetch images for reorder:', error);
+    console.log('Failed to fetch images for reorder:', error);
     return NextResponse.json(
       { message: 'Failed to fetch images', error: error.message },
       { status: 500 }

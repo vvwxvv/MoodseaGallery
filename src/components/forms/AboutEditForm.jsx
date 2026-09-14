@@ -51,7 +51,7 @@ export default function AboutEditForm({ item }) {
         console.log('AboutEditForm: Submit success:', data);
       }}
       onSubmitError={(error) => {
-        console.error('AboutEditForm: Submit error:', error);
+        console.log('AboutEditForm: Submit error:', error);
       }}
     >
       {({ form, colors, disabled, getLabel }) => {
@@ -71,7 +71,7 @@ export default function AboutEditForm({ item }) {
               title={IMAGE_UPLOAD_CONFIGS.about?.title || "Portrait Image"}
               imgUrl={form.watch("portrait_image_url")}
               onUploadSuccess={(url) => form.setValue("portrait_image_url", url)}
-              onUploadError={(err) => console.error(err)}
+              onUploadError={(err) => console.log(err)}
               disabled={disabled}
               getLabel={getLabel}
               register={() => ({})}

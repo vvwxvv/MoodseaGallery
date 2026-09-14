@@ -28,7 +28,7 @@ function WritingReorderManager() {
         const data = await response.json();
         setWritings(data);
       } catch (err) {
-        console.error('Error fetching writings:', err);
+        console.log('Error fetching writings:', err);
         setError('Failed to load writings. Please try again.');
       } finally {
         setLoading(false);
@@ -77,7 +77,7 @@ function WritingReorderManager() {
         throw new Error(result.error || 'Failed to save order');
       }
     } catch (err) {
-      console.error('Error saving writing order:', err);
+      console.log('Error saving writing order:', err);
       setError('Failed to save order. Please try again.');
     } finally {
       setSaving(false);

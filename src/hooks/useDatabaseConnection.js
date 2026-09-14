@@ -52,7 +52,7 @@ export function useDatabaseConnection(config) {
         cachedDb = cachedClient.db(dbName);
         return cachedDb;
       } catch (error) {
-        console.error('MongoDB connection error:', error);
+        console.log('MongoDB connection error:', error);
         throw error;
       }
     };

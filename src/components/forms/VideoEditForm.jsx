@@ -60,7 +60,7 @@ export default function VideoEditForm({ item }) {
         console.log('VideoEditForm: Submit success:', data);
       }}
       onSubmitError={(error) => {
-        console.error('VideoEditForm: Submit error:', error);
+        console.log('VideoEditForm: Submit error:', error);
       }}
     >
       {({ form, colors, disabled, getLabel }) => {
@@ -107,7 +107,7 @@ export default function VideoEditForm({ item }) {
                 title={IMAGE_UPLOAD_CONFIGS.video?.title || (isCn ? "视频" : "Video")}
                 imgUrl={form.watch("video_url")}
                 onUploadSuccess={(url) => form.setValue("video_url", url)}
-                onUploadError={(err) => console.error(err)}
+                onUploadError={(err) => console.log(err)}
                 disabled={disabled}
                 getLabel={getLabel}
                 register={() => ({})}
@@ -140,7 +140,7 @@ export default function VideoEditForm({ item }) {
                 title={IMAGE_UPLOAD_CONFIGS.videoCover?.title || (isCn ? "封面图片" : "Cover Image")}
                 imgUrl={form.watch("cover_img_url")}
                 onUploadSuccess={(url) => form.setValue("cover_img_url", url)}
-                onUploadError={(err) => console.error(err)}
+                onUploadError={(err) => console.log(err)}
                 disabled={disabled}
                 getLabel={getLabel}
                 register={() => ({})}

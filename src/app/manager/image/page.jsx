@@ -95,8 +95,8 @@ export default function ImageSManagerPage() {
         ...imageSchemaConfig.dataConfig,
         // Dedicated drag-and-drop page that orders images within artist groups.
         orderPagePath: "/manager/image/order",
-        // Title-cased shortcut label for that page ("Order Rolling Images").
-        orderPageLabel: { EN: "Order Rolling Images", CN: "轮播图排序" },
+        // Title-cased shortcut label for that page ("Order Images").
+        orderPageLabel: { EN: "Order Images", CN: "图片排序" },
         // Dedicated page that picks each artist's hover image.
         hoverPagePath: "/manager/image/hover",
         hoverPageLabel: { EN: "Hover Image", CN: "悬停图" },

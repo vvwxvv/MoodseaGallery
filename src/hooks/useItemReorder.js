@@ -130,7 +130,7 @@ export default function useItemReorder({ fetchItems, saveItemOrder, idKey = 'id'
     } catch (err) {
       if (isMountedRef.current && err.name !== 'AbortError') {
         setError(err.message);
-        console.error('Save order error:', err);
+        console.log('Save order error:', err);
       }
       return false;
     } finally {

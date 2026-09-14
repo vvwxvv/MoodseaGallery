@@ -73,7 +73,7 @@ export async function GET() {
     const { doc } = await readMetaDoc();
     return noCache({ data: { ...doc, id: String(doc._id) } });
   } catch (error) {
-    console.error("[/api/meta] GET failed:", error);
+    console.log("[/api/meta] GET failed:", error);
     // Never let a DB hiccup break the shell — hand back the JSON defaults.
     return noCache({ data: { ...getDefaultSiteMeta(), id: null }, fallback: true });
   }
@@ -88,7 +88,7 @@ export async function PUT(request) {
     const doc = await updateMetaDoc(patch);
     return noCache({ data: { ...doc, id: String(doc._id) } });
   } catch (error) {
-    console.error("[/api/meta] PUT failed:", error);
+    console.log("[/api/meta] PUT failed:", error);
     return noCache({ error: "Failed to update meta" }, 500);
   }
 }

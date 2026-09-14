@@ -29,7 +29,7 @@ export default function EditImagePage({ params }) {
       const data = await response.json();
       setImage(data);
     } catch (err) {
-      console.error("Error fetching image:", err);
+      console.log("Error fetching image:", err);
       setError(err.message);
     } finally {
       setIsLoading(false);

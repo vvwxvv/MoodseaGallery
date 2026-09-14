@@ -11,7 +11,7 @@ function handleLogout() {
   try {
     return jsonResponse({ message: "Logged out successfully" }, 200, clearAuthCookie());
   } catch (error) {
-    console.error("Error during logout:", error);
+    console.log("Error during logout:", error);
     return jsonResponse(
       { message: "Failed to log out", error: error.message },
       500

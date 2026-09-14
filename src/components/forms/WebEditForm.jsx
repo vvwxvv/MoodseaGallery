@@ -57,7 +57,7 @@ export default function WebEditForm({ item }) {
         console.log('WebEditForm: Submit success:', data);
       }}
       onSubmitError={(error) => {
-        console.error('WebEditForm: Submit error:', error);
+        console.log('WebEditForm: Submit error:', error);
       }}
     >
       {({ form, colors, disabled, getLabel }) => {

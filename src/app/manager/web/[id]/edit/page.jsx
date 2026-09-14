@@ -18,7 +18,7 @@ export default function EditWebPage() {
 
   useEffect(() => {
     if (!webId) {
-      console.error('[DEBUG EditWebPage] ❌ No webId from params');
+      console.log('[DEBUG EditWebPage] ❌ No webId from params');
       setError("No web ID provided");
       setIsLoading(false);
       return;
@@ -58,7 +58,7 @@ export default function EditWebPage() {
           throw new Error("No web data received");
         }
       } catch (error) {
-        console.error('[DEBUG EditWebPage] ❌ Error:', error.message);
+        console.log('[DEBUG EditWebPage] ❌ Error:', error.message);
         setError(error.message);
       } finally {
         setIsLoading(false);

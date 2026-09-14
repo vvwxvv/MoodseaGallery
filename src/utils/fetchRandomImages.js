@@ -1,7 +1,7 @@
 export default function fetchRandomImages(imgItems, count) {
     // Ensure imgItems is an array and is not undefined
     if (!Array.isArray(imgItems)) {
-      console.error("Invalid imgItems: Expected an array but got", typeof imgItems);
+      console.log("Invalid imgItems: Expected an array but got", typeof imgItems);
       return []; // Return an empty array if imgItems is not valid
     }
   

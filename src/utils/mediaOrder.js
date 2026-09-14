@@ -40,6 +40,18 @@ export const emptyOrder = (keys) =>
   keys.reduce((acc, k) => ({ ...acc, [k]: "" }), {});
 
 /**
+ * Coerce a stored/submitted order value into a plain position string.
+ * Objects (including a nested order object) and the "[object Object]" launder
+ * are dropped to "" — an object must never become a stored position.
+ */
+export const orderValueToString = (v) => {
+  if (v === undefined || v === null) return "";
+  if (typeof v === "object") return "";
+  const s = String(v).trim();
+  return s === "[object Object]" ? "" : s;
+};
+
+/**
  * Coerce any stored `order` into a full object for the given keys.
  * - object → filled with the known keys (missing keys become "")
  * - string  → legacy value, copied to every key (keeps old behaviour)
@@ -49,13 +61,13 @@ export const normalizeOrder = (order, keys) => {
   const out = emptyOrder(keys);
   if (isOrderObject(order)) {
     for (const k of keys) {
-      const v = order[k];
-      out[k] = v === undefined || v === null ? "" : String(v);
+      out[k] = orderValueToString(order[k]);
     }
     return out;
   }
   if (typeof order === "string" && order.trim() !== "") {
-    for (const k of keys) out[k] = order;
+    const v = orderValueToString(order);
+    for (const k of keys) out[k] = v;
     return out;
   }
   return out;
@@ -65,10 +77,9 @@ export const normalizeOrder = (order, keys) => {
 export const getOrder = (record, key) => {
   const order = record?.order;
   if (isOrderObject(order)) {
-    const v = order[key];
-    return v === undefined || v === null ? "" : String(v);
+    return orderValueToString(order[key]);
   }
-  return typeof order === "string" ? order : ""; // legacy string
+  return typeof order === "string" ? orderValueToString(order) : ""; // legacy string
 };
 
 /** Numeric sort value; missing / non-numeric → 0. */

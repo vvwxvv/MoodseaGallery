@@ -28,7 +28,7 @@ const ThemeInitializer = () => {
           root.style.setProperty('--text-primary', '#000000');
         }
       } catch (error) {
-        console.error('Theme initialization error:', error);
+        console.log('Theme initialization error:', error);
       }
     };
 

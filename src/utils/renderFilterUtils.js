@@ -343,7 +343,7 @@ const createFallbackOnChange = (field, filterHandlers, filterValues) => {
         resetOtherFilters(setterKey, otherSetters, filterValues);
       }
     } else {
-      console.error(`No setter found for ${field}. Available:`, Object.keys(filterHandlers));
+      console.log(`No setter found for ${field}. Available:`, Object.keys(filterHandlers));
     }
   };
 };
@@ -362,7 +362,7 @@ export const renderFilter = (
   const { field, label, colors } = filterConfig;
 
   if (!filterHandlers || typeof filterHandlers !== 'object') {
-    console.error('[renderFilter] filterHandlers is invalid:', filterHandlers);
+    console.log('[renderFilter] filterHandlers is invalid:', filterHandlers);
     return null;
   }
 
@@ -539,12 +539,12 @@ export const renderFilters = ({
   isArtistweb = false
 }) => {
   if (!filterHandlers || typeof filterHandlers !== 'object') {
-    console.error('[renderFilters] filterHandlers is invalid:', filterHandlers);
+    console.log('[renderFilters] filterHandlers is invalid:', filterHandlers);
     return <div>Error: Filter handlers not available</div>;
   }
 
   if (!controlPanelConfig) {
-    console.error('[renderFilters] controlPanelConfig is missing');
+    console.log('[renderFilters] controlPanelConfig is missing');
     return <div>Error: Control panel configuration not available</div>;
   }
 

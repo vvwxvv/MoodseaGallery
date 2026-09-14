@@ -56,7 +56,7 @@ export const LanguageProvider = ({ children }) => {
       try {
         listener(newIsCn);
       } catch (err) {
-        console.error("Error notifying language listener:", err);
+        console.log("Error notifying language listener:", err);
       }
     });
 

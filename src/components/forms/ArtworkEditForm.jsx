@@ -68,7 +68,7 @@ export default function ArtworkEditForm({ item }) {
         console.log('ArtworkEditForm: Submit success:', data);
       }}
       onSubmitError={(error) => {
-        console.error('ArtworkEditForm: Submit error:', error);
+        console.log('ArtworkEditForm: Submit error:', error);
       }}
     >
       {({ form, colors, disabled, getLabel }) => {
@@ -88,7 +88,7 @@ export default function ArtworkEditForm({ item }) {
               title={IMAGE_UPLOAD_CONFIGS.artwork?.title || "Cover Image"}
               imgUrl={form.watch("cover_img_url")}
               onUploadSuccess={(url) => form.setValue("cover_img_url", url)}
-              onUploadError={(err) => console.error(err)}
+              onUploadError={(err) => console.log(err)}
               disabled={disabled}
               getLabel={getLabel}
               register={() => ({})}

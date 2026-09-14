@@ -61,7 +61,7 @@ export default function ImageEditForm({ item, relatedData = {} }) {
           [form]
         );
         const handleUploadError = useCallback(
-          (err) => console.error("[ImageEditForm] upload error:", err),
+          (err) => console.log("[ImageEditForm] upload error:", err),
           []
         );
 

@@ -218,7 +218,7 @@ export default function BatchEditLayout({
       setOriginalData(JSON.parse(JSON.stringify(normalizedData)));
       setHasNewRows(false);
     } catch (err) {
-      console.error("Fetch error:", err);
+      console.log("Fetch error:", err);
       setError(err.message || (isCn ? "数据加载失败" : "Failed to load data"));
       setData([]);
     } finally {
@@ -429,7 +429,7 @@ export default function BatchEditLayout({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(itemData),
         });
-        if (!response.ok) console.error("Failed to create item:", await response.text());
+        if (!response.ok) console.log("Failed to create item:", await response.text());
       }
 
       if (existingItems.length > 0) {
@@ -439,7 +439,7 @@ export default function BatchEditLayout({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(formattedItems),
         });
-        if (!response.ok) console.error("Failed to update items:", await response.text());
+        if (!response.ok) console.log("Failed to update items:", await response.text());
       }
 
       await fetchData();
@@ -447,7 +447,7 @@ export default function BatchEditLayout({
       setSelectedLetter(ALPHABET_FILTER_VALUES.ALL);
       setSnackbar({ open: true, message: getLabel("saveSuccess") || t.SAVE_SUCCESS, severity: "success" });
     } catch (err) {
-      console.error("Save error:", err);
+      console.log("Save error:", err);
       setSnackbar({ open: true, message: err.message || getLabel("saveFailed") || t.SAVE_FAILED, severity: "error" });
     } finally {
       setIsSaving(false);
@@ -482,7 +482,7 @@ export default function BatchEditLayout({
       setHasChanges(checkForChanges(updatedData, updatedOriginal));
       setSnackbar({ open: true, message: t.DELETE_SUCCESS_TEMPLATE(deletedCount), severity: "success" });
     } catch (err) {
-      console.error("Delete error:", err);
+      console.log("Delete error:", err);
       setSnackbar({ open: true, message: err.message || t.DELETE_FAILED, severity: "error" });
     } finally {
       setIsSaving(false);

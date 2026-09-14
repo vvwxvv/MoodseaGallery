@@ -37,7 +37,7 @@ class AuthLogin {
         token: data.token,
       };
     } catch (error) {
-      console.error("Login error:", error);
+      console.log("Login error:", error);
       return {
         success: false,
         errors: "Unable to connect to the server.",
@@ -80,7 +80,7 @@ class AuthLogin {
         user: data.user,
       };
     } catch (error) {
-      console.error("Verification error:", error);
+      console.log("Verification error:", error);
       this.clearAuthCookies();
       return { isLoggedIn: false, user: null };
     }
@@ -111,7 +111,7 @@ class AuthLogin {
       this.clearAuthCookies();
       return response.ok;
     } catch (error) {
-      console.error("Logout error:", error);
+      console.log("Logout error:", error);
       this.clearAuthCookies();
       return false;
     }
@@ -151,7 +151,7 @@ class AuthLogin {
 
       return data.token;
     } catch (error) {
-      console.error("Token renewal error:", error);
+      console.log("Token renewal error:", error);
       this.clearAuthCookies();
       return null;
     }

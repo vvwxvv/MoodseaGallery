@@ -60,7 +60,7 @@ export default function EnquireEditForm({ item }) {
         console.log("EnquireEditForm: Submit success:", data);
       }}
       onSubmitError={(error) => {
-        console.error("EnquireEditForm: Submit error:", error);
+        console.log("EnquireEditForm: Submit error:", error);
       }}
     >
       {({ form, colors, disabled, getLabel }) => {

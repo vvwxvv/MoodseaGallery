@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
       .map(([key]) => key);
 
     if (missingEnvVars.length > 0) {
-      console.error('Missing environment variables:', missingEnvVars);
+      console.log('Missing environment variables:', missingEnvVars);
       const response = NextResponse.json({ 
         error: 'Server configuration error', 
         details: `Missing environment variables: ${missingEnvVars.join(', ')}`,
@@ -120,12 +120,12 @@ export async function POST(req: NextRequest) {
     return addCorsHeaders(response);
 
   } catch (error) {
-    console.error('Upload error:', error);
+    console.log('Upload error:', error);
     
     // More detailed error logging
     if (error instanceof Error) {
-      console.error('Error message:', error.message);
-      console.error('Error stack:', error.stack);
+      console.log('Error message:', error.message);
+      console.log('Error stack:', error.stack);
     }
     
     const response = NextResponse.json({ 
@@ -162,7 +162,7 @@ export async function GET(req: NextRequest) {
     
     return addCorsHeaders(response);
   } catch (error) {
-    console.error('Health check error:', error);
+    console.log('Health check error:', error);
     const response = NextResponse.json(
       { error: 'Health check failed', details: error instanceof Error ? error.message : 'Unknown error' }, 
       { status: 500 }

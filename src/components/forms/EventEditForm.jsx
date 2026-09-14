@@ -62,7 +62,7 @@ export default function EventEditForm({ item }) {
         console.log('EventEditForm: Submit success:', data);
       }}
       onSubmitError={(error) => {
-        console.error('EventEditForm: Submit error:', error);
+        console.log('EventEditForm: Submit error:', error);
       }}
     >
       {({ form, colors, disabled, getLabel }) => {
@@ -82,7 +82,7 @@ export default function EventEditForm({ item }) {
               title={IMAGE_UPLOAD_CONFIGS.event?.title || "Cover Image"}
               imgUrl={form.watch("cover_img_url")}
               onUploadSuccess={(url) => form.setValue("cover_img_url", url)}
-              onUploadError={(err) => console.error(err)}
+              onUploadError={(err) => console.log(err)}
               disabled={disabled}
               getLabel={getLabel}
               register={() => ({})}

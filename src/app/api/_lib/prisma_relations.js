@@ -24,7 +24,7 @@ function supportsRelatedWebs(collection) {
 export async function updateMediaReferences(collection, id, relatedWebs = []) {
   // Validate input parameters
   if (!collection || !id) {
-    console.error('Missing required parameters: collection and id are required');
+    console.log('Missing required parameters: collection and id are required');
     return;
   }
 
@@ -36,7 +36,7 @@ export async function updateMediaReferences(collection, id, relatedWebs = []) {
 
   // Validate relatedWebs is an array
   if (!Array.isArray(relatedWebs)) {
-    console.error('relatedWebs must be an array');
+    console.log('relatedWebs must be an array');
     return;
   }
 
@@ -48,7 +48,7 @@ export async function updateMediaReferences(collection, id, relatedWebs = []) {
     const repo = prisma[collectionName]; // prisma.artwork or prisma.event
     
     if (!repo) {
-      console.error(`Repository not found for collection: ${collection}`);
+      console.log(`Repository not found for collection: ${collection}`);
       await prisma.$disconnect();
       return;
     }
@@ -61,7 +61,7 @@ export async function updateMediaReferences(collection, id, relatedWebs = []) {
     await prisma.$disconnect();
     console.log(`Successfully updated relatedWebs for ${collection} ${id}`);
   } catch (error) {
-    console.error(`Error updating media references for ${collection}:`, error);
+    console.log(`Error updating media references for ${collection}:`, error);
     throw error;
   }
 }
@@ -117,7 +117,7 @@ export async function populateRelations(collection, docs) {
     await prisma.$disconnect();
     return isArray ? populated : populated[0];
   } catch (error) {
-    console.error(`Error populating relations for ${collection}:`, error);
+    console.log(`Error populating relations for ${collection}:`, error);
     return docs; // Return original docs on error
   }
 }
@@ -144,7 +144,7 @@ export async function cleanupReferences(collection, id) {
     const repo = prisma[collectionName];
     
     if (!repo) {
-      console.error(`Repository not found for collection: ${collection}`);
+      console.log(`Repository not found for collection: ${collection}`);
       await prisma.$disconnect();
       return;
     }
@@ -157,7 +157,7 @@ export async function cleanupReferences(collection, id) {
     await prisma.$disconnect();
     console.log(`Successfully cleaned up references for ${collection} ${id}`);
   } catch (error) {
-    console.error(`Error cleaning up references for ${collection}:`, error);
+    console.log(`Error cleaning up references for ${collection}:`, error);
     throw error;
   }
 }
@@ -194,7 +194,7 @@ export async function validateRelationIds(data) {
     await prisma.$disconnect();
     return { valid: errors.length === 0, errors };
   } catch (error) {
-    console.error('Error validating relation IDs:', error);
+    console.log('Error validating relation IDs:', error);
     return { valid: false, errors: ['Validation error'] };
   }
 }

@@ -599,7 +599,7 @@ export default function LogoImgNav() {
       setShowNewsletter(true);
     },
     onError: (err) => {
-      console.error("Subscription error:", err);
+      console.log("Subscription error:", err);
       // 可显示错误提示
     },
   });

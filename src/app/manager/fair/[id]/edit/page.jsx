@@ -18,7 +18,7 @@ export default function EditFairPage() {
 
   useEffect(() => {
     if (!fairId) {
-      console.error('[DEBUG EditFairPage] ❌ No fairId from params');
+      console.log('[DEBUG EditFairPage] ❌ No fairId from params');
       setError("No fair ID provided");
       setIsLoading(false);
       return;
@@ -58,7 +58,7 @@ export default function EditFairPage() {
           throw new Error("No fair data received");
         }
       } catch (error) {
-        console.error('[DEBUG EditFairPage] ❌ Error:', error.message);
+        console.log('[DEBUG EditFairPage] ❌ Error:', error.message);
         setError(error.message);
       } finally {
         setIsLoading(false);

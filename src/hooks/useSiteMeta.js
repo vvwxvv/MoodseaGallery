@@ -31,7 +31,7 @@ export default function useSiteMeta() {
       }
       setError(null);
     } catch (err) {
-      console.error("[useSiteMeta] load failed:", err);
+      console.log("[useSiteMeta] load failed:", err);
       setError(err);
     } finally {
       setLoading(false);

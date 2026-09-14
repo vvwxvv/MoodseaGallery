@@ -28,7 +28,7 @@ function BibliographyReorderManager() {
         const data = await response.json();
         setBibliographyItems(data);
       } catch (err) {
-        console.error('Error fetching bibliography items:', err);
+        console.log('Error fetching bibliography items:', err);
         setError('Failed to load bibliography items. Please try again.');
       } finally {
         setLoading(false);
@@ -79,7 +79,7 @@ function BibliographyReorderManager() {
         throw new Error(result.error || 'Failed to save order');
       }
     } catch (err) {
-      console.error('Error saving bibliography item order:', err);
+      console.log('Error saving bibliography item order:', err);
       setError('Failed to save order. Please try again.');
     } finally {
       setSaving(false);

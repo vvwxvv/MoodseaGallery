@@ -18,7 +18,7 @@ export default function EditWritingPage() {
 
   useEffect(() => {
     if (!writingId) {
-      console.error('[DEBUG EditWritingPage] ❌ No writingId from params');
+      console.log('[DEBUG EditWritingPage] ❌ No writingId from params');
       setError("No writing ID provided");
       setIsLoading(false);
       return;
@@ -58,7 +58,7 @@ export default function EditWritingPage() {
           throw new Error("No writing data received");
         }
       } catch (error) {
-        console.error('[DEBUG EditWritingPage] ❌ Error:', error.message);
+        console.log('[DEBUG EditWritingPage] ❌ Error:', error.message);
         setError(error.message);
       } finally {
         setIsLoading(false);

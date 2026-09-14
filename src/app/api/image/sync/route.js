@@ -98,7 +98,7 @@ export async function POST(request) {
       addedUrls,
     });
   } catch (error) {
-    console.error('[image/sync] failed:', error);
+    console.log('[image/sync] failed:', error);
     return NextResponse.json(
       { ok: false, message: error?.message || 'Sync failed' },
       { status: 500 }

@@ -26,7 +26,7 @@ async function connectDB() {
     cachedDb = cachedClient.db(dbName);
     return cachedDb;
   } catch (error) {
-    console.error('MongoDB connection error:', error);
+    console.log('MongoDB connection error:', error);
     throw error;
   }
 }
@@ -131,7 +131,7 @@ export async function PUT(request) {
     });
 
   } catch (error) {
-    console.error('Batch update error:', error);
+    console.log('Batch update error:', error);
     return NextResponse.json(
       { error: 'Failed to perform batch update', details: error.message },
       { status: 500 }

@@ -31,7 +31,7 @@ export function createFilterHandlers(setFilters, config = {}) {
         };
       });
     } catch (error) {
-      console.error('Filter change failed:', error);
+      console.log('Filter change failed:', error);
     }
   };
 
@@ -42,7 +42,7 @@ export function createFilterHandlers(setFilters, config = {}) {
         searchTerm: String(value || '').trim(),
       }));
     } catch (error) {
-      console.error('Search change failed:', error);
+      console.log('Search change failed:', error);
     }
   };
 
@@ -58,7 +58,7 @@ export function createFilterHandlers(setFilters, config = {}) {
         return newState;
       });
     } catch (error) {
-      console.error('Toggle sold only failed:', error);
+      console.log('Toggle sold only failed:', error);
     }
   };
 
@@ -75,7 +75,7 @@ export function createFilterHandlers(setFilters, config = {}) {
         showSoldOnly: false,
       });
     } catch (error) {
-      console.error('Clear filters failed:', error);
+      console.log('Clear filters failed:', error);
     }
   };
 

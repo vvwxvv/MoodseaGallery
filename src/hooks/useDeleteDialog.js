@@ -7,14 +7,14 @@ export default function useDeleteDialog(deleteItem, setError, itemUrl) {
   const handleDeleteClick = useCallback((item) => {
     
     if (!item) {
-      console.error("Delete clicked with undefined/null item:", item);
+      console.log("Delete clicked with undefined/null item:", item);
       setError('Invalid item provided');
       return;
     }
     
     const itemId = item._id || item.id;
     if (!itemId) {
-      console.error("Delete clicked with item missing _id and id:", item);
+      console.log("Delete clicked with item missing _id and id:", item);
       setError('Invalid ID provided');
       return;
     }
@@ -28,7 +28,7 @@ export default function useDeleteDialog(deleteItem, setError, itemUrl) {
 
   const handleDeleteConfirm = useCallback(async () => {
     if (!openDialogItem || !openDialogItem._id) {
-      console.error("Delete confirm called with invalid item:", openDialogItem);
+      console.log("Delete confirm called with invalid item:", openDialogItem);
       setError('Invalid ID provided');
       return;
     }
@@ -42,7 +42,7 @@ export default function useDeleteDialog(deleteItem, setError, itemUrl) {
         triggerDataRefresh(itemUrl);
       }
     } catch (error) {
-      console.error("Delete operation failed:", error);
+      console.log("Delete operation failed:", error);
       // Don't close dialog on error, let user try again
     }
   }, [openDialogItem, deleteItem, setError, itemUrl]);

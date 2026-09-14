@@ -40,7 +40,7 @@ export default function EnquirePopup({ isOpen, onClose, artwork, isCn, fontFamil
       });
 
       if (!response.ok) {
-        console.error("Submission failed with status: ", response.status);
+        console.log("Submission failed with status: ", response.status);
         setStatus("error");
         return;
       }
@@ -52,7 +52,7 @@ export default function EnquirePopup({ isOpen, onClose, artwork, isCn, fontFamil
         onClose();
       }, 2000);
     } catch (err) {
-      console.error("Fetch error during submission: ", err);
+      console.log("Fetch error during submission: ", err);
       setStatus("error");
     }
   };

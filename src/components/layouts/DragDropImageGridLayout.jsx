@@ -129,7 +129,7 @@ export const DragDropImageGridLayout = ({ images = [], onDragEnd, isCn = false }
         }
       });
     } catch (error) {
-      console.error('Error in drag end handler:', error);
+      console.log('Error in drag end handler:', error);
     }
   }, [images, onDragEnd, safeSetState]);
 

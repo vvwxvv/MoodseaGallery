@@ -64,7 +64,7 @@ const SingleRelationSelector = ({
           throw new Error(`Unexpected response format: ${JSON.stringify(responseData)}`);
         }
       } catch (err) {
-        console.error(`Error fetching ${collectionType}:`, err);
+        console.log(`Error fetching ${collectionType}:`, err);
         setError(err.message);
         setOptions([]);
       } finally {

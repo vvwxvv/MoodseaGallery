@@ -407,7 +407,7 @@ export default function MainNav() {
     async () => {
       console.log("Link clicked – async action triggered");
     },
-    { throttleMs: 0, onSuccess: () => {}, onError: (err) => console.error(err) }
+    { throttleMs: 0, onSuccess: () => {}, onError: (err) => console.log(err) }
   );
 
   const isHome = pathname === "/";

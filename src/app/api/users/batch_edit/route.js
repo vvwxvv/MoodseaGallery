@@ -106,7 +106,7 @@ export async function PUT(request) {
     });
 
   } catch (error) {
-    console.error('Batch update error:', error);
+    console.log('Batch update error:', error);
     return NextResponse.json(
       { error: 'Failed to perform batch update', details: error.message },
       { status: 500 }

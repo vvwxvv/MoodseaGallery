@@ -251,7 +251,7 @@ export function createApiHandler(config) {
 
       return NextResponse.json(buildPaginationResponse(mappedData, page, limit, total), { status: 200 });
     } catch (error) {
-      console.error(`[${CONFIG.collectionName} GET] Error:`, error.message);
+      console.log(`[${CONFIG.collectionName} GET] Error:`, error.message);
       return NextResponse.json(
         { message: 'Failed to fetch data', error: error.message },
         { status: 500 }
@@ -333,7 +333,7 @@ export function createApiHandler(config) {
         try {
           await CONFIG.afterCreate(sanitized, insertResult);
         } catch (hookError) {
-          console.error(`[${CONFIG.collectionName} POST] afterCreate hook error:`, hookError.message);
+          console.log(`[${CONFIG.collectionName} POST] afterCreate hook error:`, hookError.message);
         }
       }
 
@@ -347,7 +347,7 @@ export function createApiHandler(config) {
         { status: 201 }
       );
     } catch (error) {
-      console.error(`[${CONFIG.collectionName} POST] Error:`, error.message);
+      console.log(`[${CONFIG.collectionName} POST] Error:`, error.message);
 
       if (error.code === 11000) {
         return NextResponse.json(
@@ -463,7 +463,7 @@ export function createApiHandler(config) {
         try {
           await CONFIG.afterUpdate(id, updateData, result);
         } catch (hookError) {
-          console.error(`[${CONFIG.collectionName} PUT] afterUpdate hook error:`, hookError.message);
+          console.log(`[${CONFIG.collectionName} PUT] afterUpdate hook error:`, hookError.message);
         }
       }
 
@@ -486,7 +486,7 @@ export function createApiHandler(config) {
         }
       );
     } catch (error) {
-      console.error(`[${CONFIG.collectionName} PUT] Error:`, error.message);
+      console.log(`[${CONFIG.collectionName} PUT] Error:`, error.message);
       return NextResponse.json(
         { message: 'Failed to update', error: error.message },
         { status: 500 }
@@ -552,7 +552,7 @@ export function createApiHandler(config) {
 
       return NextResponse.json({ message: 'ID or IDs parameter required' }, { status: 400 });
     } catch (error) {
-      console.error(`[${CONFIG.collectionName} DELETE] Error:`, error.message);
+      console.log(`[${CONFIG.collectionName} DELETE] Error:`, error.message);
       return NextResponse.json(
         { message: 'Failed to delete', error: error.message },
         { status: 500 }

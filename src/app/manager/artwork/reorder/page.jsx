@@ -28,7 +28,7 @@ function ArtworkReorderManager() {
         const data = await response.json();
         setArtworks(data);
       } catch (err) {
-        console.error('Error fetching artworks:', err);
+        console.log('Error fetching artworks:', err);
         setError('Failed to load artworks. Please try again.');
       } finally {
         setLoading(false);
@@ -80,7 +80,7 @@ function ArtworkReorderManager() {
         throw new Error(result.error || 'Failed to save order');
       }
     } catch (err) {
-      console.error('Error saving artwork order:', err);
+      console.log('Error saving artwork order:', err);
       setError('Failed to save order. Please try again.');
     } finally {
       setSaving(false);

@@ -36,7 +36,7 @@ export default function useRelatedSchemaData(sources = {}) {
       } else {
         data[key] = [];
         errors[key] = res.reason;
-        console.error(`[useRelatedSchemaData] "${key}" failed:`, res.reason);
+        console.log(`[useRelatedSchemaData] "${key}" failed:`, res.reason);
       }
     });
 

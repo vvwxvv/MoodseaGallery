@@ -50,7 +50,7 @@ const useFetchData = (fetchItems, fetchMediaclusterItems = null) => {
           setVideos([]);
         }
       } catch (err) {
-        console.error("Error fetching data:", err);
+        console.log("Error fetching data:", err);
         setError(err.message || "An error occurred while fetching data");
       } finally {
         setIsLoading(false);

@@ -164,7 +164,7 @@ const useDataAPI = ({ apiEndpoint, normalizeRow, entityName, useBatchEditEndpoin
 
       return dataArray.map(normalizeRow);
     } catch (err) {
-      console.error("Fetch error:", err);
+      console.log("Fetch error:", err);
       setError(err.message || "Failed to load data");
       return [];
     } finally {
@@ -590,7 +590,7 @@ export default function BatchEditManagerShell({ config }) {
         severity: "success",
       });
     } catch (err) {
-      console.error("Save error:", err);
+      console.log("Save error:", err);
       uiState.setSnackbar({
         open: true,
         message: err.message || getLabel("saveFailed"),
@@ -649,7 +649,7 @@ export default function BatchEditManagerShell({ config }) {
         severity: "success",
       });
     } catch (err) {
-      console.error("Delete error:", err);
+      console.log("Delete error:", err);
       uiState.setSnackbar({
         open: true,
         message: err.message || (isCn ? "删除项目失败" : "Failed to delete items"),

@@ -18,7 +18,7 @@ export default function EditExhibitionPage() {
 
   useEffect(() => {
     if (!exhibitionId) {
-      console.error('[DEBUG EditExhibitionPage] ❌ No exhibitionId from params');
+      console.log('[DEBUG EditExhibitionPage] ❌ No exhibitionId from params');
       setError("No exhibition ID provided");
       setIsLoading(false);
       return;
@@ -58,7 +58,7 @@ export default function EditExhibitionPage() {
           throw new Error("No exhibition data received");
         }
       } catch (error) {
-        console.error('[DEBUG EditExhibitionPage] ❌ Error:', error.message);
+        console.log('[DEBUG EditExhibitionPage] ❌ Error:', error.message);
         setError(error.message);
       } finally {
         setIsLoading(false);

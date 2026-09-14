@@ -76,7 +76,7 @@ const ImageViewer = ({ img_url, caption, onLoadingChange, style, enableGifRestar
       (url.startsWith("/") || url.startsWith("http://") || url.startsWith("https://"))
     );
     if (!isValid) {
-      console.error('[ImageViewer] Invalid image URL:', url);
+      console.log('[ImageViewer] Invalid image URL:', url);
     }
     return isValid;
   };
@@ -90,7 +90,7 @@ const ImageViewer = ({ img_url, caption, onLoadingChange, style, enableGifRestar
 
   const handleImageError = () => {
     if (process.env.NODE_ENV !== 'production') {
-      console.error('[ImageViewer] Image failed to load:', img_url, '| imageSrc:', imageSrc);
+      console.log('[ImageViewer] Image failed to load:', img_url, '| imageSrc:', imageSrc);
     }
     setError(true);
     setShowErrorAlert(true);

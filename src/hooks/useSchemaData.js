@@ -44,7 +44,7 @@ export default function useSchemaData(config) {
 
   // Enhanced delete error callback
   const handleDeleteError = useCallback((err, id) => {
-    console.error(`Failed to delete item with id: ${id}`, err);
+    console.log(`Failed to delete item with id: ${id}`, err);
     setError(err?.message || 'Failed to delete item');
     refetch();
   }, [setError, refetch]);

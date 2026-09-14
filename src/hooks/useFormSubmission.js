@@ -123,11 +123,11 @@ export const useFormSubmission = (form, formState, getLabel, config) => {
           window.location.href = `/manager/${config.itemUrl}`;
         }, 1500);
       } else {
-        console.error('[useFormSubmission] Server rejected submission:', result);
+        console.log('[useFormSubmission] Server rejected submission:', result);
         formState.setError(result.message || getLabel("errorMessage"));
       }
     } catch (error) {
-      console.error('[useFormSubmission] Submit threw:', error);
+      console.log('[useFormSubmission] Submit threw:', error);
       formState.setError(getLabel("submissionErrorMessage"));
     } finally {
       formState.setLoading(false);

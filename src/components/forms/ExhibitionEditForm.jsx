@@ -79,7 +79,7 @@ export default function ExhibitionEditForm({ item }) {
         console.log('ExhibitionEditForm: Submit success:', data);
       }}
       onSubmitError={(error) => {
-        console.error('ExhibitionEditForm: Submit error:', error);
+        console.log('ExhibitionEditForm: Submit error:', error);
       }}
     >
       {({ form, colors, disabled, getLabel }) => {
@@ -99,7 +99,7 @@ export default function ExhibitionEditForm({ item }) {
               title={IMAGE_UPLOAD_CONFIGS.exhibition?.title || "Cover Image"}
               imgUrl={form.watch("cover_img_url")}
               onUploadSuccess={(url) => form.setValue("cover_img_url", url)}
-              onUploadError={(err) => console.error(err)}
+              onUploadError={(err) => console.log(err)}
               disabled={disabled}
               getLabel={getLabel}
               register={() => ({})}

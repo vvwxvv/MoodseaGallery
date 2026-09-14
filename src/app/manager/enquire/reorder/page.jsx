@@ -28,7 +28,7 @@ function EnquireReorderManager() {
         const data = await response.json();
         setEnquiries(data);
       } catch (err) {
-        console.error('Error fetching enquiries:', err);
+        console.log('Error fetching enquiries:', err);
         setError('Failed to load enquiries. Please try again.');
       } finally {
         setLoading(false);
@@ -80,7 +80,7 @@ function EnquireReorderManager() {
         throw new Error(result.error || 'Failed to save order');
       }
     } catch (err) {
-      console.error('Error saving enquiry order:', err);
+      console.log('Error saving enquiry order:', err);
       setError('Failed to save order. Please try again.');
     } finally {
       setSaving(false);

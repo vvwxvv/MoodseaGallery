@@ -291,7 +291,7 @@ export const validateEventConfig = () => {
   const requiredFields = ['itemUrl', 'api', 'fields', 'components', 'labels'];
   const missing = requiredFields.filter(field => !eventConfig[field]);
   if (missing.length > 0) {
-    console.error(`Missing required configuration fields: ${missing.join(', ')}`);
+    console.log(`Missing required configuration fields: ${missing.join(', ')}`);
     return false;
   }
   return true;
@@ -359,7 +359,7 @@ export const eventAPI = {
       if (data.events) return data.events;
       return data;
     } catch (error) {
-      console.error('Error fetching event list:', error);
+      console.log('Error fetching event list:', error);
       return [];
     }
   },
@@ -436,7 +436,7 @@ export const getMatchedImageUrl = (event, events) => {
     const matched = events.find(ev => ev.title === event.title);
     return matched ? matched.cover_img_url : null;
   } catch (error) {
-    console.error('Error matching image URL:', error);
+    console.log('Error matching image URL:', error);
     return null;
   }
 };

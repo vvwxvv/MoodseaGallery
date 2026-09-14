@@ -56,7 +56,7 @@ const ThemeSwitcher = ({ className = '', size = 'normal', style = {} }) => {
       document.documentElement.setAttribute('data-theme', newTheme);
       document.documentElement.classList.toggle('dark', newTheme === 'dark');
     } catch (error) {
-      console.error('Theme toggle error:', error);
+      console.log('Theme toggle error:', error);
     }
   };
 

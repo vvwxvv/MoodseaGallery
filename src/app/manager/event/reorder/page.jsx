@@ -28,7 +28,7 @@ function EventReorderManager() {
         const data = await response.json();
         setEvents(data);
       } catch (err) {
-        console.error('Error fetching events:', err);
+        console.log('Error fetching events:', err);
         setError('Failed to load events. Please try again.');
       } finally {
         setLoading(false);
@@ -80,7 +80,7 @@ function EventReorderManager() {
         throw new Error(result.error || 'Failed to save order');
       }
     } catch (err) {
-      console.error('Error saving event order:', err);
+      console.log('Error saving event order:', err);
       setError('Failed to save order. Please try again.');
     } finally {
       setSaving(false);

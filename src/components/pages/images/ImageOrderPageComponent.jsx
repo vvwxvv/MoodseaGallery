@@ -36,12 +36,15 @@ import {
   isHiddenInArtistRollingImage,
   IMAGE_MARK_HIDE_ARTIST_ROLLING_LABEL,
   applyMark,
+  hideLabelForOrderKey,
+  hideTokenForOrderKey,
+  isMarkHidden,
   HIDE_ARTIST_ROLLING_IMAGE,
   MARK_FLAG_ARTIST_HOVER_IMAGE,
   MARK_FLAG_LABELS,
   isMarkFlagged,
 } from "@/utils/mediaMarks";
-import { normalizeImageOrder, getOrder } from "@/utils/mediaOrder";
+import { IMAGE_ORDER_KEYS, ORDER_KEY_LABELS, normalizeImageOrder, getOrder } from "@/utils/mediaOrder";
 import { ARTIST_ROLLING_ORDER_KEY } from "@/components/pages/artists/hooks/useArtistRollingImages";
 import LoadingLayer from "@/components/animations/LoadingLayer";
 import AlertInfo from "@/components/alerts/AlertInfo";
@@ -49,9 +52,10 @@ import AlertInfo from "@/components/alerts/AlertInfo";
 // ─────────────────────────────────────────────────────────────────────────────
 //  CONFIG
 // ─────────────────────────────────────────────────────────────────────────────
-// Only the rolling-image order is edited here; ordering happens *within* each
-// artist group (the groups themselves are ordered by artist name).
-const ORDER_KEY = "rolling_img_order";
+// Which `order` sub-key is edited by default. An image can hold one position
+// per page (artist / exhibition / art-fair page) PLUS the artist rolling
+// order — the toolbar switches between them.
+const ORDER_KEY_DEFAULT = ARTIST_ROLLING_ORDER_KEY;
 
 // Sub-group id for one source inside an artist box: artist\u001fkind\u001ftitle
 const SOURCE_UNGROUPED = "__ungrouped__";
@@ -59,10 +63,10 @@ const SOURCE_UNGROUPED = "__ungrouped__";
 const idOf = (item) => item?.id || item?._id;
 
 const T = {
-  title: { en: "Order Rolling Images", cn: "轮播图排序" },
+  title: { en: "Order Images", cn: "图片排序" },
   subtitle: {
-    en: "Images are grouped by artist — exhibitions, fairs and works sit in their own box inside the artist. Drag to arrange each box; hidden images drop to the bottom, half size, under the dashed line.",
-    cn: "图片按艺术家分组，展览 / 艺博会 / 作品各自一个小盒。拖动排序；隐藏的图片会缩到一半并统一放在虚线下方。",
+    en: "Pick the order you are editing, then drag the cards. Images are grouped by artist — each exhibition, fair or work sits in its own box; hidden images drop to the bottom, half size, under the dashed line.",
+    cn: "选择要编辑的排序，然后拖动卡片。图片按艺术家分组，展览 / 艺博会 / 作品各自一个小盒；隐藏的图片缩小一半，统一放在虚线下方。",
   },
   dragHint: { en: "Drag cards to reorder", cn: "拖动卡片排序" },
   save: { en: "Save Order", cn: "保存排序" },
@@ -635,6 +639,12 @@ export default function ImageOrderPageComponent() {
   const [listMode, setListMode] = useState(false);
   const [thumbWidth, setThumbWidth] = useState(240);
 
+  // ── Which order is being edited (switchable in the toolbar) ──
+  // Declared before `groups`, which reads it.
+  const [orderKey, setOrderKey] = useState(ORDER_KEY_DEFAULT);
+  const hideToken = useMemo(() => hideTokenForOrderKey(orderKey), [orderKey]);
+  const hideLabel = hideLabelForOrderKey(orderKey);
+
   const images = useMemo(() => {
     const arr = Array.isArray(rawImages) ? rawImages : [];
     return arr.map((it) => ({ ...it, id: it.id || it._id, _id: it._id || it.id }));
@@ -671,7 +681,7 @@ export default function ImageOrderPageComponent() {
 
   const groups = useMemo(() => {
     const orderValue = (item) => {
-      const value = Number(getOrder(item, ORDER_KEY));
+      const value = Number(getOrder(item, orderKey));
       return Number.isFinite(value) && value > 0 ? value : Infinity;
     };
     const byTag = (a, b) =>
@@ -766,7 +776,7 @@ export default function ImageOrderPageComponent() {
 
     groups.sort((a, b) => compareGroupKeys(a.key, b.key));
     return groups;
-  }, [images, sourceIndex, isCn]);
+  }, [images, sourceIndex, isCn, orderKey]);
 
   // Reset the draft whenever the groups change.
   useEffect(() => {
@@ -800,8 +810,8 @@ export default function ImageOrderPageComponent() {
   );
 
   const isItemHidden = useCallback(
-    (item) => isHiddenInArtistRollingImage({ mark: markOf(item) }),
-    [markOf]
+    (item) => isMarkHidden({ mark: markOf(item) }, hideToken),
+    [markOf, hideToken]
   );
 
   // Is this image flagged as its artist's hover preview?
@@ -846,7 +856,7 @@ export default function ImageOrderPageComponent() {
 
       const nextHidden = !isItemHidden(item);
       // Hide flags live inside the JSON mark, so a form-set `value` survives.
-      const nextMark = applyMark(markOf(item), HIDE_ARTIST_ROLLING_IMAGE, nextHidden);
+      const nextMark = applyMark(markOf(item), hideToken, nextHidden);
 
       // Optimistic — the card greys out (or clears) immediately.
       setMarkOverrides((prev) => ({ ...prev, [id]: nextMark }));
@@ -855,11 +865,11 @@ export default function ImageOrderPageComponent() {
       try {
         const payload = { mark: nextMark };
         if (nextHidden) {
-          // A hidden image keeps NO rolling position — clear it right away
-          // (other order keys, e.g. a legacy artist_page_order, are kept).
+          // A hidden image keeps NO position for this page — clear it right
+          // away (the other order keys are preserved).
           payload.order = {
             ...normalizeImageOrder(item?.order),
-            [ARTIST_ROLLING_ORDER_KEY]: "",
+            [orderKey]: "",
           };
         }
 
@@ -880,7 +890,7 @@ export default function ImageOrderPageComponent() {
             : "Shown in artist page rolling",
         });
       } catch (err) {
-        console.error("[image order] mark update failed:", err);
+        console.log("[image order] mark update failed:", err);
         setMarkOverrides((prev) => {
           const next = { ...prev };
           delete next[id];
@@ -981,7 +991,7 @@ export default function ImageOrderPageComponent() {
             : "Hover image cleared",
         });
       } catch (err) {
-        console.error("[image order] hover flag update failed:", err);
+        console.log("[image order] hover flag update failed:", err);
         setMarkOverrides((prev) => {
           const next = { ...prev };
           delete next[id];
@@ -1047,7 +1057,7 @@ export default function ImageOrderPageComponent() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           groups: groupsToSave,
-          orderKey: ORDER_KEY,
+          orderKey,
           clearIds: hiddenIds,
         }),
       });
@@ -1057,12 +1067,12 @@ export default function ImageOrderPageComponent() {
       setNotice({ type: "ok", text: txt(T.savedOk, isCn) });
       refetchImages?.();
     } catch (e) {
-      console.error(e);
+      console.log(e);
       setNotice({ type: "err", text: txt(T.saveFail, isCn) });
     } finally {
       setSaving(false);
     }
-  }, [groups, draft, dirtyKeys, isItemHidden, refetchImages, isCn]);
+  }, [groups, draft, dirtyKeys, isItemHidden, refetchImages, isCn, orderKey]);
 
   const handleReset = useCallback(() => {
     const next = {};
@@ -1109,6 +1119,30 @@ export default function ImageOrderPageComponent() {
     whiteSpace: "nowrap",
   });
 
+  // Human-readable name of the order currently being edited.
+  const orderLabel = orderKey
+    ? txt(ORDER_KEY_LABELS[orderKey] || { en: orderKey, cn: orderKey }, isCn)
+    : "";
+
+  // Order-type switcher chip — the SELECTED one is the bold, black anchor
+  // of the row (bold text + black rule); the rest stay quiet.
+  const orderChip = (active) => ({
+    display: "inline-flex",
+    alignItems: "center",
+    padding: "7px 12px",
+    fontFamily,
+    fontSize: 12.5,
+    fontWeight: active ? 800 : 500,
+    color: active ? "#000" : "rgba(0,0,0,0.55)",
+    background: "#fff",
+    border: `1px solid ${active ? "#000" : "rgba(0,0,0,0.14)"}`,
+    borderRadius: 6,
+    cursor: "pointer",
+    opacity: 1,
+    boxShadow: active ? "inset 0 -3px 0 #000" : "none",
+    whiteSpace: "nowrap",
+  });
+
   return (
     <div style={{ background: colors.background, color: colors.text, minHeight: "100vh" }}>
       <style>{`
@@ -1121,18 +1155,64 @@ export default function ImageOrderPageComponent() {
         .ordhover:hover:not(:disabled) { opacity: 1 !important; }
       `}</style>
       <div style={{ maxWidth: 1400, margin: "0 auto", padding: "24px 20px 80px" }}>
-        {/* Header */}
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 4 }}>
-          <button type="button" className="ordbtn" style={btn(false)} onClick={() => history.back()}>
-            <ArrowLeft size={14} /> {txt(T.back, isCn)}
-          </button>
-          <h1 style={{ fontFamily, fontSize: 22, fontWeight: 700, margin: 0 }}>
-            {txt(T.title, isCn)}
-          </h1>
+        {/* Header: Back on its own row, then the ACTIVE order as a visible
+            label above the title, then the title + subtitle. A dashed rule
+            separates the header from the content below. */}
+        <button type="button" className="ordbtn" style={btn(false)} onClick={() => history.back()}>
+          <ArrowLeft size={14} /> {txt(T.back, isCn)}
+        </button>
+
+        <div style={{ marginTop: 14 }}>
+          {/* One small grey label: the page name, then the order being edited
+              (the switcher carries the same selection, in bold black). */}
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 9,
+              flexWrap: "wrap",
+              fontFamily,
+              fontSize: 12.5,
+              fontWeight: 800,
+              letterSpacing: 1.8,
+              textTransform: "uppercase",
+              color: "#000",
+              textDecoration: "underline",
+              textDecorationThickness: 2,
+              textUnderlineOffset: 5,
+            }}
+          >
+            <span>{txt(T.title, isCn)}</span>
+            {orderLabel ? (
+              <>
+                <span
+                  style={{
+                    display: "inline-block",
+                    width: 16,
+                    height: 1,
+                    background: "rgba(0,0,0,0.45)",
+                  }}
+                />
+                <span>{orderLabel}</span>
+              </>
+            ) : null}
+          </span>
+          <p
+            style={{
+              fontFamily,
+              fontSize: 13,
+              lineHeight: 1.65,
+              opacity: 0.62,
+              margin: "10px 0 0",
+              maxWidth: 900,
+            }}
+          >
+            {txt(T.subtitle, isCn)}
+          </p>
         </div>
-        <p style={{ fontFamily, fontSize: 13, opacity: 0.6, margin: "6px 0 16px" }}>
-          {txt(T.subtitle, isCn)}
-        </p>
+
+        {/* Dashed separator between the header and the content. */}
+        <div style={{ borderTop: "1px dashed rgba(0,0,0,0.28)", marginTop: 20 }} />
 
         {/* Toolbar */}
         <div
@@ -1141,18 +1221,45 @@ export default function ImageOrderPageComponent() {
             top: 70,
             zIndex: 40,
             background: colors.background,
-            borderTop: "1px solid #000",
-            borderBottom: "1px solid #000",
-            padding: "12px 0",
+            padding: "14px 0 12px",
             display: "flex",
             flexWrap: "wrap",
             alignItems: "center",
-            gap: 16,
+            gap: 14,
+            borderBottom: "1px solid rgba(0,0,0,0.12)",
             marginBottom: 20,
           }}
         >
-          <span style={{ fontFamily, fontSize: 13, fontWeight: 500, opacity: 0.75 }}>
-            {isCn ? "排序维度" : "Order by"}: {isCn ? "轮播图排序" : "Rolling Image Order"}
+          {/* Order-type switcher — an image holds one position per page plus
+              the artist rolling order; pick which one you are editing. */}
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+            <span
+              style={{
+                fontFamily,
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: 1.4,
+                textTransform: "uppercase",
+                opacity: 0.45,
+              }}
+            >
+              {isCn ? "排序维度" : "Order by"}
+            </span>
+            {IMAGE_ORDER_KEYS.map((key) => {
+              const active = key === orderKey;
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  className="ordbtn"
+                  aria-pressed={active}
+                  onClick={() => setOrderKey(key)}
+                  style={orderChip(active)}
+                >
+                  {txt(ORDER_KEY_LABELS[key], isCn)}
+                </button>
+              );
+            })}
           </span>
 
           {/* Legend: images marked to be hidden from the artist page rolling set */}
@@ -1166,18 +1273,14 @@ export default function ImageOrderPageComponent() {
                 fontSize: 12,
                 opacity: 0.6,
               }}
-              title={
-                isCn
-                  ? IMAGE_MARK_HIDE_ARTIST_ROLLING_LABEL.cn
-                  : IMAGE_MARK_HIDE_ARTIST_ROLLING_LABEL.en
-              }
+              title={hideLabel ? txt(hideLabel, isCn) : ""}
             >
               <svg width="12" height="12" viewBox="0 0 72 72" fill="none" aria-hidden="true">
                 <path d="M12 12 L60 60 M60 12 L12 60" stroke="#9a9a9a" strokeWidth="8" strokeLinecap="round" />
               </svg>
               {isCn
-                ? `${hiddenCount} 张不在艺术家页轮播中显示`
-                : `${hiddenCount} hidden from artist page rolling`}
+                ? `${hiddenCount} 张已从此页隐藏`
+                : `${hiddenCount} hidden from this page`}
             </span>
           )}
 

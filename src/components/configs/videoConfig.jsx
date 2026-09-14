@@ -360,7 +360,7 @@ export const validateVideoConfig = () => {
   const missing = requiredFields.filter(field => !videoConfig[field]);
   
   if (missing.length > 0) {
-    console.error(`Missing required configuration fields: ${missing.join(', ')}`);
+    console.log(`Missing required configuration fields: ${missing.join(', ')}`);
     return false;
   }
   
@@ -394,7 +394,7 @@ export const videoAPI = {
       
       return await response.json();
     } catch (error) {
-      console.error('Error creating video:', error);
+      console.log('Error creating video:', error);
       throw error;
     }
   },
@@ -414,7 +414,7 @@ export const videoAPI = {
       
       return await response.json();
     } catch (error) {
-      console.error('Error updating video:', error);
+      console.log('Error updating video:', error);
       throw error;
     }
   },
@@ -433,7 +433,7 @@ export const videoAPI = {
       
       return await response.json();
     } catch (error) {
-      console.error('Error deleting video:', error);
+      console.log('Error deleting video:', error);
       throw error;
     }
   },
@@ -462,7 +462,7 @@ export const videoAPI = {
       
       return await response.json();
     } catch (error) {
-      console.error('Error fetching video list:', error);
+      console.log('Error fetching video list:', error);
       throw error;
     }
   },
@@ -481,7 +481,7 @@ export const videoAPI = {
       
       return await response.json();
     } catch (error) {
-      console.error('Error fetching video detail:', error);
+      console.log('Error fetching video detail:', error);
       throw error;
     }
   },
@@ -513,7 +513,7 @@ export const videoAPI = {
       
       return await response.json();
     } catch (error) {
-      console.error('Error uploading file:', error);
+      console.log('Error uploading file:', error);
       throw error;
     }
   },
@@ -533,7 +533,7 @@ export const videoAPI = {
       
       return await response.json();
     } catch (error) {
-      console.error('Error performing bulk operation:', error);
+      console.log('Error performing bulk operation:', error);
       throw error;
     }
   },
@@ -553,7 +553,7 @@ export const videoAPI = {
       
       return await response.json();
     } catch (error) {
-      console.error('Error reordering videos:', error);
+      console.log('Error reordering videos:', error);
       throw error;
     }
   },

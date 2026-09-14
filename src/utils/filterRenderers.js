@@ -254,7 +254,7 @@ export const renderFilter = (
 
   if (!filterHandlers || typeof filterHandlers !== 'object') {
     if (process.env.NODE_ENV !== 'production') {
-      console.error('[renderFilter] filterHandlers is invalid:', filterHandlers);
+      console.log('[renderFilter] filterHandlers is invalid:', filterHandlers);
     }
     return null;
   }
@@ -442,11 +442,11 @@ export const renderFilters = ({
   isCn        = false,
 }) => {
   if (!controlPanelConfig) {
-    console.error('[renderFilters] controlPanelConfig is missing');
+    console.log('[renderFilters] controlPanelConfig is missing');
     return <div>Error: Control panel configuration not available</div>;
   }
   if (!filterHandlers || typeof filterHandlers !== 'object') {
-    console.error('[renderFilters] filterHandlers is invalid:', filterHandlers);
+    console.log('[renderFilters] filterHandlers is invalid:', filterHandlers);
     return <div>Error: Filter handlers not available</div>;
   }
 

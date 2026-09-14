@@ -89,7 +89,7 @@ export default function ImageForm({ relatedData = {} }) {
 
         const handleUploadError = useCallback(
           (err) => {
-            console.error(
+            console.log(
               "[ImageForm] upload error:",
               err?.message || err || getLabel("uploadError")
             );

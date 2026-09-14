@@ -18,7 +18,7 @@ export default function EditVideoPage() {
 
   useEffect(() => {
     if (!videoId) {
-      console.error('[DEBUG EditVideoPage] ❌ No videoId from params');
+      console.log('[DEBUG EditVideoPage] ❌ No videoId from params');
       setError("No video ID provided");
       setIsLoading(false);
       return;
@@ -58,7 +58,7 @@ export default function EditVideoPage() {
           throw new Error("No video data received");
         }
       } catch (error) {
-        console.error('[DEBUG EditVideoPage] ❌ Error:', error.message);
+        console.log('[DEBUG EditVideoPage] ❌ Error:', error.message);
         setError(error.message);
       } finally {
         setIsLoading(false);

@@ -31,7 +31,7 @@ export const useDarkMode = () => {
           setIsDark(mediaQuery.matches);
         }
       } catch (error) {
-        console.error('Theme detection error:', error);
+        console.log('Theme detection error:', error);
         // Fallback to system preference
         const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
         setIsDark(mediaQuery.matches);

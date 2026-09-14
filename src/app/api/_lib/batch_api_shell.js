@@ -152,7 +152,7 @@ export function createBatchApiHandler(config) {
       if (errors.length) resp.errors = errors;
       return NextResponse.json(resp);
     } catch (e) {
-      console.error('Batch update error:', e);
+      console.log('Batch update error:', e);
       return NextResponse.json({ error: 'Failed to perform batch update', details: e.message }, { status: 500 });
     }
   }
@@ -311,7 +311,7 @@ export function createFullBatchApiHandler(config) {
       if (errors.length) resp.errors = errors;
       return NextResponse.json(resp, { status: 201 });
     } catch (e) {
-      console.error('Batch create error:', e);
+      console.log('Batch create error:', e);
       return NextResponse.json({ error: 'Failed to perform batch create', details: e.message }, { status: 500 });
     }
   }
@@ -349,7 +349,7 @@ export function createFullBatchApiHandler(config) {
       };
       return NextResponse.json(resp);
     } catch (e) {
-      console.error('Batch delete error:', e);
+      console.log('Batch delete error:', e);
       return NextResponse.json({ error: 'Failed to perform batch delete', details: e.message }, { status: 500 });
     }
   }

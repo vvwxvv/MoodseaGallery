@@ -55,7 +55,7 @@ const RelationSelector = ({
 
         setOptions(formattedOptions);
       } catch (err) {
-        console.error(`Error fetching ${collectionType}s:`, err);
+        console.log(`Error fetching ${collectionType}s:`, err);
         setError(err.message);
       } finally {
         setLoading(false);

@@ -391,7 +391,7 @@ export default function SiteMetaPageComponent() {
       setStatus("ok");
       setTimeout(() => setStatus(null), 2500);
     } catch (err) {
-      console.error(err);
+      console.log(err);
       setStatus("error");
     }
   };

@@ -165,7 +165,7 @@ export function createApiIdHandler(config) {
       });
       
     } catch (error) {
-      console.error('GET Error:', error);
+      console.log('GET Error:', error);
       return NextResponse.json(
         { message: 'Failed to fetch document', error: error.message },
         { status: 500 }
@@ -268,7 +268,7 @@ export function createApiIdHandler(config) {
       });
       
     } catch (error) {
-      console.error('PUT Error:', error);
+      console.log('PUT Error:', error);
       return NextResponse.json(
         { message: 'Failed to update document', error: error.message },
         { status: 500 }
@@ -360,7 +360,7 @@ export function createApiIdHandler(config) {
       }
       
     } catch (error) {
-      console.error('DELETE Error:', error);
+      console.log('DELETE Error:', error);
       return NextResponse.json(
         { message: 'Failed to delete document', error: error.message },
         { status: 500 }

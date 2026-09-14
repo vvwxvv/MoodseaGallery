@@ -355,7 +355,7 @@ export const validateWebConfig = () => {
   const missing = requiredFields.filter(field => !webConfig[field]);
   
   if (missing.length > 0) {
-    console.error(`Missing required configuration fields: ${missing.join(', ')}`);
+    console.log(`Missing required configuration fields: ${missing.join(', ')}`);
     return false;
   }
   
@@ -389,7 +389,7 @@ export const webAPI = {
       
       return await response.json();
     } catch (error) {
-      console.error('Error creating web:', error);
+      console.log('Error creating web:', error);
       throw error;
     }
   },
@@ -409,7 +409,7 @@ export const webAPI = {
       
       return await response.json();
     } catch (error) {
-      console.error('Error updating web:', error);
+      console.log('Error updating web:', error);
       throw error;
     }
   },
@@ -428,7 +428,7 @@ export const webAPI = {
       
       return await response.json();
     } catch (error) {
-      console.error('Error deleting web:', error);
+      console.log('Error deleting web:', error);
       throw error;
     }
   },
@@ -457,7 +457,7 @@ export const webAPI = {
       
       return await response.json();
     } catch (error) {
-      console.error('Error fetching web list:', error);
+      console.log('Error fetching web list:', error);
       throw error;
     }
   },
@@ -476,7 +476,7 @@ export const webAPI = {
       
       return await response.json();
     } catch (error) {
-      console.error('Error fetching web detail:', error);
+      console.log('Error fetching web detail:', error);
       throw error;
     }
   },
@@ -508,7 +508,7 @@ export const webAPI = {
       
       return await response.json();
     } catch (error) {
-      console.error('Error uploading file:', error);
+      console.log('Error uploading file:', error);
       throw error;
     }
   },
@@ -528,7 +528,7 @@ export const webAPI = {
       
       return await response.json();
     } catch (error) {
-      console.error('Error performing bulk operation:', error);
+      console.log('Error performing bulk operation:', error);
       throw error;
     }
   },
@@ -548,7 +548,7 @@ export const webAPI = {
       
       return await response.json();
     } catch (error) {
-      console.error('Error reordering webs:', error);
+      console.log('Error reordering webs:', error);
       throw error;
     }
   },

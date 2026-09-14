@@ -26,7 +26,7 @@ export default function EditEnquirePage() {
 
   useEffect(() => {
     if (!enquireId) {
-      console.error('[DEBUG EditEnquirePage] ❌ No enquireId from params');
+      console.log('[DEBUG EditEnquirePage] ❌ No enquireId from params');
       setError("No enquiry ID provided");
       setIsLoading(false);
       return;
@@ -81,7 +81,7 @@ export default function EditEnquirePage() {
           throw new Error("No enquiry data received");
         }
       } catch (error) {
-        console.error('[DEBUG EditEnquirePage] ❌ Error:', error.message);
+        console.log('[DEBUG EditEnquirePage] ❌ Error:', error.message);
         setError(error.message);
       } finally {
         setIsLoading(false);

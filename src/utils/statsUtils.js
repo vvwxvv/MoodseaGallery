@@ -35,7 +35,7 @@ export const fetchStats = async (menuItems) => {
 
     return stats;
   } catch (err) {
-    console.error("Failed to fetch stats:", err);
+    console.log("Failed to fetch stats:", err);
     throw new Error("获取数据时出错 | Error fetching data");
   }
 };

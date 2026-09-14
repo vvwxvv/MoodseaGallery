@@ -84,7 +84,7 @@ export default function useRelationOptions(sources, isCn = false, config = {}) {
     results.forEach((res, idx) => {
       const src = sourceList[idx];
       if (res.status !== "fulfilled") {
-        console.error(`[useRelationOptions] ${src.endpoint} failed:`, res.reason);
+        console.log(`[useRelationOptions] ${src.endpoint} failed:`, res.reason);
         return;
       }
       extractItems(res.value).forEach((item) => {

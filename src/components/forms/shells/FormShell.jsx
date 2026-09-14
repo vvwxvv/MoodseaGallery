@@ -29,7 +29,7 @@ const DEBUG_SHELL = {
   },
   error: (section, message, error) => {
     const timestamp = new Date().toISOString().split('T')[1];
-    console.error(`[${timestamp}] [FormShell:${section}] ❌ ERROR: ${message}`, error);
+    console.log(`[${timestamp}] [FormShell:${section}] ❌ ERROR: ${message}`, error);
   },
 };
 

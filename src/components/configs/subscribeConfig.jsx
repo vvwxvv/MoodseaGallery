@@ -197,7 +197,7 @@ export const subscribeAPI = {
       
       return await response.json();
     } catch (error) {
-      console.error('Error creating subscribe:', error);
+      console.log('Error creating subscribe:', error);
       throw error;
     }
   },
@@ -217,7 +217,7 @@ export const subscribeAPI = {
       
       return await response.json();
     } catch (error) {
-      console.error('Error updating subscribe:', error);
+      console.log('Error updating subscribe:', error);
       throw error;
     }
   },
@@ -236,7 +236,7 @@ export const subscribeAPI = {
       
       return await response.json();
     } catch (error) {
-      console.error('Error deleting subscribe:', error);
+      console.log('Error deleting subscribe:', error);
       throw error;
     }
   },
@@ -265,7 +265,7 @@ export const subscribeAPI = {
       
       return await response.json();
     } catch (error) {
-      console.error('Error fetching subscribe list:', error);
+      console.log('Error fetching subscribe list:', error);
       throw error;
     }
   },
@@ -284,7 +284,7 @@ export const subscribeAPI = {
       
       return await response.json();
     } catch (error) {
-      console.error('Error fetching subscribe detail:', error);
+      console.log('Error fetching subscribe detail:', error);
       throw error;
     }
   },
@@ -304,7 +304,7 @@ export const subscribeAPI = {
       
       return await response.json();
     } catch (error) {
-      console.error('Error performing bulk operation:', error);
+      console.log('Error performing bulk operation:', error);
       throw error;
     }
   },

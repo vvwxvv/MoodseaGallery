@@ -67,7 +67,7 @@ export default function useImageSync(data = {}, images = []) {
       setLastResult(result);
       return result;
     } catch (err) {
-      console.error("[useImageSync] sync failed:", err);
+      console.log("[useImageSync] sync failed:", err);
       setError(err);
       return null;
     } finally {

@@ -51,7 +51,7 @@ export default function GalleryContactEditForm({ item }) {
         console.log('GalleryContactEditForm: Submit success:', data);
       }}
       onSubmitError={(error) => {
-        console.error('GalleryContactEditForm: Submit error:', error);
+        console.log('GalleryContactEditForm: Submit error:', error);
       }}
     >
       {({ form, colors, disabled, getLabel }) => {

@@ -65,7 +65,7 @@ export default function WritingEditForm({ item }) {
         console.log('WritingEditForm: Submit success:', data);
       }}
       onSubmitError={(error) => {
-        console.error('WritingEditForm: Submit error:', error);
+        console.log('WritingEditForm: Submit error:', error);
       }}
     >
       {({ form, colors, disabled, getLabel }) => {
@@ -93,7 +93,7 @@ export default function WritingEditForm({ item }) {
               title={IMAGE_UPLOAD_CONFIGS.writing?.title || "Cover Image"}
               imgUrl={form.watch("cover_img_url")}
               onUploadSuccess={(url) => form.setValue("cover_img_url", url)}
-              onUploadError={(err) => console.error(err)}
+              onUploadError={(err) => console.log(err)}
               disabled={disabled}
               getLabel={getLabel}
               register={() => ({})}

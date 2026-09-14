@@ -36,7 +36,7 @@ export default function ManagerEditShell({
         const data = await res.json();
         setItem(data);
       } catch (err) {
-        console.error(err);
+        console.log(err);
         setError(err.message);
       } finally {
         setIsLoading(false);

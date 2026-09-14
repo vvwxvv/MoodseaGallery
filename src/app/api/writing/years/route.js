@@ -76,7 +76,7 @@ export async function GET(request) {
     return NextResponse.json(uniqueYears);
     
   } catch (error) {
-    console.error('Error fetching years:', error);
+    console.log('Error fetching years:', error);
     return NextResponse.json(
       { error: 'Failed to fetch years' },
       { status: 500 }

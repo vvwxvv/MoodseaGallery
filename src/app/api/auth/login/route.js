@@ -136,7 +136,7 @@ export async function POST(req) {
 
     return response;
   } catch (error) {
-    console.error("Error during login:", error.message, error.stack);
+    console.log("Error during login:", error.message, error.stack);
 
     return new Response(
       JSON.stringify({ message: "Internal server error" }),

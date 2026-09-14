@@ -360,7 +360,7 @@ const IndexPageLayout = ({
       if (!item) return;
       const slug = item[fieldMappings.slug] || item[fieldMappings.id] || generateSlugInternal(item[fieldMappings.title]);
       if (!slug) {
-        console.error('No slug or ID available for navigation', item);
+        console.log('No slug or ID available for navigation', item);
         return;
       }
       const path = baseRoute ? `/${baseRoute}/${slug}` : `/${slug}`;

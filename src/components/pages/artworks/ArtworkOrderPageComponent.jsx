@@ -495,7 +495,7 @@ export default function ArtworkOrderPageComponent() {
           text: nextHidden ? txt(T.markHideOk, isCn) : txt(T.markShowOk, isCn),
         });
       } catch (err) {
-        console.error("[artwork order] mark update failed:", err);
+        console.log("[artwork order] mark update failed:", err);
         setMarkOverrides((prev) => {
           const next = { ...prev };
           delete next[id];
@@ -559,7 +559,7 @@ export default function ArtworkOrderPageComponent() {
       setNotice({ type: "ok", text: txt(T.savedOk, isCn) });
       refetch?.();
     } catch (err) {
-      console.error("[artwork order] save failed:", err);
+      console.log("[artwork order] save failed:", err);
       setNotice({ type: "err", text: txt(T.saveFail, isCn) });
     } finally {
       setSaving(false);

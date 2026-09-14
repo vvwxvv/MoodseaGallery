@@ -28,7 +28,7 @@ function ExhibitionReorderManager() {
         const data = await response.json();
         setExhibitions(data);
       } catch (err) {
-        console.error('Error fetching exhibitions:', err);
+        console.log('Error fetching exhibitions:', err);
         setError('Failed to load exhibitions. Please try again.');
       } finally {
         setLoading(false);
@@ -77,7 +77,7 @@ function ExhibitionReorderManager() {
         throw new Error(result.error || 'Failed to save order');
       }
     } catch (err) {
-      console.error('Error saving exhibition order:', err);
+      console.log('Error saving exhibition order:', err);
       setError('Failed to save order. Please try again.');
     } finally {
       setSaving(false);

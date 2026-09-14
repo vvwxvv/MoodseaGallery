@@ -256,7 +256,7 @@ const TabbedFormManager = ({
   const renderArrayField = (tabConfig) => {
     const fieldArrayData = fieldArraysData[tabConfig.fieldName];
     if (!fieldArrayData) {
-      console.error(`No field array data found for ${tabConfig.fieldName}`);
+      console.log(`No field array data found for ${tabConfig.fieldName}`);
       return null;
     }
     const { fields, append, remove, replace } = fieldArrayData;
@@ -286,7 +286,7 @@ const TabbedFormManager = ({
   const renderObjectArrayField = (tabConfig) => {
     const fieldArrayData = fieldArraysData[tabConfig.fieldName];
     if (!fieldArrayData) {
-      console.error(`No field array data found for ${tabConfig.fieldName}`);
+      console.log(`No field array data found for ${tabConfig.fieldName}`);
       return null;
     }
     const { fields, append, remove, replace } = fieldArrayData;
