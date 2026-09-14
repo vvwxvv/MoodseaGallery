@@ -21,14 +21,20 @@ import useExhibitionListData from "@/components/pages/exhibition/hooks/useExhibi
  * }}
  */
 export default function useCurrentExhibitionImage(isCn) {
-  const { current, isLoading, hasError, refetch } = useExhibitionListData(isCn);
+  const { currentDisplay, current, isLoading, hasError, refetch } =
+    useExhibitionListData(isCn);
+
+  // `currentDisplay` is the real current exhibitions, or — when none are
+  // current — the single newest exhibition (fallback), so the hero never
+  // goes blank while the gallery has any exhibition at all.
+  const currentList = currentDisplay || current;
 
   // 取"当前展览"列表中最新的一个作为首页封面来源。
   // 做一次防御性排序（按 start_date / year 倒序），
   // 保证即使 current 数组未预排序，也总是拿到最新的那一个。
   const currentExhibition = useMemo(() => {
-    if (!current || current.length === 0) return null;
-    if (current.length === 1) return current[0];
+    if (!currentList || currentList.length === 0) return null;
+    if (currentList.length === 1) return currentList[0];
 
     const getSortValue = (ex) => {
       const raw = ex?.start_date ?? ex?.startDate ?? ex?.date ?? ex?.year;
@@ -36,8 +42,8 @@ export default function useCurrentExhibitionImage(isCn) {
       return parsed && !isNaN(parsed.getTime()) ? parsed.getTime() : 0;
     };
 
-    return [...current].sort((a, b) => getSortValue(b) - getSortValue(a))[0];
-  }, [current]);
+    return [...currentList].sort((a, b) => getSortValue(b) - getSortValue(a))[0];
+  }, [currentList]);
 
   const coverImageUrl = currentExhibition?.cover_img_url || null;
 

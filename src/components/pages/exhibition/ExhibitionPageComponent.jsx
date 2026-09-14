@@ -678,7 +678,17 @@ export default function ExhibitionPage() {
     [TYPOGRAPHY.EMPTY_STATE, bodyFontFamily, textColor]
   );
 
-  const { current, past, isLoading, hasError, refetch } = useExhibitionListData(isCn);
+  // Current slot: the REAL current exhibitions, or — when none are current —
+  // the newest exhibition, so this section never shows an empty state while
+  // the gallery has any exhibition at all. Aliased back to `current`/`past`
+  // so the rest of the component is unchanged.
+  const {
+    currentDisplay: current,
+    pastDisplay: past,
+    isLoading,
+    hasError,
+    refetch,
+  } = useExhibitionListData(isCn);
 
   const [selectedYear, setSelectedYear] = useState("");
   const isFiltering = Boolean(selectedYear);
