@@ -27,22 +27,13 @@ const noCache = (data, status = 200) =>
 
 /** Editable top-level string fields. */
 const STRING_FIELDS = [
-  "app_title_en",
-  "app_title_cn",
-  "app_type",
-  "app_category",
-  "app_version",
-  "app_purpose",
-  "app_description_en",
-  "app_description_cn",
   "app_footer_en",
   "app_footer_cn",
   "app_footer_rights_en",
   "app_footer_rights_cn",
-  "web_url",
 ];
 /** Editable structured fields (stored as-is). */
-const JSON_FIELDS = ["menu", "seo", "galleryEntities", "formTypes"];
+const JSON_FIELDS = ["menu", "seo", "formTypes"];
 
 /** Shape the incoming body into something safe to $set. */
 function sanitize(input = {}) {

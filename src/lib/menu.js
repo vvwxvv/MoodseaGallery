@@ -1,4 +1,4 @@
-import menuData from "@/data/menuItems.json";
+import { DEFAULT_MENUS } from "@/utils/siteMetaDefaults";
 
 /* ─── canonical node ──────────────────────────────────────────────────────────
    Every menu, regardless of source shape, normalizes to:
@@ -37,11 +37,11 @@ function normalizeNode(raw) {
  * @param {string} name      e.g. "mainMenu" | "managerMenu"
  * @param {boolean} isCn
  * @param {object} [source]  optional menu object from the Meta document
- *                           (`meta.menu`); falls back to menuItems.json.
+ *                           (`meta.menu`); falls back to the built-in defaults.
  * @returns {Array} array of canonical nodes
  */
 export function getMenu(name, isCn, source) {
-  const menu = source || menuData;
+  const menu = source || DEFAULT_MENUS;
   const raw = menu?.[name]?.[isCn ? "cn" : "en"] ?? [];
   return raw.map(normalizeNode);
 }

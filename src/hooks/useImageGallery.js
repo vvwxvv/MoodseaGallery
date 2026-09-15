@@ -1,6 +1,4 @@
 import { useMemo } from "react";
-import IMAGE_GALLERY_ENTITY_CONFIG from "@/data/image_gallery_entity_config.json";
-import useSiteMeta from "@/hooks/useSiteMeta";
 import { getImageOrder } from "@/utils/mediaOrder";
 
 const DEFAULT_ID_FIELD = "_id";
@@ -31,18 +29,14 @@ const rankOf = (img, orderKeys) => {
  * Match images to a single entity. Safe against null/undefined inputs.
  */
 export const useSingleEntityImagesMaching = (allImages, entity, entityType = "artwork", isCn) => {
-  // Entity → field mapping is managed in the Meta document (JSON fallback).
-  const { meta } = useSiteMeta();
-  const entityConfig = meta?.galleryEntities || IMAGE_GALLERY_ENTITY_CONFIG;
   return useMemo(() => {
     if (!Array.isArray(allImages) || !allImages.length || !entity) {
       return { matchedImages: [], coverImage: null };
     }
 
-    const config = entityConfig?.[entityType] || {};
-    const idField = config.idField || DEFAULT_ID_FIELD;
-    const titleField = config.titleField || DEFAULT_TITLE_FIELD;
-    const coverField = config.coverField || DEFAULT_COVER_FIELD;
+    const idField = DEFAULT_ID_FIELD;
+    const titleField = DEFAULT_TITLE_FIELD;
+    const coverField = DEFAULT_COVER_FIELD;
 
     const entityId = entity[idField] || entity._id || entity.id;
     const entityTitle = entity[titleField] || "";

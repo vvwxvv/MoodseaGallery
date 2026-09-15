@@ -19,7 +19,7 @@ import NewsletterPopup from "@/components/popups/NewsletterPopup";
 // 上下文 & 数据
 import { LanguageContext } from "@/components/contexts/LanguageContext";
 import { ManagerContext } from "@/components/contexts/ManagerContext";
-import menuItems from "@/data/menuItems.json";
+import { DEFAULT_MENUS } from "@/utils/siteMetaDefaults";
 import useSiteMeta from "@/hooks/useSiteMeta";
 
 /* ============================================================
@@ -571,7 +571,7 @@ export default function LogoImgNav() {
   const languageKey = isCn ? "cn" : "en";
   // Menus come from the Meta document (manager-editable) with the JSON as fallback.
   const { meta: siteMeta } = useSiteMeta();
-  const menuSource = siteMeta?.menu || menuItems;
+  const menuSource = siteMeta?.menu || DEFAULT_MENUS;
   const menuList = isManager
     ? menuSource.managerMenu?.[languageKey] || []
     : menuSource.mainMenu?.[languageKey] || [];

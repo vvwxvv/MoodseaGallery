@@ -1,6 +1,6 @@
 import React from 'react';
 import AlertInfo from './AlertInfo';
-import menuItems from '@/data/menuItems.json';
+import { DEFAULT_MENUS } from '@/utils/siteMetaDefaults';
 import useSiteMeta from '@/hooks/useSiteMeta';
 
 /**
@@ -15,7 +15,7 @@ export default function NoDataInfo({ schemaName, isCn }) {
   let label = '';
   if (schemaName) {
     // Try mainMenu first
-    const menuSource = meta?.menu || menuItems;
+    const menuSource = meta?.menu || DEFAULT_MENUS;
     const mainMenu = menuSource.mainMenu?.[langKey] || [];
     const found = mainMenu.find(item => item.href.replace('/', '').toLowerCase().includes(schemaName.toLowerCase()));
     if (found) label = found.label;

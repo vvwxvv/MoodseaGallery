@@ -1,7 +1,9 @@
-// Utility functions for working with form_types.json
+// Utility functions for working with the entity "type" option lists
+// (defaults live in @/utils/siteMetaDefaults; meta.formTypes mirrors the
+// artwork / exhibition / fair lists for the manager).
 // This file provides type-specific utilities and re-exports from formOptionsUtils
 
-import formTypesData from '@/data/form_types.json';
+import { FORM_TYPE_OPTIONS as formTypesData } from '@/utils/siteMetaDefaults';
 import {
   getFormTypes,
   getFormTypeByValue,

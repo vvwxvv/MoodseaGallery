@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useContext, useState, useEffect, useCallback, memo } from "react";
+import React, { useContext, useState, useEffect, useCallback, useMemo, memo } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { LanguageContext } from "@/components/contexts/LanguageContext";

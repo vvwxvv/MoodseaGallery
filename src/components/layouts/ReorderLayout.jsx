@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect, useContext } from 'react';
+import { ORDER_PAGE_CSS } from '@/components/pages/order/orderPageStyles';
 import {
   DndContext,
   closestCenter,
@@ -360,12 +361,30 @@ function GenericReorderLayout({
       className="max-w-4xl mx-auto p-6"
       style={{ backgroundColor: 'var(--background-primary, white)' }}
     >
+      <style>{ORDER_PAGE_CSS}</style>
+      {/* Shared order-page chrome: a bold, underlined title + a dashed rule. */}
       <h1 
-        className="text-2xl font-bold mb-6"
-        style={{ color: 'var(--text-primary, #000000)' }}
+        className="text-2xl mb-0"
+        style={{
+          color: 'var(--text-primary, #000000)',
+          fontWeight: 800,
+          fontSize: 15,
+          letterSpacing: '1.8px',
+          textTransform: 'uppercase',
+          textDecoration: 'underline',
+          textDecorationThickness: 2,
+          textUnderlineOffset: 5,
+        }}
       >
         {getLabel(config.pageTitleKey)}
       </h1>
+      <div
+        style={{
+          borderTop: '1px dashed var(--border-light, rgba(0,0,0,0.28))',
+          marginTop: 14,
+          marginBottom: 18,
+        }}
+      />
       
       {/* Language Filter Info */}
       <div 
@@ -389,27 +408,25 @@ function GenericReorderLayout({
           <button
             key={field}
             onClick={() => toggleSort(field)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 border-2"
+            className="ordbtn flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200"
             style={{
-              backgroundColor: sortedByField[field] 
-                ? 'black' // Blue-500 for active state
-                : 'rgb(255 255 255)', // White for inactive in light mode
-              color: sortedByField[field] 
-                ? 'rgb(255 255 255)' // White text for active state
-                : 'rgb(17 24 39)', // Gray-900 for inactive text
-              borderColor: sortedByField[field] 
-                ? 'black' // Blue-500 border for active
-                : 'rgb(209 213 219)', // Gray-300 border for inactive
+              backgroundColor: 'transparent',
+              color: 'var(--text-primary, #000000)',
+              fontWeight: sortedByField[field] ? 800 : 500,
+              border: `1px solid ${sortedByField[field] ? 'var(--text-primary, #000000)' : 'var(--border-light, #d1d5db)'}`,
+              textDecoration: sortedByField[field] ? 'underline' : 'none',
+              textDecorationThickness: 2,
+              textUnderlineOffset: 3,
             }}
           >
             <ArrowUpDown 
               size={16} 
               style={{ 
-                color: sortedByField[field] ? 'rgb(255 255 255)' : 'rgb(17 24 39)' 
+                color: 'var(--text-primary, #000000)' 
               }} 
             />
             <span style={{ 
-              color: sortedByField[field] ? 'rgb(255 255 255)' : 'rgb(17 24 39)' 
+              color: 'var(--text-primary, #000000)' 
             }}>
               {getLabel(`sortBy${field.charAt(0).toUpperCase() + field.slice(1).replace('_en', '').replace('_cn', '')}`)}
             </span>
@@ -417,7 +434,7 @@ function GenericReorderLayout({
               <span 
                 className="text-xs"
                 style={{ 
-                  color: 'rgb(255 255 255)' 
+                  color: 'var(--text-primary, #000000)' 
                 }}
               >
                 ({sortDirections[field] === 'asc' ? getLabel('ascending') : getLabel('descending')})
@@ -430,25 +447,25 @@ function GenericReorderLayout({
           <button
             key={field}
             onClick={() => groupByField(field)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 border-2"
+            className="ordbtn flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200"
             style={{
-              backgroundColor: groupedByField === field 
-                ? '#000000' 
-                : 'white',
-              color: groupedByField === field 
-                ? 'white' 
-                : '#000000',
-              borderColor: '#e5e7eb',
+              backgroundColor: 'transparent',
+              color: 'var(--text-primary, #000000)',
+              fontWeight: groupedByField === field ? 800 : 500,
+              border: `1px solid ${groupedByField === field ? 'var(--text-primary, #000000)' : 'var(--border-light, #d1d5db)'}`,
+              textDecoration: groupedByField === field ? 'underline' : 'none',
+              textDecorationThickness: 2,
+              textUnderlineOffset: 3,
             }}
           >
             <ArrowUpDown 
               size={16} 
               style={{ 
-                color: groupedByField === field ? 'white' : '#000000' 
+                color: 'var(--text-primary, #000000)' 
               }} 
             />
             <span style={{ 
-              color: groupedByField === field ? 'white' : '#000000' 
+              color: 'var(--text-primary, #000000)' 
             }}>
               {getLabel(`groupBy${field.charAt(0).toUpperCase() + field.slice(1)}`)}
             </span>
@@ -456,7 +473,7 @@ function GenericReorderLayout({
               <span 
                 className="text-xs"
                 style={{ 
-                  color: 'white' 
+                  color: 'var(--text-primary, #000000)' 
                 }}
               >
                 ({getLabel('dragGroups')})

@@ -14,10 +14,8 @@ import {
   SortableContext,
   rectSortingStrategy,
   sortableKeyboardCoordinates,
-  useSortable,
 } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, Save, RotateCcw, ArrowLeft, LayoutGrid, List, Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, GripVertical } from "lucide-react";
 
 import { LanguageContext } from "@/components/contexts/LanguageContext";
 import { useReverseTheme } from "@/hooks/useReverseTheme";
@@ -48,6 +46,14 @@ import { IMAGE_ORDER_KEYS, ORDER_KEY_LABELS, normalizeImageOrder, getOrder } fro
 import { ARTIST_ROLLING_ORDER_KEY } from "@/components/pages/artists/hooks/useArtistRollingImages";
 import LoadingLayer from "@/components/animations/LoadingLayer";
 import AlertInfo from "@/components/alerts/AlertInfo";
+import OrderPageShell from "@/components/pages/order/OrderPageShell";
+import OrderGroupBox from "@/components/pages/order/OrderGroupBox";
+import OrderCard, {
+  OrderCardGrid,
+  OrderHiddenStrip,
+  OrderViewControls,
+  SortableOrderItem,
+} from "@/components/pages/order/OrderCard";
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  CONFIG
@@ -93,37 +99,12 @@ const T = {
 const txt = (entry, isCn) => (isCn ? entry.cn : entry.en);
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  Sortable item wrapper
+//  Card — thin adapter over the shared <OrderCard> (see
+//  components/pages/order/OrderCard.jsx). Every order page uses that one card,
+//  so the artwork + hover pages finally look identical to this one.
 // ─────────────────────────────────────────────────────────────────────────────
-function SortableItem({ id, children, disabled }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-    useSortable({ id, disabled });
-  return (
-    <div
-      ref={setNodeRef}
-      style={{
-        transform: CSS.Transform.toString(transform),
-        transition,
-        opacity: isDragging ? 0.6 : 1,
-        zIndex: isDragging ? 50 : "auto",
-        position: "relative",
-        cursor: disabled ? "default" : "grab",
-        touchAction: "none",
-      }}
-      {...attributes}
-      {...listeners}
-    >
-      {children}
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-//  Card (image + tag_en / tag_cn + type — no edit/delete)
-// ─────────────────────────────────────────────────────────────────────────────
-function OrderCard({
+function ImageCard({
   item,
-  index,
   orderNumber,
   isCn,
   fontFamily,
@@ -132,193 +113,37 @@ function OrderCard({
   hidden,
   onToggleHide,
   busy,
-  hoverMarked,
-  onToggleHover,
-  hoverBusy,
 }) {
   const img = item?.img_url || item?.image_url;
   const meta = [item?.type, item?.tag_source].filter(Boolean);
   const hideHint = isCn
     ? IMAGE_MARK_HIDE_ARTIST_ROLLING_LABEL.cn
     : IMAGE_MARK_HIDE_ARTIST_ROLLING_LABEL.en;
-  const hoverHint = isCn
-    ? MARK_FLAG_LABELS[MARK_FLAG_ARTIST_HOVER_IMAGE].cn
-    : MARK_FLAG_LABELS[MARK_FLAG_ARTIST_HOVER_IMAGE].en;
 
   return (
-    <div
-      style={{
-        border: "1px solid #000",
-        borderRadius: "10px",
-        background: "#fff",
-        color: "#000",
-        overflow: "hidden",
-        height: "100%",
-        display: "flex",
-        flexDirection: listMode ? "row" : "column",
-        position: "relative",
-        // Greyed out when the image is marked to be hidden from the artist
-        // page rolling section.
-        filter: hidden ? "grayscale(1)" : undefined,
-        opacity: hidden ? 0.55 : 1,
-        transition: "filter .15s ease, opacity .15s ease",
+    <OrderCard
+      image={img}
+      imageAlt={item?.tag_en || ""}
+      title={item?.tag_en || (isCn ? "无标题" : "Untitled")}
+      subtitle={item?.tag_cn || "—"}
+      meta={meta.join(" · ")}
+      number={orderNumber ?? null}
+      dim={!!hidden}
+      borderColor="#000"
+      listMode={listMode}
+      thumbWidth={thumbWidth}
+      fontFamily={fontFamily}
+      overlayX={!!hidden}
+      action={{
+        icon: hidden ? <EyeOff size={15} /> : <Eye size={15} />,
+        pressed: !!hidden,
+        busy,
+        title: hidden ? (isCn ? "取消隐藏" : "Show in artist page rolling") : hideHint,
+        onClick: () => onToggleHide?.(),
       }}
-      title={hidden ? hideHint : undefined}
-    >
-      <div
-        style={{
-          width: listMode ? `${thumbWidth}px` : "100%",
-          flex: listMode ? "0 0 auto" : undefined,
-          aspectRatio: listMode ? undefined : "4 / 3",
-          height: listMode ? `${Math.round(thumbWidth * 0.75)}px` : undefined,
-          background: "#f2f2f2",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          overflow: "hidden",
-        }}
-      >
-        {img ? (
-          <img
-            src={img}
-            alt={item?.tag_en || ""}
-            draggable={false}
-            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-          />
-        ) : (
-          <span style={{ fontSize: 11, opacity: 0.4 }}>{isCn ? "无图" : "No image"}</span>
-        )}
-      </div>
-
-      <div style={{ padding: "10px 12px", flex: 1, minWidth: 0 }}>
-        {/* tag_en + order number — same row, number at the right edge */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "baseline",
-            justifyContent: "space-between",
-            gap: 8,
-          }}
-        >
-          <span
-            style={{
-              fontFamily,
-              fontWeight: 600,
-              fontSize: 13,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-              minWidth: 0,
-            }}
-          >
-            {item?.tag_en || (isCn ? "无标题" : "Untitled")}
-          </span>
-          <span
-            style={{
-              flex: "0 0 auto",
-              fontFamily,
-              fontSize: 20,
-              fontWeight: 700,
-              lineHeight: 1,
-              color: "#000",
-              // Hidden images carry no position in the rolling order.
-              opacity: orderNumber ? 1 : 0.3,
-            }}
-            title={
-              orderNumber ? undefined : isCn ? "已隐藏 · 无排序" : "Hidden · no order"
-            }
-          >
-            {orderNumber || "—"}
-          </span>
-        </div>
-
-        <div
-          style={{
-            fontFamily,
-            fontSize: 12,
-            opacity: 0.7,
-            marginTop: 2,
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-          }}
-        >
-          {item?.tag_cn || "—"}
-        </div>
-        {meta.length > 0 && (
-          <div style={{ fontFamily, fontSize: 11, opacity: 0.5, marginTop: 4 }}>
-            {meta.join(" · ")}
-          </div>
-        )}
-      </div>
-
-      {/* Hide / show toggle — sets `mark` immediately */}
-      <button
-        type="button"
-        className="ordhide"
-        onClick={(event) => {
-          event.stopPropagation();
-          onToggleHide?.();
-        }}
-        disabled={busy}
-        title={hidden ? (isCn ? "取消隐藏" : "Show in artist page rolling") : hideHint}
-        aria-pressed={hidden}
-        style={{
-          position: "absolute",
-          top: 6,
-          right: 6,
-          zIndex: 3,
-          width: 26,
-          height: 26,
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: 0,
-          borderRadius: 7,
-          border: "1px solid " + (hidden ? "#9a9a9a" : "rgba(0,0,0,.18)"),
-          background: hidden ? "rgba(0,0,0,.06)" : "rgba(255,255,255,.9)",
-          color: "#000",
-          cursor: busy ? "default" : "pointer",
-          opacity: busy ? 0.4 : hidden ? 1 : 0.55,
-          filter: "none",
-        }}
-      >
-        {hidden ? <EyeOff size={15} /> : <Eye size={15} />}
-      </button>
-
-      {/* Hidden-from-artist-rolling overlay: one big light grey X across the card */}
-      {hidden && (
-        <div
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            inset: 0,
-            pointerEvents: "none",
-            background: "rgba(255,255,255,0.25)",
-            zIndex: 2,
-          }}
-        >
-          <svg
-            width="100%"
-            height="100%"
-            viewBox="0 0 100 100"
-            preserveAspectRatio="none"
-            style={{ display: "block" }}
-          >
-            <path
-              d="M3 3 L97 97 M97 3 L3 97"
-              stroke="#c9c9c9"
-              strokeWidth="1.6"
-              strokeLinecap="round"
-              vectorEffect="non-scaling-stroke"
-            />
-          </svg>
-        </div>
-      )}
-    </div>
+    />
   );
 }
-
 // ─────────────────────────────────────────────────────────────────────────────
 //  Source sub-group — one box per source (Works / Exhibition: … / Art Fair: …)
 //  inside its artist box. Dragging is only possible within a sub-group: the
@@ -367,18 +192,7 @@ function SourceGroup({
     hidden: false,
     onToggleHide: () => onToggleItemHidden?.(item, groupKey),
     busy: isItemBusy ? isItemBusy(item) : false,
-    hoverMarked: isItemHover ? isItemHover(item) : false,
-    onToggleHover: () => onToggleItemHover?.(item),
-    hoverBusy: isItemBusy ? isItemBusy(item) : false,
   });
-
-  const gridStyle = listMode
-    ? { display: "flex", flexDirection: "column", gap: 10 }
-    : {
-        display: "grid",
-        gridTemplateColumns: `repeat(auto-fill, minmax(${thumbWidth}px, 1fr))`,
-        gap: 12,
-      };
 
   return (
     <div style={{ marginBottom: 12 }}>
@@ -403,13 +217,13 @@ function SourceGroup({
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={ids} strategy={rectSortingStrategy}>
-          <div style={gridStyle}>
+          <OrderCardGrid listMode={listMode} thumbWidth={thumbWidth} gap={12}>
             {items.map((item) => (
-              <SortableItem key={idOf(item)} id={idOf(item)}>
-                <OrderCard {...cardProps(item)} />
-              </SortableItem>
+              <SortableOrderItem key={idOf(item)} id={idOf(item)}>
+                <ImageCard {...cardProps(item)} />
+              </SortableOrderItem>
             ))}
-          </div>
+          </OrderCardGrid>
         </SortableContext>
       </DndContext>
     </div>
@@ -419,6 +233,7 @@ function SourceGroup({
 // ─────────────────────────────────────────────────────────────────────────────
 //  Hidden strip — every hidden image of this artist, together at the bottom,
 //  half size, above a dashed separator. Not sortable (no position).
+//  Layout comes from the shared <OrderHiddenStrip>.
 // ─────────────────────────────────────────────────────────────────────────────
 function HiddenStrip({
   groupKey,
@@ -428,65 +243,34 @@ function HiddenStrip({
   listMode,
   thumbWidth,
   onToggleItemHidden,
-  isItemHover,
-  onToggleItemHover,
   isItemBusy,
 }) {
   if (!items.length) return null;
 
-  const smallWidth = Math.max(70, Math.round(thumbWidth / 2));
-
-  const gridStyle = listMode
-    ? { display: "flex", flexDirection: "column", gap: 8 }
-    : {
-        display: "grid",
-        gridTemplateColumns: `repeat(auto-fill, minmax(${smallWidth}px, 1fr))`,
-        gap: 10,
-      };
-
   return (
-    <div style={{ marginTop: 6 }}>
-      <div
-        style={{
-          borderTop: "1px dashed rgba(0,0,0,.3)",
-          paddingTop: 12,
-          marginBottom: 12,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 12,
-          fontFamily,
-        }}
-      >
-        <span
-          style={{ fontSize: 12, fontWeight: 600, letterSpacing: ".02em", opacity: 0.75 }}
-          title={txt(T.hiddenHint, isCn)}
-        >
-          {txt(T.hiddenTitle, isCn)}
-        </span>
-        <span style={{ fontSize: 12, opacity: 0.55 }}>{items.length}</span>
-      </div>
-
-      <div style={gridStyle}>
-        {items.map((item) => (
-          <OrderCard
-            key={idOf(item)}
-            item={item}
-            orderNumber={null}
-            isCn={isCn}
-            fontFamily={fontFamily}
-            listMode={listMode}
-            thumbWidth={smallWidth}
-            hidden
-            onToggleHide={() => onToggleItemHidden?.(item, groupKey)}
-            busy={isItemBusy ? isItemBusy(item) : false}
-            hoverMarked={isItemHover ? isItemHover(item) : false}
-            onToggleHover={() => onToggleItemHover?.(item)}
-            hoverBusy={isItemBusy ? isItemBusy(item) : false}
-          />
-        ))}
-      </div>
-    </div>
+    <OrderHiddenStrip
+      items={items}
+      label={txt(T.hiddenTitle, isCn)}
+      hint={txt(T.hiddenHint, isCn)}
+      count={items.length}
+      listMode={listMode}
+      thumbWidth={thumbWidth}
+      fontFamily={fontFamily}
+      style={{ marginTop: 6 }}
+      renderCard={(item, smallWidth) => (
+        <ImageCard
+          item={item}
+          orderNumber={null}
+          isCn={isCn}
+          fontFamily={fontFamily}
+          listMode={listMode}
+          thumbWidth={smallWidth}
+          hidden
+          onToggleHide={() => onToggleItemHidden?.(item, groupKey)}
+          busy={isItemBusy ? isItemBusy(item) : false}
+        />
+      )}
+    />
   );
 }
 
@@ -539,74 +323,51 @@ function ArtistBlock({
   const showSourceHeaders = (group.sources || []).length > 1 || Boolean(group.artist);
 
   return (
-    <div
-      style={{
-        border: "1px solid rgba(0,0,0,.16)",
-        borderRadius: 12,
-        marginBottom: 20,
-        overflow: "hidden",
-        background: "#fff",
-      }}
+    <OrderGroupBox
+      label={group.label}
+      count={
+        hiddenItems.length > 0
+          ? `${visibleCount} + ${hiddenItems.length} ${isCn ? "隐藏" : "hidden"}`
+          : visibleCount
+      }
+      fontFamily={fontFamily}
+      labelFontFamily={fontFamily}
+      bodyStyle={{ padding: "14px 16px 16px" }}
     >
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          gap: 12,
-          padding: "13px 18px",
-          background: "rgba(0,0,0,.02)",
-          borderBottom: "1px solid rgba(0,0,0,.08)",
-          fontFamily,
-        }}
-      >
-        <span style={{ fontWeight: 700, fontSize: 15, letterSpacing: ".01em" }}>
-          {group.label}
-        </span>
-        <span style={{ fontSize: 12, opacity: 0.6, whiteSpace: "nowrap" }}>
-          {visibleCount}
-          {hiddenItems.length > 0
-            ? ` + ${hiddenItems.length} ${isCn ? "隐藏" : "hidden"}`
-            : ""}
-        </span>
-      </div>
-
-      <div style={{ padding: "14px 16px 16px" }}>
-        {sources.map((source) => (
-          <SourceGroup
-            key={source.key}
-            groupKey={group.key}
-            label={source.label}
-            items={source.items}
-            numbers={numbers}
-            isCn={isCn}
-            fontFamily={fontFamily}
-            listMode={listMode}
-            thumbWidth={thumbWidth}
-            onReorder={(next) => onReorderSource(group.key, source.key, next)}
-            isItemHidden={isItemHidden}
-            onToggleItemHidden={onToggleItemHidden}
-            isItemHover={isItemHover}
-            onToggleItemHover={onToggleItemHover}
-            isItemBusy={isItemBusy}
-            showHeader={showSourceHeaders}
-          />
-        ))}
-
-        <HiddenStrip
+      {sources.map((source) => (
+        <SourceGroup
+          key={source.key}
           groupKey={group.key}
-          items={hiddenItems}
+          label={source.label}
+          items={source.items}
+          numbers={numbers}
           isCn={isCn}
           fontFamily={fontFamily}
           listMode={listMode}
           thumbWidth={thumbWidth}
+          onReorder={(next) => onReorderSource(group.key, source.key, next)}
+          isItemHidden={isItemHidden}
           onToggleItemHidden={onToggleItemHidden}
           isItemHover={isItemHover}
           onToggleItemHover={onToggleItemHover}
           isItemBusy={isItemBusy}
+          showHeader={showSourceHeaders}
         />
-      </div>
-    </div>
+      ))}
+
+      <HiddenStrip
+        groupKey={group.key}
+        items={hiddenItems}
+        isCn={isCn}
+        fontFamily={fontFamily}
+        listMode={listMode}
+        thumbWidth={thumbWidth}
+        onToggleItemHidden={onToggleItemHidden}
+        isItemHover={isItemHover}
+        onToggleItemHover={onToggleItemHover}
+        isItemBusy={isItemBusy}
+      />
+    </OrderGroupBox>
   );
 }
 
@@ -1103,167 +864,36 @@ export default function ImageOrderPageComponent() {
     );
   }
 
-  const btn = (primary) => ({
-    display: "inline-flex",
-    alignItems: "center",
-    gap: 6,
-    padding: "8px 14px",
-    fontSize: 13,
-    fontFamily,
-    fontWeight: primary ? 600 : 500,
-    border: "1px solid #000",
-    borderRadius: 8,
-    background: "#fff",
-    color: "#000",
-    cursor: "pointer",
-    whiteSpace: "nowrap",
-  });
-
   // Human-readable name of the order currently being edited.
   const orderLabel = orderKey
     ? txt(ORDER_KEY_LABELS[orderKey] || { en: orderKey, cn: orderKey }, isCn)
     : "";
 
-  // Order-type switcher chip — the SELECTED one is the bold, black anchor
-  // of the row (bold text + black rule); the rest stay quiet.
-  const orderChip = (active) => ({
-    display: "inline-flex",
-    alignItems: "center",
-    padding: "7px 12px",
-    fontFamily,
-    fontSize: 12.5,
-    fontWeight: active ? 800 : 500,
-    color: active ? "#000" : "rgba(0,0,0,0.55)",
-    background: "#fff",
-    border: `1px solid ${active ? "#000" : "rgba(0,0,0,0.14)"}`,
-    borderRadius: 6,
-    cursor: "pointer",
-    opacity: 1,
-    boxShadow: active ? "inset 0 -3px 0 #000" : "none",
-    whiteSpace: "nowrap",
-  });
-
   return (
     <div style={{ background: colors.background, color: colors.text, minHeight: "100vh" }}>
-      <style>{`
-        .ordbtn { transition: opacity 0.15s ease; }
-        .ordbtn:hover:not(:disabled) { text-decoration: underline; text-underline-offset: 2px; }
-        .ordbtn:disabled { opacity: 0.5; cursor: default; }
-        .ordhide { transition: opacity 0.15s ease, background 0.15s ease; }
-        .ordhide:hover:not(:disabled) { opacity: 1 !important; background: rgba(0,0,0,.04); }
-        .ordhover { transition: opacity 0.15s ease, background 0.15s ease, color 0.15s ease; }
-        .ordhover:hover:not(:disabled) { opacity: 1 !important; }
-      `}</style>
-      <div style={{ maxWidth: 1400, margin: "0 auto", padding: "24px 20px 80px" }}>
-        {/* Header: Back on its own row, then the ACTIVE order as a visible
-            label above the title, then the title + subtitle. A dashed rule
-            separates the header from the content below. */}
-        <button type="button" className="ordbtn" style={btn(false)} onClick={() => history.back()}>
-          <ArrowLeft size={14} /> {txt(T.back, isCn)}
-        </button>
-
-        <div style={{ marginTop: 14 }}>
-          {/* One small grey label: the page name, then the order being edited
-              (the switcher carries the same selection, in bold black). */}
-          <span
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 9,
-              flexWrap: "wrap",
-              fontFamily,
-              fontSize: 12.5,
-              fontWeight: 800,
-              letterSpacing: 1.8,
-              textTransform: "uppercase",
-              color: "#000",
-              textDecoration: "underline",
-              textDecorationThickness: 2,
-              textUnderlineOffset: 5,
-            }}
-          >
-            <span>{txt(T.title, isCn)}</span>
-            {orderLabel ? (
-              <>
-                <span
-                  style={{
-                    display: "inline-block",
-                    width: 16,
-                    height: 1,
-                    background: "rgba(0,0,0,0.45)",
-                  }}
-                />
-                <span>{orderLabel}</span>
-              </>
-            ) : null}
-          </span>
-          <p
-            style={{
-              fontFamily,
-              fontSize: 13,
-              lineHeight: 1.65,
-              opacity: 0.62,
-              margin: "10px 0 0",
-              maxWidth: 900,
-            }}
-          >
-            {txt(T.subtitle, isCn)}
-          </p>
-        </div>
-
-        {/* Dashed separator between the header and the content. */}
-        <div style={{ borderTop: "1px dashed rgba(0,0,0,0.28)", marginTop: 20 }} />
-
-        {/* Toolbar */}
-        <div
-          style={{
-            position: "sticky",
-            top: 70,
-            zIndex: 40,
-            background: colors.background,
-            padding: "14px 0 12px",
-            display: "flex",
-            flexWrap: "wrap",
-            alignItems: "center",
-            gap: 14,
-            borderBottom: "1px solid rgba(0,0,0,0.12)",
-            marginBottom: 20,
-          }}
-        >
-          {/* Order-type switcher — an image holds one position per page plus
-              the artist rolling order; pick which one you are editing. */}
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-            <span
-              style={{
-                fontFamily,
-                fontSize: 11,
-                fontWeight: 700,
-                letterSpacing: 1.4,
-                textTransform: "uppercase",
-                opacity: 0.45,
-              }}
-            >
-              {isCn ? "排序维度" : "Order by"}
-            </span>
-            {IMAGE_ORDER_KEYS.map((key) => {
-              const active = key === orderKey;
-              return (
-                <button
-                  key={key}
-                  type="button"
-                  className="ordbtn"
-                  aria-pressed={active}
-                  onClick={() => setOrderKey(key)}
-                  style={orderChip(active)}
-                >
-                  {txt(ORDER_KEY_LABELS[key], isCn)}
-                </button>
-              );
-            })}
-          </span>
-
-          {/* Legend: images marked to be hidden from the artist page rolling set */}
-          {hiddenCount > 0 && (
+      <OrderPageShell
+        isCn={isCn}
+        fontFamily={fontFamily}
+        containerStyle={{ maxWidth: 1400, margin: "0 auto", padding: "24px 20px 80px" }}
+        title={T.title}
+        subtitle={T.subtitle}
+        backLabel={T.back}
+        onBack={() => history.back()}
+        orderLabel={orderLabel}
+        orderByLabel={{ en: "Order by", cn: "排序维度" }}
+        orderKeys={IMAGE_ORDER_KEYS}
+        orderLabels={ORDER_KEY_LABELS}
+        orderKey={orderKey}
+        onOrderKeyChange={setOrderKey}
+        notice={notice}
+        onSave={handleSave}
+        onReset={handleReset}
+        saving={saving}
+        saveLabel={T.save}
+        savingLabel={T.saving}
+        resetLabel={T.reset}
+        switcherExtra={
+          hiddenCount > 0 ? (
             <span
               style={{
                 display: "inline-flex",
@@ -1282,92 +912,32 @@ export default function ImageOrderPageComponent() {
                 ? `${hiddenCount} 张已从此页隐藏`
                 : `${hiddenCount} hidden from this page`}
             </span>
-          )}
-
-          <button type="button" className="ordbtn" style={btn(true)} onClick={handleSave} disabled={saving}>
-            <Save size={14} /> {saving ? txt(T.saving, isCn) : txt(T.save, isCn)}
-          </button>
-
-          <button type="button" className="ordbtn" style={btn(false)} onClick={handleReset} disabled={saving}>
-            <RotateCcw size={14} /> {txt(T.reset, isCn)}
-          </button>
-
+          ) : null
+        }
+        hint={
           <span style={{ fontFamily, fontSize: 12, opacity: 0.55, display: "inline-flex", alignItems: "center", gap: 6 }}>
             <GripVertical size={14} /> {txt(T.dragHint, isCn)}
           </span>
-
-          {notice && (
-            <span
-              style={{
-                fontFamily,
-                fontSize: 12,
-                color: notice.type === "ok" ? "#0a7d32" : "#c0392b",
-              }}
-            >
-              {notice.text}
-            </span>
-          )}
-
-          {/* Right side: view mode + size slider */}
-          <span style={{ marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: 12 }}>
-            <span style={{ display: "inline-flex", border: "1px solid #000", borderRadius: 8, overflow: "hidden" }}>
-              <button
-                type="button"
-                onClick={() => setListMode(false)}
-                title={txt(T.grid, isCn)}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 4,
-                  padding: "7px 10px",
-                  fontSize: 12,
-                  fontFamily,
-                  border: "none",
-                  borderBottom: listMode ? "2px solid transparent" : "2px solid #000",
-                  cursor: "pointer",
-                  background: "#fff",
-                  color: listMode ? "rgba(0,0,0,0.4)" : "#000",
-                }}
-              >
-                <LayoutGrid size={14} />
-              </button>
-              <button
-                type="button"
-                onClick={() => setListMode(true)}
-                title={txt(T.list, isCn)}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 4,
-                  padding: "7px 10px",
-                  fontSize: 12,
-                  fontFamily,
-                  border: "none",
-                  borderLeft: "1px solid #000",
-                  borderBottom: listMode ? "2px solid #000" : "2px solid transparent",
-                  cursor: "pointer",
-                  background: "#fff",
-                  color: listMode ? "#000" : "rgba(0,0,0,0.4)",
-                }}
-              >
-                <List size={14} />
-              </button>
-            </span>
-
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 8, fontFamily }}>
-              <span style={{ fontSize: 12, opacity: 0.6 }}>{txt(T.size, isCn)}</span>
-              <input
-                type="range"
-                min={140}
-                max={480}
-                step={10}
-                value={thumbWidth}
-                onChange={(e) => setThumbWidth(Number(e.target.value))}
-                style={{ width: 140, accentColor: "#000", cursor: "pointer" }}
-              />
-            </span>
-          </span>
-        </div>
+        }
+        right={
+          <OrderViewControls
+            listMode={listMode}
+            onListModeChange={setListMode}
+            size={thumbWidth}
+            onSizeChange={setThumbWidth}
+            min={140}
+            max={480}
+            step={10}
+            sizeSliderWidth={140}
+            labels={{
+              grid: txt(T.grid, isCn),
+              list: txt(T.list, isCn),
+              size: txt(T.size, isCn),
+            }}
+            fontFamily={fontFamily}
+          />
+        }
+      >
 
         {/* Groups (one per artist) */}
         {groups.length === 0 ? (
@@ -1393,7 +963,7 @@ export default function ImageOrderPageComponent() {
             />
           ))
         )}
-      </div>
+      </OrderPageShell>
     </div>
   );
 }

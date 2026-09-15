@@ -14,7 +14,7 @@ import { LanguageContext } from "@/components/contexts/LanguageContext";
 import { DeviceContext } from "@/components/contexts/DeviceContext";
 import { ManagerContext } from "@/components/contexts/ManagerContext";
 import { useReverseTheme } from "@/hooks/useReverseTheme";
-import menuItems from "@/data/menuItems.json";
+import { DEFAULT_MENUS } from "@/utils/siteMetaDefaults";
 import useSiteMeta from "@/hooks/useSiteMeta";
 import useFont from "@/hooks/useFont";
 import MenuIconButton from "@/components/buttons/MenuIconButton";
@@ -416,7 +416,7 @@ export default function MainNav() {
 
   // Menus come from the Meta document (manager-editable) with the JSON as fallback.
   const { meta: siteMeta } = useSiteMeta();
-  const menuSource = siteMeta?.menu || menuItems;
+  const menuSource = siteMeta?.menu || DEFAULT_MENUS;
   const menuList = useMemo(() => {
     const source = isManager ? menuSource.managerMenu : menuSource.mainMenu;
     return source?.[languageKey] || [];

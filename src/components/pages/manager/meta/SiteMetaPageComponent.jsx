@@ -8,8 +8,9 @@
  * mapping and the form type options. Backed by the singleton `Meta` document (`/api/meta`),
  * so nothing here needs a JSON edit any more.
  *
- * Form settings (form_options / form_types / form_marks) deliberately stay in
- * `src/data/*.json`.
+ * Field-level form options live in `@/components/forms/utils/formOptionsUtils`;
+ * every site setting comes from the Meta document (defaults in
+ * `@/utils/siteMetaDefaults`).
  */
 
 import React, { useContext, useEffect, useMemo, useState } from "react";
@@ -36,6 +37,22 @@ const inputSx = (fontStyle) => ({
   fontFamily: "inherit",
   ...fontStyle,
 });
+
+/**
+ * A form-type option is stored as its two labels only — the label IS the value.
+ * A separate `value` field only repeats the label and drifts out of sync, so it
+ * is dropped. Legacy rows that still carry one keep it as a fallback EN label.
+ */
+const toCleanOption = (opt = {}) => ({
+  label_en: String(opt.label_en ?? opt.value ?? "").trim(),
+  label_cn: String(opt.label_cn ?? opt.label_en ?? opt.value ?? "").trim(),
+});
+
+/** EN label of one option (tolerant of legacy `{ value, … }` rows). */
+const optionLabelEn = (opt = {}) => String(opt.label_en ?? opt.value ?? "");
+
+/** CN label of one option (tolerant of legacy `{ value, … }` rows). */
+const optionLabelCn = (opt = {}) => String(opt.label_cn ?? "");
 
 const TextField = ({ label, value, onChange, hint, fontStyle, placeholder }) => (
   <Box sx={{ display: "flex", flexDirection: "column", gap: "5px", minWidth: 0 }}>
@@ -244,39 +261,21 @@ export default function SiteMetaPageComponent() {
             saved: "已保存",
             saving: "保存中…",
             failed: "保存失败",
-            app: "应用信息",
-            appHint: "标题、类型、简介",
             footer: "页脚",
             footerHint: "公司名称、起始年份、版权文字",
-            social: "社交媒体",
-            socialHint: "平台 / 账号 / 链接",
-            website: "网站",
             menus: "导航菜单",
             menusHint: "公开菜单与后台菜单（含下拉子项）",
             seo: "SEO 与标签",
-            theme: "主题与功能",
             label: "名称",
             childLabel: "子项名称",
             href: "链接",
             addItem: "添加一项",
             addChild: "添加子项",
             remove: "删除",
-            platform: "平台",
-            account: "账号",
-            url: "链接",
-            addSocial: "添加社交账号",
             mainMenu: "公开菜单",
             managerMenu: "后台菜单",
             en: "英文",
             cn: "中文",
-            titleEn: "标题（英文）",
-            titleCn: "标题（中文）",
-            type: "类型",
-            category: "分类",
-            version: "版本",
-            purpose: "用途",
-            descEn: "简介（英文）",
-            descCn: "简介（中文）",
             companyEn: "公司名称（英文）",
             companyCn: "公司名称（中文）",
             startYear: "起始年份",
@@ -289,17 +288,12 @@ export default function SiteMetaPageComponent() {
             icon: "站点图标",
             canonical: "规范链接 (canonical)",
             author: "作者",
-            defaultTheme: "默认主题",
-            autoDetect: "跟随系统主题",
-            artworkFilters: "显示作品筛选器",
-            on: "开",
-            off: "关",
             jsonNote: "图库实体映射（galleryEntities）保持只读，如需修改请告知。",
             formTypes: "表单类型选项",
-            formTypesHint: "作品 / 展览 / 博览会 的 type 下拉选项（可增删）",
+            formTypesHint: "作品 / 展览 / 博览会 的 type 下拉选项：只填名称，名称本身就是值（可增删）",
             value: "值",
-            labelEn: "标签（英文）",
-            labelCn: "标签（中文）",
+            labelEn: "名称（英文）",
+            labelCn: "名称（中文）",
             addType: "添加类型",
             entityArtwork: "作品",
             entityExhibition: "展览",
@@ -312,39 +306,21 @@ export default function SiteMetaPageComponent() {
             saved: "Saved",
             saving: "Saving…",
             failed: "Save failed",
-            app: "App",
-            appHint: "Title, type, description",
             footer: "Footer",
             footerHint: "Company name, start year, rights text",
-            social: "Social media",
-            socialHint: "Platform / account / URL",
-            website: "Website",
             menus: "Navigation menus",
             menusHint: "Public + manager menus (with dropdown children)",
             seo: "SEO & tags",
-            theme: "Theme & features",
             label: "Label",
             childLabel: "Child label",
             href: "Href",
             addItem: "Add item",
             addChild: "Add child",
             remove: "Remove",
-            platform: "Platform",
-            account: "Account",
-            url: "URL",
-            addSocial: "Add social account",
             mainMenu: "Public menu",
             managerMenu: "Manager menu",
             en: "English",
             cn: "Chinese",
-            titleEn: "Title (EN)",
-            titleCn: "Title (CN)",
-            type: "Type",
-            category: "Category",
-            version: "Version",
-            purpose: "Purpose",
-            descEn: "Description (EN)",
-            descCn: "Description (CN)",
             companyEn: "Company name (EN)",
             companyCn: "Company name (CN)",
             startYear: "Start year",
@@ -357,17 +333,12 @@ export default function SiteMetaPageComponent() {
             icon: "Site icon",
             canonical: "Canonical URL",
             author: "Author",
-            defaultTheme: "Default theme",
-            autoDetect: "Follow system theme",
-            artworkFilters: "Show artwork filters",
-            on: "On",
-            off: "Off",
             jsonNote: "The image-gallery entity mapping (galleryEntities) stays read-only — tell me if you want it editable.",
             formTypes: "Form type options",
-            formTypesHint: "Type dropdown options for artwork / exhibition / fair (add or remove)",
+            formTypesHint: "Type dropdown options for artwork / exhibition / fair — just the name: the name itself is the value (add or remove)",
             value: "Value",
-            labelEn: "Label (EN)",
-            labelCn: "Label (CN)",
+            labelEn: "Name (EN)",
+            labelCn: "Name (CN)",
             addType: "Add type",
             entityArtwork: "Artwork",
             entityExhibition: "Exhibition",
@@ -380,9 +351,14 @@ export default function SiteMetaPageComponent() {
   const setIn = (key, sub) => (value) => setDraft((d) => ({ ...d, [key]: { ...(d[key] || {}), [sub]: value } }));
 
   // Form "type" option lists (artwork / exhibition / fair).
+  // An option is just its label — the label IS the value (no separate value
+  // field to keep in sync: that only creates repeats and confusion).
   const formTypes = draft?.formTypes || {};
   const setFormTypeList = (entity, list) =>
-    setDraft((d) => ({ ...d, formTypes: { ...(d.formTypes || {}), [entity]: list } }));
+    setDraft((d) => ({
+      ...d,
+      formTypes: { ...(d.formTypes || {}), [entity]: list.map(toCleanOption) },
+    }));
 
   const handleSave = async () => {
     setStatus(null);
@@ -475,22 +451,6 @@ export default function SiteMetaPageComponent() {
         </Box>
       </Box>
 
-      {/* ── App ── */}
-      <Section icon={Disc} title={t.app} subtitle={t.appHint}>
-        <Box sx={row}>
-          <TextField label={t.titleEn} value={draft.app_title_en ?? ""} onChange={set("app_title_en")} fontStyle={labelFontStyle} />
-          <TextField label={t.titleCn} value={draft.app_title_cn} onChange={set("app_title_cn")} fontStyle={labelFontStyle} />
-        </Box>
-        <Box sx={row3}>
-          <TextField label={t.type} value={draft.app_type} onChange={set("app_type")} fontStyle={labelFontStyle} />
-          <TextField label={t.category} value={draft.app_category} onChange={set("app_category")} fontStyle={labelFontStyle} />
-          <TextField label={t.version} value={draft.app_version} onChange={set("app_version")} fontStyle={labelFontStyle} />
-        </Box>
-        <TextField label={t.purpose} value={draft.app_purpose} onChange={set("app_purpose")} fontStyle={labelFontStyle} />
-        <TextAreaField label={t.descEn} value={draft.app_description_en ?? ""} onChange={set("app_description_en")} fontStyle={labelFontStyle} />
-        <TextAreaField label={t.descCn} value={draft.app_description_cn} onChange={set("app_description_cn")} fontStyle={labelFontStyle} />
-      </Section>
-
       {/* ── Footer ── */}
       <Section icon={Globe} title={t.footer} subtitle={t.footerHint}>
         <Box sx={row}>
@@ -507,11 +467,6 @@ export default function SiteMetaPageComponent() {
           <TextField label={t.rightsEn} value={draft.app_footer_rights_en ?? ""} onChange={set("app_footer_rights_en")} fontStyle={labelFontStyle} />
           <TextField label={t.rightsCn} value={draft.app_footer_rights_cn} onChange={set("app_footer_rights_cn")} fontStyle={labelFontStyle} />
         </Box>
-      </Section>
-
-      {/* ── Website ── */}
-      <Section icon={Globe} title={t.website}>
-        <TextField label={t.url} value={draft.web_url} onChange={set("web_url")} fontStyle={labelFontStyle} placeholder="https://" />
       </Section>
 
       {/* ── Menus ── */}
@@ -578,14 +533,11 @@ export default function SiteMetaPageComponent() {
               <Typography sx={{ fontSize: 12, fontWeight: 700 }}>{entityLabel}</Typography>
               {list.map((item, index) => (
                 <Box key={index} sx={{ display: "flex", gap: 1, alignItems: "flex-end", flexWrap: "wrap" }}>
-                  <Box sx={{ flex: "1 1 160px", minWidth: 120 }}>
-                    <TextField label={t.value} value={item.value} onChange={(v) => update(index, { value: v })} fontStyle={labelFontStyle} />
+                  <Box sx={{ flex: "1 1 180px", minWidth: 130 }}>
+                    <TextField label={t.labelEn} value={optionLabelEn(item)} onChange={(v) => update(index, { label_en: v })} fontStyle={labelFontStyle} />
                   </Box>
                   <Box sx={{ flex: "1 1 180px", minWidth: 130 }}>
-                    <TextField label={t.labelEn} value={item.label_en} onChange={(v) => update(index, { label_en: v })} fontStyle={labelFontStyle} />
-                  </Box>
-                  <Box sx={{ flex: "1 1 180px", minWidth: 130 }}>
-                    <TextField label={t.labelCn} value={item.label_cn} onChange={(v) => update(index, { label_cn: v })} fontStyle={labelFontStyle} />
+                    <TextField label={t.labelCn} value={optionLabelCn(item)} onChange={(v) => update(index, { label_cn: v })} fontStyle={labelFontStyle} />
                   </Box>
                   <IconButton title={t.remove} danger onClick={() => setFormTypeList(entity, list.filter((_, i) => i !== index))}>
                     <Trash2 size={14} strokeWidth={1.6} />
@@ -595,7 +547,7 @@ export default function SiteMetaPageComponent() {
               <Box
                 component="button"
                 type="button"
-                onClick={() => setFormTypeList(entity, [...list, { value: "", label_en: "", label_cn: "" }])}
+                onClick={() => setFormTypeList(entity, [...list, { label_en: "", label_cn: "" }])}
                 sx={{
                   alignSelf: "flex-start",
                   display: "inline-flex",

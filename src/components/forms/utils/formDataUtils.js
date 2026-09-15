@@ -1,6 +1,5 @@
-import formTypesData from '@/data/form_types.json';
-import formOptionsData from '@/data/form_options.json';
-import formMarksData from '@/data/form_marks.json';
+import { FORM_TYPE_OPTIONS as formTypesData } from '@/utils/siteMetaDefaults';
+import { FORM_FIELD_OPTIONS as formOptionsData } from '@/components/forms/utils/formOptionsUtils';
 
 // ============================================================
 // NOTE: Schema-specific options have been moved to form files:
@@ -95,22 +94,6 @@ export const getFormFieldOptions = (entityType, field, language = 'en') => {
   }
 
   return [];
-};
-
-/**
- * Get mark options for a specific entity
- * @param {string} entityType - Entity type
- * @param {string} language - Language code ('en' or 'cn')
- * @returns {Array} Array of mark option objects
- */
-export const getMarkOptions = (entityType, language = 'en') => {
-  const marks = formMarksData[entityType] || [];
-
-  return marks.map(mark => ({
-    id: mark.id,
-    value: mark.value,
-    label: language === 'cn' ? mark.label_cn : mark.label_en
-  }));
 };
 
 /**
@@ -323,7 +306,7 @@ export const getWebTypeLabel = (value, language = 'en') => {
 // EXPORT RAW DATA
 // ============================================================
 
-export { formTypesData, formOptionsData, formMarksData };
+export { formTypesData, formOptionsData };
 
 // ============================================================
 // DEFAULT EXPORT
@@ -333,7 +316,6 @@ export default {
   // Data access functions
   getFormTypes,
   getFormFieldOptions,
-  getMarkOptions,
   getTypeOptions,
   getBooleanOptions,
   getLanguageOptions,
@@ -354,6 +336,5 @@ export default {
   
   // Raw data
   formTypesData,
-  formOptionsData,
-  formMarksData
+  formOptionsData
 };

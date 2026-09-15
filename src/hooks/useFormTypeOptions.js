@@ -4,9 +4,15 @@
  * useFormTypeOptions — the "type" dropdown options for one entity.
  *
  * Reads `Meta.formTypes[entity]` (managed in /manager/meta) and maps the stored
- * entries (`{ value, label_en, label_cn }`) to the `{ value, label }` shape the
- * form selectors expect. Falls back to the caller-supplied list when the Meta
- * doc has nothing for that entity (e.g. before it is saved).
+ * entries to the `{ value, label }` shape the form selectors expect.
+ *
+ * An option is stored as its labels only (`{ label_en, label_cn }`) — the label
+ * IS the value, so there is no duplicate value field. Legacy rows that still
+ * carry `{ value, label_en, label_cn }` keep working: the value falls back to
+ * `label_en`, then to the old `value`.
+ *
+ * Falls back to the caller-supplied list when the Meta doc has nothing for that
+ * entity (e.g. before it is saved).
  *
  * @param {string} entity   "artwork" | "exhibition" | "fair" | …
  * @param {Array}  fallback [{ value, label }] used when Meta has no entries
@@ -23,13 +29,13 @@ const toOption = (entry, isCn) => {
     const v = entry.trim();
     return v ? { value: v, label: v } : null;
   }
-  const value = String(entry.value ?? entry.label ?? "").trim();
+  // The label IS the value: prefer the labels, then any legacy `value`.
+  const labelEn = String(entry.label_en ?? entry.label ?? "").trim();
+  const labelCn = String(entry.label_cn ?? "").trim();
+  const legacy = String(entry.value ?? "").trim();
+  const value = labelEn || legacy || labelCn;
   if (!value) return null;
-  const label =
-    (isCn ? entry.label_cn : entry.label_en) ||
-    entry.label_en ||
-    entry.label_cn ||
-    value;
+  const label = (isCn ? labelCn : labelEn) || labelEn || labelCn || value;
   return { value, label };
 };
 

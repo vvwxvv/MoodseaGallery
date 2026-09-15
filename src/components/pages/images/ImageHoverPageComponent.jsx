@@ -18,11 +18,18 @@
 
 import React, { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Image, ImageOff, LayoutGrid, List } from "lucide-react";
+import { Image, ImageOff } from "lucide-react";
 import { LanguageContext } from "@/components/contexts/LanguageContext";
 import useData from "@/hooks/useData";
 import useFont from "@/hooks/useFont";
 import useImageArtistGroups from "@/components/pages/images/hooks/useImageArtistGroups";
+import OrderPageShell from "@/components/pages/order/OrderPageShell";
+import OrderGroupBox from "@/components/pages/order/OrderGroupBox";
+import OrderCard, {
+  OrderCardGrid,
+  OrderEmptyState,
+  OrderViewControls,
+} from "@/components/pages/order/OrderCard";
 import { getOrder } from "@/utils/mediaOrder";
 import {
   MARK,
@@ -184,216 +191,94 @@ export default function ImageHoverPageComponent() {
   const total = view.reduce((n, g) => n + g.items.length, 0);
 
   return (
-    <div style={{ background: "#fff", minHeight: "100%", padding: "22px 20px 60px", color: "#000" }}>
-      {/* ── Header ── */}
-      <div style={{ display: "flex", alignItems: "flex-start", gap: 12, flexWrap: "wrap", paddingBottom: 12, borderBottom: "1px solid rgba(0,0,0,.14)" }}>
-        <button
-          type="button"
-          onClick={() => router.push("/manager/image")}
-          style={{ display: "inline-flex", alignItems: "center", gap: 6, border: "1px solid #000", borderRadius: 8, background: "#fff", padding: "7px 12px", fontSize: 12.5, fontFamily, cursor: "pointer" }}
-        >
-          <ArrowLeft size={14} /> {txt(T.back, isCn)}
-        </button>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: 3, minWidth: 0 }}>
-          <div style={{ fontFamily, fontSize: 17, fontWeight: 700, letterSpacing: ".01em" }}>{txt(T.title, isCn)}</div>
-          <div style={{ fontFamily: labelFontFamily, fontSize: 12, color: "rgba(0,0,0,.55)" }}>
-            {txt(T.subtitle, isCn)}
-          </div>
-        </div>
-
-        <div style={{ marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-          {notice && (
-            <span style={{ fontFamily, fontSize: 12, color: notice.type === "ok" ? "#0a7d32" : "#c0392b" }}>
-              {notice.text}
-            </span>
-          )}
-
-          {/* Grid / list + size — same controls as the order page */}
-          <span style={{ display: "inline-flex", border: "1px solid #000", borderRadius: 8, overflow: "hidden" }}>
-            <button
-              type="button"
-              onClick={() => setListMode(false)}
-              title={txt(T.grid, isCn)}
-              style={{ padding: "7px 10px", border: "none", background: "#fff", color: listMode ? "rgba(0,0,0,.4)" : "#000", cursor: "pointer" }}
-            >
-              <LayoutGrid size={14} />
-            </button>
-            <button
-              type="button"
-              onClick={() => setListMode(true)}
-              title={txt(T.list, isCn)}
-              style={{ padding: "7px 10px", border: "none", borderLeft: "1px solid #000", background: "#fff", color: listMode ? "#000" : "rgba(0,0,0,.4)", cursor: "pointer" }}
-            >
-              <List size={14} />
-            </button>
-          </span>
-
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-            <span style={{ fontFamily, fontSize: 12, opacity: 0.6 }}>{txt(T.size, isCn)}</span>
-            <input
-              type="range"
-              min={140}
-              max={360}
-              step={10}
-              value={thumbWidth}
-              onChange={(e) => setThumbWidth(Number(e.target.value))}
-              style={{ width: 120, accentColor: "#000", cursor: "pointer" }}
-            />
-          </span>
-        </div>
-      </div>
+    <OrderPageShell
+      isCn={isCn}
+      fontFamily={fontFamily}
+      containerStyle={{ maxWidth: "none", margin: 0, padding: "22px 20px 60px", minHeight: "100%" }}
+      title={T.title}
+      subtitle={T.subtitle}
+      backLabel={T.back}
+      onBack={() => router.push("/manager/image")}
+      notice={notice}
+      right={
+        <OrderViewControls
+          listMode={listMode}
+          onListModeChange={setListMode}
+          size={thumbWidth}
+          onSizeChange={setThumbWidth}
+          min={140}
+          max={360}
+          step={10}
+          labels={{ grid: txt(T.grid, isCn), list: txt(T.list, isCn), size: txt(T.size, isCn) }}
+          fontFamily={fontFamily}
+        />
+      }
+    >
 
       {/* ── Artist groups ── */}
       {total === 0 ? (
-        <div style={{ padding: "60px 0", textAlign: "center", fontFamily, fontSize: 13, color: "rgba(0,0,0,.5)" }}>
-          {txt(T.empty, isCn)}
-        </div>
+        <OrderEmptyState text={txt(T.empty, isCn)} fontFamily={fontFamily} />
       ) : (
         view.map((g) => {
           const label = isCn ? g.artistCn || g.label : g.artistEn || g.label;
           return (
-            <section key={g.key} style={{ marginTop: 26 }}>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 12 }}>
-                <h2 style={{ fontFamily, fontSize: 14, fontWeight: 700, margin: 0 }}>{label || g.label}</h2>
-                <span style={{ fontFamily: labelFontFamily, fontSize: 11.5, color: "rgba(0,0,0,.5)" }}>
-                  {g.items.length} {txt(T.images, isCn)}
-                </span>
-                {g.chosen > 0 && (
+            <OrderGroupBox
+              key={g.key}
+              label={label || g.label}
+              count={`${g.items.length} ${txt(T.images, isCn)}`}
+              fontFamily={fontFamily}
+              labelFontFamily={labelFontFamily}
+              right={
+                g.chosen > 0 ? (
                   <span style={{ fontFamily: labelFontFamily, fontSize: 11, fontWeight: 700 }}>
                     ● {markLabel(MARK.ARTIST_HOVER_IMAGE, isCn)}
                   </span>
-                )}
-              </div>
+                ) : null
+              }
+            >
 
-              <div
-                style={
-                  listMode
-                    ? { display: "flex", flexDirection: "column", gap: 10 }
-                    : {
-                        display: "grid",
-                        gridTemplateColumns: `repeat(auto-fill, minmax(${thumbWidth}px, 1fr))`,
-                        gap: 14,
-                      }
-                }
-              >
+              <OrderCardGrid listMode={listMode} thumbWidth={thumbWidth} gap={14}>
                 {g.items.map((img) => {
                   const id = idOf(img);
                   const on = isHoverImage(img);
                   const isBusy = !!busy[id];
                   return (
-                    <div
+                    <OrderCard
                       key={id}
-                      style={{
-                        position: "relative",
-                        display: listMode ? "flex" : "block",
-                        alignItems: listMode ? "center" : undefined,
-                        gap: listMode ? 12 : undefined,
-                        border: `1px solid ${on ? "#000" : "rgba(0,0,0,.12)"}`,
-                        borderRadius: 10,
-                        overflow: "hidden",
-                        background: "#fff",
-                      }}
-                    >
-                      <div
-                        style={{
-                          position: "relative",
-                          width: listMode ? thumbWidth : "100%",
-                          height: listMode ? thumbWidth : undefined,
-                          aspectRatio: listMode ? "1 / 1" : undefined,
-                          background: "#f4f4f4",
-                          flexShrink: 0,
-                        }}
-                      >
-                        {img.img_url ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={img.img_url}
-                            alt={img.tag_en || ""}
-                            loading="lazy"
-                            draggable={false}
-                            style={{
-                              width: "100%",
-                              height: "100%",
-                              objectFit: "cover",
-                              display: "block",
-                              // Grey until chosen; the chosen one is full colour.
-                              filter: on ? "none" : "grayscale(1)",
-                              opacity: on ? 1 : 0.55,
-                              transition: "filter .15s ease, opacity .15s ease",
-                            }}
-                          />
-                        ) : null}
-                      </div>
-
-                      <div style={{ padding: listMode ? 0 : 10, minWidth: 0, flex: listMode ? 1 : undefined }}>
-                        <div
-                          style={{
-                            fontFamily,
-                            fontSize: 12.5,
-                            fontWeight: on ? 700 : 500,
-                            color: on ? "#000" : "rgba(0,0,0,.65)",
-                            whiteSpace: "nowrap",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                          }}
-                          title={img.tag_en || img.tag_cn || ""}
-                        >
-                          {isCn ? img.tag_cn || img.tag_en : img.tag_en || img.tag_cn}
-                        </div>
-                        <div style={{ fontFamily: labelFontFamily, fontSize: 11, color: "rgba(0,0,0,.45)", marginTop: 2 }}>
-                          {[img.type, posOf(img) ? `#${posOf(img)}` : ""].filter(Boolean).join(" · ")}
-                        </div>
-                      </div>
-
-                      {/* Toggle — right side. Same image icon in both states:
-                          ImageOff (no slash-free) = not chosen, Image = chosen.
-                          Never a black fill — only border/icon weight changes. */}
-                      <button
-                        type="button"
-                        aria-pressed={on}
-                        aria-label={`${on ? txt(T.clear, isCn) : txt(T.pick, isCn)} ${markLabel(MARK.ARTIST_HOVER_IMAGE, isCn)}`}
-                        disabled={isBusy}
-                        onClick={() => toggle(img, g.key)}
-                        title={
-                          on
-                            ? `${markLabel(MARK.ARTIST_HOVER_IMAGE, isCn)} · ${isCn ? "点击取消" : "click to clear"}`
-                            : `${txt(T.pick, isCn)} ${markLabel(MARK.ARTIST_HOVER_IMAGE, isCn)}`
-                        }
-                        style={{
-                          position: "absolute",
-                          top: 8,
-                          right: 8,
-                          width: 30,
-                          height: 30,
-                          display: "inline-flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          padding: 0,
-                          borderRadius: 9,
-                          border: `${on ? 1.5 : 1}px solid ${on ? "#000" : "rgba(0,0,0,.16)"}`,
-                          background: "#fff",
-                          color: on ? "#000" : "rgba(0,0,0,.4)",
-                          boxShadow: on ? "0 1px 6px rgba(0,0,0,.14)" : "none",
-                          cursor: isBusy ? "default" : "pointer",
-                          opacity: isBusy ? 0.4 : 1,
-                          transition: "border-color .15s ease, color .15s ease, box-shadow .15s ease",
-                        }}
-                      >
-                        {on ? (
+                      image={img.img_url}
+                      imageAlt={img.tag_en || ""}
+                      title={isCn ? img.tag_cn || img.tag_en : img.tag_en || img.tag_cn}
+                      meta={[img.type, posOf(img) ? `#${posOf(img)}` : ""]
+                        .filter(Boolean)
+                        .join(" · ")}
+                      dim={!on}
+                      borderColor={on ? "#000" : "rgba(0,0,0,.12)"}
+                      listMode={listMode}
+                      thumbWidth={thumbWidth}
+                      fontFamily={fontFamily}
+                      metaFontFamily={labelFontFamily}
+                      action={{
+                        variant: "outlined",
+                        icon: on ? (
                           <Image size={15} strokeWidth={2} />
                         ) : (
                           <ImageOff size={15} strokeWidth={1.8} />
-                        )}
-                      </button>
-                    </div>
+                        ),
+                        pressed: on,
+                        busy: isBusy,
+                        title: on
+                          ? `${markLabel(MARK.ARTIST_HOVER_IMAGE, isCn)} · ${isCn ? "点击取消" : "click to clear"}`
+                          : `${txt(T.pick, isCn)} ${markLabel(MARK.ARTIST_HOVER_IMAGE, isCn)}`,
+                        onClick: () => toggle(img, g.key),
+                      }}
+                    />
                   );
                 })}
-              </div>
-            </section>
+              </OrderCardGrid>
+            </OrderGroupBox>
           );
         })
       )}
-    </div>
+    </OrderPageShell>
   );
 }

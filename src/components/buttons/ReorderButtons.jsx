@@ -23,7 +23,7 @@ export default function ReorderButtons({
   return (
     <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
       <Button
-        variant="contained"
+        variant="outlined"
         size="medium"
         startIcon={isSaving ? <CircularProgress size={20} color="inherit" /> : <SaveIcon />}
         onClick={(e) => {
@@ -42,9 +42,19 @@ export default function ReorderButtons({
           borderRadius: '8px', 
           textTransform: 'none', 
           fontSize: '1rem', 
-          backgroundColor: 'var(--text-primary, #000)', 
-          color: 'var(--background-primary, #fff)', 
-          '&:hover': { backgroundColor: 'var(--text-secondary, #222)' },
+          // Buttons are always white — never a black fill.
+          backgroundColor: 'var(--background-primary, #fff)', 
+          color: 'var(--text-primary, #000)', 
+          borderColor: 'var(--text-primary, #000)', 
+          borderWidth: 1,
+          borderStyle: 'solid',
+          '&:hover': { 
+            backgroundColor: 'var(--background-primary, #fff)', 
+            color: 'var(--text-primary, #000)', 
+            borderColor: 'var(--text-primary, #000)', 
+            textDecoration: 'underline',
+            textUnderlineOffset: '3px',
+          },
           touchAction: 'manipulation',
           WebkitTapHighlightColor: 'transparent'
         }}
@@ -71,8 +81,9 @@ export default function ReorderButtons({
           textTransform: 'none', 
           fontSize: '1rem', 
           color: 'var(--text-primary, #000)', 
+          backgroundColor: 'var(--background-primary, #fff)', 
           borderColor: 'var(--text-primary, #000)', 
-          '&:hover': { backgroundColor: 'var(--text-primary, #000)', color: 'var(--background-primary, #fff)', borderColor: 'var(--text-primary, #000)' },
+          '&:hover': { backgroundColor: 'var(--background-primary, #fff)', color: 'var(--text-primary, #000)', borderColor: 'var(--text-primary, #000)', textDecoration: 'underline', textUnderlineOffset: '3px' },
           touchAction: 'manipulation',
           WebkitTapHighlightColor: 'transparent'
         }}
@@ -101,9 +112,11 @@ export default function ReorderButtons({
           fontSize: '1rem',
           backgroundColor: 'var(--background-primary, #fff)',
           '&:hover': {
-            backgroundColor: 'var(--background-secondary, #eee)',
+            backgroundColor: 'var(--background-primary, #fff)',
             color: 'var(--text-primary, #000)',
             borderColor: 'var(--text-primary, #000)',
+            textDecoration: 'underline',
+            textUnderlineOffset: '3px',
           },
           '&.Mui-disabled': {
             color: 'var(--text-secondary, #aaa)',
@@ -137,8 +150,9 @@ export default function ReorderButtons({
               textTransform: 'none', 
               fontSize: '1rem', 
               color: '#000', 
+              backgroundColor: '#fff', 
               borderColor: '#000', 
-              '&:hover': { backgroundColor: '#000', color: '#fff', borderColor: '#000' },
+              '&:hover': { backgroundColor: '#fff', color: '#000', borderColor: '#000', textDecoration: 'underline', textUnderlineOffset: '3px' },
               touchAction: 'manipulation',
               WebkitTapHighlightColor: 'transparent'
             }}
@@ -167,9 +181,11 @@ export default function ReorderButtons({
               borderStyle: 'solid',
               backgroundColor: '#fff',
               '&:hover': {
-                backgroundColor: '#eee',
+                backgroundColor: '#fff',
                 color: '#000',
                 borderColor: '#000',
+                textDecoration: 'underline',
+                textUnderlineOffset: '3px',
               },
               '&.Mui-disabled': {
                 color: '#aaa',
