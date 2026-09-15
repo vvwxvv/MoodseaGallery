@@ -73,6 +73,9 @@ export default function OrderPageShell({
   resetLabel = { en: "Reset", cn: "重置" },
   // ── slots ──
   hint = null,
+  /** Per-tab explanatory panel (usually <OrderInfoNote/>) — sits under the
+   *  toolbar, above the groups, and changes with the selected order key. */
+  info = null,
   switcherExtra = null,
   right = null,
   children,
@@ -184,7 +187,10 @@ export default function OrderPageShell({
         {right ? <span style={orderToolbarRightStyle}>{right}</span> : null}
       </div>
 
-      <div style={bodyStyle}>{children}</div>
+      <div style={bodyStyle}>
+        {info}
+        {children}
+      </div>
     </div>
   );
 }

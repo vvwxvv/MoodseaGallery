@@ -3,6 +3,7 @@
 import React, {
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -250,6 +251,11 @@ const ArtistPreview = React.memo(function ArtistPreview({
   previewImage,
   previewArtist,
   previewMeta = "",
+  /** Which sequence feeds the preview — "artist_rolling" | "hover" | "artwork". */
+  previewSource = "",
+  /** Diagnostics: how many slides the active artist's rolling sequence has. */
+  rollingCount = 0,
+  previewName = "",
   isCn,
 }) {
   const [imageFailed, setImageFailed] = useState(false);
@@ -288,6 +294,9 @@ const ArtistPreview = React.memo(function ArtistPreview({
       }}
     >
       <div
+        data-preview-source={previewSource}
+        data-rolling-count={rollingCount}
+        data-preview-artist={previewName}
         style={{
           position: "sticky",
           top: `${CONFIG.PREVIEW.STICKY_TOP}px`,
@@ -429,7 +438,41 @@ export default function ArtistsPageComponent() {
     return randomArtist || profiles[0] || null;
   }, [hoveredName, profiles, randomArtist]);
 
-  const previewImage = hoverImage || randomImage;
+  // ── The preview follows the ARTIST PAGE ROLLING sequence ────────────────
+  // `previewArtist.rolling` is that artist's images in the order saved in
+  //   Manager → Image → Order → "Artist Page Order (Rolling Images)".
+  // • hovering an artist name → the sequence rolls, one image per interval
+  // • idle                    → the artist rotation above picks the artist and
+  //                             shows the first image of their sequence
+  // When an artist has no selected rolling images we fall back to the old
+  // behaviour (hover image → most recent artwork cover → random image), so the
+  // column is never blank.
+  const rollingSlides = previewArtist?.rolling || [];
+  const [rollStep, setRollStep] = useState(0);
+
+  useEffect(() => {
+    setRollStep(0);
+  }, [previewArtist?.name, rollingSlides.length]);
+
+  useEffect(() => {
+    if (!hoveredName || rollingSlides.length <= 1) return undefined;
+    const timer = setInterval(
+      () => setRollStep((step) => (step + 1) % rollingSlides.length),
+      CONFIG.PREVIEW.RANDOM_ROTATE_INTERVAL_MS
+    );
+    return () => clearInterval(timer);
+  }, [hoveredName, rollingSlides.length]);
+
+  const rollingSlide = rollingSlides.length
+    ? rollingSlides[Math.min(rollStep, rollingSlides.length - 1)]
+    : null;
+
+  const previewImage = rollingSlide?.cover_img_url || hoverImage || randomImage;
+  const previewSource = rollingSlide
+    ? `artist_rolling:${rollingSlide.orderKey || ""}`
+    : hoverImage
+    ? "hover"
+    : "artwork";
 
   if (isLoading) {
     return <ArtistsListSkeleton />;
@@ -531,7 +574,14 @@ export default function ArtistsPageComponent() {
             <ArtistPreview
               previewImage={previewImage}
               previewArtist={previewArtist}
-              previewMeta={previewArtist?.hoverMeta || ""}
+              previewMeta={
+                rollingSlide
+                  ? [rollingSlide.title, rollingSlide.year].filter(Boolean).join(" · ")
+                  : previewArtist?.hoverMeta || ""
+              }
+              previewSource={previewSource}
+              rollingCount={rollingSlides.length}
+              previewName={previewArtist?.name || ""}
               isCn={isCn}
             />
           )}

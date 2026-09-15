@@ -49,7 +49,8 @@ export function formatImageDataForCSV(images, isCn = false) {
     "order.artist_page_order": isCn ? '艺术家页排序' : 'Artist Page Order',
     "order.exhibition_page_order": isCn ? '展览页排序' : 'Exhibition Page Order',
     "order.art_fair_page_order": isCn ? '艺博会页排序' : 'Art Fair Page Order',
-    "order.rolling_img_order": isCn ? '轮播图排序' : 'Rolling Image Order',
+    "order.rolling_img_order": isCn ? '轮播图排序（艺术家页）' : 'Rolling Image Order (Artist Page)',
+    "order.artist_detail_rolling_img_order": isCn ? '轮播图排序（艺术家详情页）' : 'Rolling Image Order (Artist Detail Page)',
     updatedAt: isCn ? '更新时间' : 'Updated At',
   };
 
@@ -121,7 +122,8 @@ export function createSimplifiedImageExport(images, isCn = false) {
     "order.artist_page_order": isCn ? '艺术家页排序' : 'Artist Page Order',
     "order.exhibition_page_order": isCn ? '展览页排序' : 'Exhibition Page Order',
     "order.art_fair_page_order": isCn ? '艺博会页排序' : 'Art Fair Page Order',
-    "order.rolling_img_order": isCn ? '轮播图排序' : 'Rolling Image Order',
+    "order.rolling_img_order": isCn ? '轮播图排序（艺术家页）' : 'Rolling Image Order (Artist Page)',
+    "order.artist_detail_rolling_img_order": isCn ? '轮播图排序（艺术家详情页）' : 'Rolling Image Order (Artist Detail Page)',
     updatedAt: isCn ? '更新时间' : 'Updated At',
   };
 
@@ -178,7 +180,8 @@ export function createLanguageSpecificImageExport(images, isCn = false) {
     "order.artist_page_order": '艺术家页排序',
     "order.exhibition_page_order": '展览页排序',
     "order.art_fair_page_order": '艺博会页排序',
-    "order.rolling_img_order": '轮播图排序',
+    "order.rolling_img_order": '轮播图排序（艺术家页）',
+    "order.artist_detail_rolling_img_order": '轮播图排序（艺术家详情页）',
   } : {
     img_url: 'Image URL',
     tag_en: 'Tag',
@@ -187,7 +190,8 @@ export function createLanguageSpecificImageExport(images, isCn = false) {
     "order.artist_page_order": 'Artist Page Order',
     "order.exhibition_page_order": 'Exhibition Page Order',
     "order.art_fair_page_order": 'Art Fair Page Order',
-    "order.rolling_img_order": 'Rolling Image Order',
+    "order.rolling_img_order": 'Rolling Image Order (Artist Page)',
+    "order.artist_detail_rolling_img_order": 'Rolling Image Order (Artist Detail Page)',
   };
 
   return images.map(image => {
@@ -225,7 +229,8 @@ export function createBilingualCombinedImageExport(images, isCn = false) {
     "order.artist_page_order": isCn ? '艺术家页排序' : 'Artist Page Order',
     "order.exhibition_page_order": isCn ? '展览页排序' : 'Exhibition Page Order',
     "order.art_fair_page_order": isCn ? '艺博会页排序' : 'Art Fair Page Order',
-    "order.rolling_img_order": isCn ? '轮播图排序' : 'Rolling Image Order',
+    "order.rolling_img_order": isCn ? '轮播图排序（艺术家页）' : 'Rolling Image Order (Artist Page)',
+    "order.artist_detail_rolling_img_order": isCn ? '轮播图排序（艺术家详情页）' : 'Rolling Image Order (Artist Detail Page)',
     mark: isCn ? '标记' : 'Mark',
     updatedAt: isCn ? '更新时间' : 'Updated At',
   };
@@ -309,10 +314,13 @@ export function createGroupedByTagImageExport(images, isCn = false) {
       formattedData.push({
         [isCn ? '类型' : 'Type']: image.type || '',
         [isCn ? '图片链接' : 'Image URL']: image.img_url || '',
-        [isCn ? '艺术家页排序' : 'Artist Page Order']: getImageOrder(image, 'artist_page_order'),
+        [isCn ? '轮播图排序（艺术家页）' : 'Rolling Image Order (Artist Page)']: getImageOrder(image, 'rolling_img_order'),
+        [isCn ? '轮播图排序（艺术家详情页）' : 'Rolling Image Order (Artist Detail Page)']: getImageOrder(image, 'artist_detail_rolling_img_order'),
         [isCn ? '展览页排序' : 'Exhibition Page Order']: getImageOrder(image, 'exhibition_page_order'),
         [isCn ? '艺博会页排序' : 'Art Fair Page Order']: getImageOrder(image, 'art_fair_page_order'),
-        [isCn ? '轮播图排序' : 'Rolling Image Order']: getImageOrder(image, 'rolling_img_order')
+        // Legacy column: kept so old rows stay visible in an export, never
+        // written by the manager and never read by any gallery.
+        [isCn ? '艺术家页排序（旧）' : 'Artist Page Order (legacy)']: getImageOrder(image, 'artist_page_order')
       });
     });
 
@@ -359,10 +367,13 @@ export function createGroupedByTypeImageExport(images, isCn = false) {
       formattedData.push({
         [isCn ? '标签' : 'Tag']: (isCn ? image.tag_cn : image.tag_en) || '',
         [isCn ? '图片链接' : 'Image URL']: image.img_url || '',
-        [isCn ? '艺术家页排序' : 'Artist Page Order']: getImageOrder(image, 'artist_page_order'),
+        [isCn ? '轮播图排序（艺术家页）' : 'Rolling Image Order (Artist Page)']: getImageOrder(image, 'rolling_img_order'),
+        [isCn ? '轮播图排序（艺术家详情页）' : 'Rolling Image Order (Artist Detail Page)']: getImageOrder(image, 'artist_detail_rolling_img_order'),
         [isCn ? '展览页排序' : 'Exhibition Page Order']: getImageOrder(image, 'exhibition_page_order'),
         [isCn ? '艺博会页排序' : 'Art Fair Page Order']: getImageOrder(image, 'art_fair_page_order'),
-        [isCn ? '轮播图排序' : 'Rolling Image Order']: getImageOrder(image, 'rolling_img_order')
+        // Legacy column: kept so old rows stay visible in an export, never
+        // written by the manager and never read by any gallery.
+        [isCn ? '艺术家页排序（旧）' : 'Artist Page Order (legacy)']: getImageOrder(image, 'artist_page_order')
       });
     });
 
@@ -584,6 +595,9 @@ export const normalizeRow = (row) => {
             exhibition_page_order: row["order.exhibition_page_order"] ?? row.exhibition_page_order,
             art_fair_page_order: row["order.art_fair_page_order"] ?? row.art_fair_page_order,
             rolling_img_order: row["order.rolling_img_order"] ?? row.rolling_img_order,
+            artist_detail_rolling_img_order:
+              row["order.artist_detail_rolling_img_order"] ??
+              row.artist_detail_rolling_img_order,
           }
     ),
     updatedAt: row.updatedAt || new Date().toISOString(),

@@ -241,11 +241,15 @@ export default function ArtistDetailPageComponent() {
   const {
     data: rawWorks = [],
     isLoading: worksLoading,
+    error: worksError,
     refetch: refetchWorks,
   } = useData("/api/artwork");
 
   const isLoading = aboutLoading || worksLoading;
-  const hasError = !!(aboutError || (artistName && !rawAbouts.length && !isLoading));
+  // Only a real request failure is an error. "No about rows yet" is NOT an
+  // error — treating it as one made the page flash "Loading Failed / System
+  // Empty" whenever the about request was still settling or came back empty.
+  const hasError = !!aboutError || !!worksError;
 
   const refetch = () => {
     refetchAbout?.();

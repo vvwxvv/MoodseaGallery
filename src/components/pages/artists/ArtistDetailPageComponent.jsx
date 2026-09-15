@@ -10,8 +10,13 @@ import { useReverseTheme } from "@/hooks/useReverseTheme";
 import AlertInfo from "@/components/alerts/AlertInfo";
 import useArtistDetailData from "@/components/pages/artists/hooks/useArtistDetailData";
 import useData from "@/hooks/useData";
-import useArtistRollingImages from "@/components/pages/artists/hooks/useArtistRollingImages";
+import useArtistRollingImages, {
+  ARTIST_DETAIL_ROLLING_ORDER_KEY,
+  ARTIST_ROLLING_ORDER_KEY,
+} from "@/components/pages/artists/hooks/useArtistRollingImages";
 import useArtistHoverImageFor from "@/components/pages/artists/hooks/useArtistHoverImageFor";
+import { buildImageSourceIndex } from "@/components/pages/images/hooks/useImageSourceIndex";
+import { createImageYearResolver } from "@/utils/mediaMatching";
 import PDFViewer from "@/components/others/PDFViewer";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 
@@ -686,6 +691,8 @@ const ArtworkCaption = memo(function ArtworkCaption({
 // Featured Artwork Slideshow
 // ============================================================================
 const FeaturedArtworkSlideshow = memo(function FeaturedArtworkSlideshow({
+  /** The `Image.order` sub-key that fed this column (diagnostic attribute). */
+  sequenceKey = "",
   artworks,
   hoverUrl = "",
   artistName,
@@ -848,6 +855,16 @@ const FeaturedArtworkSlideshow = memo(function FeaturedArtworkSlideshow({
 
   return (
     <motion.div
+      // Which order feeds this slideshow + how many slides it has. Purely a
+      // diagnostic (and what a test looks at): the value is the ACTIVE
+      // `Image.order` sub-key — `artist_detail_rolling_img_order` once that
+      // order is saved, otherwise `rolling_img_order` (the fallback).
+      data-slide-sequence={
+        sequenceKey ||
+        (Array.isArray(artworks) ? artworks.find((s) => s?.orderKey)?.orderKey : "") ||
+        ""
+      }
+      data-slide-count={count}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
@@ -1166,8 +1183,19 @@ export default function ArtistDetailPageComponent({ artistSlug }) {
 
   const artistName = decodeURIComponent(artistSlug || "").replace(/[-_]/g, " ");
 
-  const { profile, artworks, exhibitions, fairs, events, bibliographies, isLoading, hasError, refetch, notFound } =
-    useArtistDetailData(artistName, isCn);
+  const {
+    profile,
+    artworks,
+    exhibitions,
+    fairs,
+    events,
+    bibliographies,
+    rawCollections,
+    isLoading,
+    hasError,
+    refetch,
+    notFound,
+  } = useArtistDetailData(artistName, isCn);
 
   // ── Rolling images (Image schema, ordered by order.rolling_img_order) ─────
   // Matched to this artist via tag_en/tag_cn → artwork title/artist, with the
@@ -1189,10 +1217,57 @@ export default function ArtistDetailPageComponent({ artistSlug }) {
     refetch: refetchRollingWorks,
   } = useData("/api/artwork");
 
+  // ── Shared image → artist index ──────────────────────────────────────────
+  // The SAME resolution the image manager groups by (tag → artwork / artist /
+  // exhibition / fair / event / bibliography / about). Without it, an image
+  // whose tag names an exhibition or a fair can never be matched to its artist
+  // here — which silently dropped those images from the slideshow even though
+  // the manager lists them under the artist and saves an order for them.
+  const sourceIndex = useMemo(
+    () =>
+      buildImageSourceIndex({
+        artworks: rawCollections?.artworks || rawArtworksForRolling,
+        images: rawImagesForRolling,
+        exhibitions: rawCollections?.exhibitions || [],
+        fairs: rawCollections?.fairs || [],
+        events: rawCollections?.events || [],
+        bibliographies: rawCollections?.bibliographies || [],
+        abouts: rawCollections?.abouts || [],
+      }),
+    [rawCollections, rawImagesForRolling, rawArtworksForRolling]
+  );
+
+  // Caption years: the artwork / show each image is tagged with.
+  const yearForImage = useMemo(
+    () =>
+      createImageYearResolver({
+        artworks: rawCollections?.artworks || rawArtworksForRolling,
+        exhibitions: rawCollections?.exhibitions || [],
+        fairs: rawCollections?.fairs || [],
+        events: rawCollections?.events || [],
+        bibliographies: rawCollections?.bibliographies || [],
+      }),
+    [rawCollections, rawArtworksForRolling]
+  );
+
+  // TWO rolling sequences (Manager → Media → Rolling Image Order):
+  //   • Artist Detail Page Order — this page's own sequence. It wins as soon as
+  //     it has a selection.
+  //   • Artist Page Order — the artist-page sequence, used as the fallback while
+  //     the detail sequence is still empty (so the column can never go blank).
   const { slides: rollingSlides } = useArtistRollingImages(
     profile?.artist || profile?.name || artistName,
     isCn,
-    { images: rawImagesForRolling, artworks: rawArtworksForRolling }
+    {
+      images: rawImagesForRolling,
+      artworks: rawArtworksForRolling,
+      sourceIndex,
+      yearFor: yearForImage,
+      orderKeys: [
+        { key: ARTIST_DETAIL_ROLLING_ORDER_KEY, requirePositions: true },
+        ARTIST_ROLLING_ORDER_KEY,
+      ],
+    }
   );
 
   // The image flagged `artist_hover_image` for this artist (set on
@@ -1200,7 +1275,13 @@ export default function ArtistDetailPageComponent({ artistSlug }) {
   const hoverSlide = useArtistHoverImageFor(
     profile?.artist || profile?.name || artistName,
     isCn,
-    { images: rawImagesForRolling, artworks: rawArtworksForRolling }
+    {
+      images: rawImagesForRolling,
+      artworks: rawArtworksForRolling,
+      sourceIndex,
+      // The hover image leads the slideshow — give it the same caption year.
+      yearFor: yearForImage,
+    }
   );
 
   // Nothing renders until EVERY part is in — otherwise the right column would
@@ -1287,12 +1368,15 @@ export default function ArtistDetailPageComponent({ artistSlug }) {
   // FEATURED RIGHT-COLUMN SLIDESHOW
   //
   // The column shows ONLY the images selected for rolling in
-  //   Manager → Media → Rolling Image Order
+  //   Manager → Media → Rolling Image Order → "Artist Detail Page Order"
   // i.e. the images of this artist that are NOT marked "hidden from artist
-  // rolling" (each one carrying an `order.rolling_img_order` position that
-  // sets the sequence). Selection is the single source of truth — the old
-  // exhibition-image / artwork-cover fallbacks are gone, so pages can never
-  // show an image the manager did not put in the rolling set.
+  // detail rolling" (each one carrying an
+  // `order.artist_detail_rolling_img_order` position). While that sequence is
+  // empty the artist-page sequence (`order.rolling_img_order`) is used instead,
+  // so this page keeps working exactly as before until the detail order is
+  // filled in. Selection is the single source of truth — there is no
+  // exhibition-image / artwork-cover fallback, so a page can never show an image
+  // the manager did not put in a rolling set.
   //
   // The artist's marked hover image still leads the slideshow when one is set
   // (it is itself an explicit selection).
@@ -1477,6 +1561,9 @@ export default function ArtistDetailPageComponent({ artistSlug }) {
               {featuredSlides.length > 0 ? (
                 <FeaturedArtworkSlideshow
                   artworks={featuredSlides}
+                  sequenceKey={
+                    rollingSlides.find((s) => s?.orderKey)?.orderKey || ""
+                  }
                   hoverUrl={hoverSlide?.cover_img_url || ""}
                   artistName={profile.name || profile.artist}
                   isMobile={isMobile}

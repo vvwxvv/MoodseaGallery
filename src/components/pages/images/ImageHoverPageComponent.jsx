@@ -25,6 +25,7 @@ import useFont from "@/hooks/useFont";
 import useImageArtistGroups from "@/components/pages/images/hooks/useImageArtistGroups";
 import OrderPageShell from "@/components/pages/order/OrderPageShell";
 import OrderGroupBox from "@/components/pages/order/OrderGroupBox";
+import OrderInfoNote from "@/components/pages/order/OrderInfoNote";
 import OrderCard, {
   OrderCardGrid,
   OrderEmptyState,
@@ -70,8 +71,12 @@ export default function ImageHoverPageComponent() {
   const { isCn } = useContext(LanguageContext);
   const { fontFamily, labelFontFamily } = useFont();
 
-  const { data: images = [], isLoading: l1, error: e1, refetch: refetchImages } = useData("/api/image");
-  const { data: artworks = [], isLoading: l2, error: e2 } = useData("/api/artwork");
+  const { data: images = [], isLoading: l1, error: e1, refetch: refetchImages } = useData(
+    "/api/image?fields=_id,img_url,tag_en,tag_cn,type,tag_source,mark,order"
+  );
+  const { data: artworks = [], isLoading: l2, error: e2 } = useData(
+    "/api/artwork?fields=_id,title,artist"
+  );
 
   const [overrides, setOverrides] = useState({}); // id → mark (optimistic)
   const [busy, setBusy] = useState({});           // id → true
@@ -200,6 +205,15 @@ export default function ImageHoverPageComponent() {
       backLabel={T.back}
       onBack={() => router.push("/manager/image")}
       notice={notice}
+      info={
+        <OrderInfoNote
+          orderKey="artist_hover_image"
+          entity="image"
+          isCn={isCn}
+          fontFamily={fontFamily}
+          labelFontFamily={labelFontFamily}
+        />
+      }
       right={
         <OrderViewControls
           listMode={listMode}

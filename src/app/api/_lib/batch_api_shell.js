@@ -3,6 +3,20 @@ import {NextResponse} from 'next/server';
 import { ObjectId } from 'mongodb';
 import { getCurrentFormattedDate } from '@/utils/dateFormatter';
 import { cleanMarkForStore } from '@/utils/mediaMarks';
+import { invalidateListCache } from '@/app/api/_lib/list_cache';
+
+/**
+ * Shared Mongo client.
+ *
+ * The batch shell used to build (and connect) a fresh client on EVERY request,
+ * so each manager batch-save paid the cluster's TLS handshake again (~1.4 s)
+ * and left another connection pool behind. One shared client now serves every
+ * handler (see _lib/mongo.js).
+ */
+async function sharedCollection(collectionName) {
+  const { getCollection } = await import('@/app/api/_lib/mongo');
+  return getCollection(collectionName);
+}
 
 export function createBatchApiHandler(config) {
   const CONF = {
@@ -24,15 +38,8 @@ export function createBatchApiHandler(config) {
   /* ---------- store picker ---------- */
   const store = {
     async mongo() {
-      const { MongoClient } = await import('mongodb');
-      const uri = process.env.MONGODB_URL;
-      const dbName = process.env.MONGODB_DB;
-      if (!uri || !dbName) throw new Error('Missing MONGODB_URL / MONGODB_DB');
-      const client = new MongoClient(uri);
-      await client.connect();
-      const col = client.db(dbName).collection(CONF.collectionName);
-      col.__client = client;
-      return col;
+      // Shared client — never closed here, the process owns it.
+      return sharedCollection(CONF.collectionName);
     },
     d1(req) {
       const env = (req.env || process.env);
@@ -148,6 +155,9 @@ export function createBatchApiHandler(config) {
       const success = results.filter(r => (r.meta?.changes || r.changes) > 0).length;
       if (CONF.afterBatchUpdate) await CONF.afterBatchUpdate(results);
 
+      // A batch write makes every cached list of this collection stale.
+      invalidateListCache(CONF.collectionName);
+
       const resp = { message: 'Batch update completed', success, total: updates.length, failed: errors.length };
       if (errors.length) resp.errors = errors;
       return NextResponse.json(resp);
@@ -193,15 +203,8 @@ export function createFullBatchApiHandler(config) {
 
   const store = {
     async mongo() {
-      const { MongoClient } = await import('mongodb');
-      const uri = process.env.MONGODB_URL;
-      const dbName = process.env.MONGODB_DB;
-      if (!uri || !dbName) throw new Error('Missing MONGODB_URL / MONGODB_DB');
-      const client = new MongoClient(uri);
-      await client.connect();
-      const col = client.db(dbName).collection(CONF.collectionName);
-      col.__client = client;
-      return col;
+      // Shared client — never closed here, the process owns it.
+      return sharedCollection(CONF.collectionName);
     },
     d1(req) {
       const env = (req.env || process.env);
@@ -303,9 +306,9 @@ export function createFullBatchApiHandler(config) {
       } else {
         const col = db;
         await col.insertMany(inserts);
-        col.__client.close();
       }
       if (CONF.afterBatchCreate) await CONF.afterBatchCreate(inserts);
+      invalidateListCache(CONF.collectionName);
 
       const resp = { message: 'Batch create completed', success: inserts.length, failed: errors.length };
       if (errors.length) resp.errors = errors;
@@ -338,9 +341,9 @@ export function createFullBatchApiHandler(config) {
         result = CONF.enableSoftDelete
           ? await col.updateMany({ _id: { $in: okIds.map(id => new ObjectId(id)) } }, { $set: { deletedAt: getCurrentFormattedDate() } })
           : await col.deleteMany({ _id: { $in: okIds.map(id => new ObjectId(id)) } });
-        col.__client.close();
       }
       if (CONF.afterBatchDelete) await CONF.afterBatchDelete(result);
+      invalidateListCache(CONF.collectionName);
 
       const resp = {
         message: CONF.enableSoftDelete ? 'Batch soft-delete completed' : 'Batch delete completed',

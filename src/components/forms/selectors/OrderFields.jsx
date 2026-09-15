@@ -3,15 +3,19 @@
 import React from "react";
 import { Grid } from "@mui/material";
 import OrderSelector from "@/components/forms/selectors/OrderSelector";
-import { ORDER_KEYS, ORDER_KEY_LABELS } from "@/utils/mediaOrder";
+import { managedOrderKeys, ORDER_KEYS, ORDER_KEY_LABELS } from "@/utils/mediaOrder";
 
 /**
  * OrderFields
  *
  * Renders one OrderSelector per per-page order key for a collection whose
- * `order` is a JSON object (e.g. Image → artist / exhibition / art fair /
- * rolling image orders). Each selector binds to the nested RHF path
- * `order.<key>`, so the submitted value stays the JSON object shape.
+ * `order` is a JSON object (e.g. Image → rolling / exhibition / art fair).
+ * Each selector binds to the nested RHF path `order.<key>`, so the submitted
+ * value stays the JSON object shape.
+ *
+ * `managedOrderKeys` keeps this in step with the order manager's tabs — for
+ * images that means no "Artist Page Order" row (the artist page order for an
+ * image IS the rolling order).
  *
  * @param {"artwork"|"image"} entity — which key set to render
  */
@@ -24,7 +28,7 @@ export default function OrderFields({
   entity = "image",
   columns = 6,
 }) {
-  const keys = ORDER_KEYS[entity] || [];
+  const keys = managedOrderKeys(entity);
 
   return (
     <Grid container spacing={2}>

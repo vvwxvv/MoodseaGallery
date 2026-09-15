@@ -34,10 +34,11 @@ export const imageLabels = {
     mark: { en: 'Mark', cn: '标记' },
     tag_source: { en: 'Tag Source', cn: '标签来源' },
     order: { en: 'Order', cn: '排序' },
-    'order.artist_page_order': ORDER_KEY_LABELS.artist_page_order,
+    'order.artist_page_order': { en: 'Artist Page Order (legacy)', cn: '艺术家页排序（旧）' },
     'order.exhibition_page_order': ORDER_KEY_LABELS.exhibition_page_order,
     'order.art_fair_page_order': ORDER_KEY_LABELS.art_fair_page_order,
     'order.rolling_img_order': ORDER_KEY_LABELS.rolling_img_order,
+    'order.artist_detail_rolling_img_order': ORDER_KEY_LABELS.artist_detail_rolling_img_order,
   },
 
   // UI Text
@@ -123,6 +124,7 @@ export const getFieldGroupsImage = (isCn = false) => {
         { key: "order.exhibition_page_order" },
         { key: "order.art_fair_page_order" },
         { key: "order.rolling_img_order" },
+        { key: "order.artist_detail_rolling_img_order" },
       ]
     },
     ADDITIONAL: {
@@ -221,7 +223,7 @@ export const imageConfig = {
   // Field Configuration
   fields: {
     searchableFields: ['tag_en', 'tag_cn', 'caption_en', 'caption_cn', 'type'],
-    sortableFields: ['order.artist_page_order', 'order.exhibition_page_order', 'order.art_fair_page_order', 'order.rolling_img_order', 'type', 'tag_en', 'tag_cn'],
+    sortableFields: ['order.artist_page_order', 'order.exhibition_page_order', 'order.art_fair_page_order', 'order.rolling_img_order', 'order.artist_detail_rolling_img_order', 'type', 'tag_en', 'tag_cn'],
     filterableFields: ['type', 'mark', 'tag_source'],
     mainFields: ['type', 'order.artist_page_order', 'mark'],
     expandedFields: ['caption_en', 'caption_cn', 'tag_source'],
@@ -231,12 +233,14 @@ export const imageConfig = {
     dataField: [
       'id', 'img_url', 'tag_en', 'tag_cn', 'type', 
       'caption_en', 'caption_cn', 'mark', 'tag_source',
-      'order.artist_page_order', 'order.exhibition_page_order', 'order.art_fair_page_order', 'order.rolling_img_order'
+      'order.artist_page_order', 'order.exhibition_page_order', 'order.art_fair_page_order', 'order.rolling_img_order',
+      'order.artist_detail_rolling_img_order'
     ],
     fieldShowOrder: [
       'img_url', 'tag_en', 'tag_cn', 'type', 'caption_en', 
       'caption_cn', 'mark', 'tag_source',
-      'order.artist_page_order', 'order.exhibition_page_order', 'order.art_fair_page_order', 'order.rolling_img_order'
+      'order.artist_page_order', 'order.exhibition_page_order', 'order.art_fair_page_order', 'order.rolling_img_order',
+      'order.artist_detail_rolling_img_order'
     ],
     arrayFields: [],
     validFields: [

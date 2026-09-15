@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { invalidateListCache } from '@/app/api/_lib/list_cache';
 import { MongoClient, ObjectId } from 'mongodb';
 import { imageApiConfig } from '@/app/api/_config/image_api_config';
 import { normalizeImageOrder } from '@/utils/mediaOrder';
@@ -14,13 +15,9 @@ let cachedClient = null;
 let cachedDb = null;
 
 async function connectDB() {
-  if (cachedDb) return cachedDb;
-  if (!cachedClient) {
-    cachedClient = new MongoClient(uri);
-    await cachedClient.connect();
-  }
-  cachedDb = cachedClient.db(dbName);
-  return cachedDb;
+  // Shared client + single connect for the whole server (see _lib/mongo.js).
+  const { getDb } = await import('@/app/api/_lib/mongo');
+  return getDb();
 }
 
 // POST /api/image/reorder
@@ -126,6 +123,7 @@ export async function POST(request) {
 
     if (ops.length) await collection.bulkWrite(ops, { ordered: false });
 
+    invalidateListCache(collectionName);
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
     console.log('Reorder Error:', error);

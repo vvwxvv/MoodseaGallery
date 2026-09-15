@@ -1,7 +1,16 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 
+/** Abort a request that never settles. The Mongo-backed list endpoints measure
+ *  ~1-16s per collection (cold), and manager pages fire several of them at
+ *  once, so this has to be generous — a tight watchdog just turns a slow load
+ *  into a bogus "Request timeout" error. */
+const REQUEST_TIMEOUT_MS = 45000;
+/** Extra attempts for transient failures — a single dropped/slow request
+ *  should not turn into an error screen the user has to refresh away. */
+const MAX_RETRIES = 2;
+
 export default function useData(apiEndpoint, itemUrl = null, isCn = false) {
-  
+
   const [data, setData] = useState([]);
   // A provided endpoint ALWAYS starts a fetch, so begin in the loading state.
   // Starting at `false` made the very first paint look like "finished, no data",
@@ -9,11 +18,14 @@ export default function useData(apiEndpoint, itemUrl = null, isCn = false) {
   // mismatched the server render, where effects never run).
   const [isLoading, setIsLoading] = useState(() => Boolean(apiEndpoint));
   const [error, setError] = useState(null);
-  const [retryCount, setRetryCount] = useState(0);
-  
+
   // Use refs to track component mount state
   const isMountedRef = useRef(true);
   const retryTimeoutRef = useRef(null);
+  // Retry attempt counter. Deliberately a REF, not state: a state counter would
+  // change `fetchData`'s identity, re-run the fetch effect, and reset the count
+  // on every attempt — which made a persistently failing request retry forever.
+  const attemptRef = useRef(0);
 
   // Cleanup function to clear timeouts
   const cleanup = useCallback(() => {
@@ -33,35 +45,40 @@ export default function useData(apiEndpoint, itemUrl = null, isCn = false) {
     // Clear any existing timeout
     cleanup();
 
+    let watchdog = null;
+    let didRetry = false;
+    let timedOut = false;
+
     try {
       if (!isMountedRef.current) return;
 
       setError(null);
+
       if (!isRetry) {
+        attemptRef.current = 0;
         setIsLoading(true);
-        setRetryCount(0);
-        
-        // Add a timeout to prevent infinite loading
-        const timeoutId = setTimeout(() => {
-          if (isMountedRef.current && isLoading) {
-            setIsLoading(false);
-            setError('Request timeout - please try again');
-          }
-        }, 30000); // 30 second timeout
-        
-        // Store timeout ID for cleanup
-        retryTimeoutRef.current = timeoutId;
       }
+
+      // Watchdog: abort a request that never settles. It MUST be cancelled in
+      // `finally` below — leaving it armed made it fire ~30s after a
+      // SUCCESSFUL load and push a bogus "Request timeout" error into a page
+      // that had rendered fine (the "Loading Failed / System Empty" flash).
+      const controller = new AbortController();
+      watchdog = setTimeout(() => {
+        timedOut = true;
+        controller.abort();
+      }, REQUEST_TIMEOUT_MS);
 
       const response = await fetch(apiEndpoint, {
         headers: {
           'Content-Type': 'application/json',
         },
+        signal: controller.signal,
       });
-      
+
       // Check if component is still mounted before proceeding
       if (!isMountedRef.current) return;
-      
+
       if (!response.ok) {
         let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
         try {
@@ -70,12 +87,14 @@ export default function useData(apiEndpoint, itemUrl = null, isCn = false) {
         } catch {
           // Use default error message if JSON parsing fails
         }
-        console.log('Response not OK:', errorMessage);
-        return; // Exit early instead of throwing error
+        const httpError = new Error(errorMessage);
+        // 5xx is worth another try; 4xx is a real answer.
+        httpError.retryable = response.status >= 500;
+        throw httpError;
       }
-      
+
       const result = await response.json();
-      
+
       // Handle different response structures
       let items = [];
       if (result && typeof result === 'object') {
@@ -89,29 +108,35 @@ export default function useData(apiEndpoint, itemUrl = null, isCn = false) {
           console.warn('Unexpected response structure:', result);
         }
       }
-      
+
       if (!isMountedRef.current) return;
-      
+
       setData(items);
-      setRetryCount(0); // Reset retry count on success
-      
+      attemptRef.current = 0;
+
     } catch (err) {
       if (!isMountedRef.current) return;
 
-      // Retry logic for network errors only
-      const shouldRetry = retryCount < 2 && (
-        err.name === 'TypeError' || 
-        err.message.includes('fetch') ||
-        err.message.includes('network') ||
-        err.message.includes('Failed to fetch')
-      );
-      
+      // Retry transient failures (network / timeout / 5xx). While a retry is
+      // pending we STAY in the loading state, so no page can flash its
+      // empty/error screen just because one request was slow or dropped.
+      const isNetworkError =
+        err?.name === 'TypeError' ||
+        err?.name === 'AbortError' ||
+        String(err?.message || '').toLowerCase().includes('fetch') ||
+        String(err?.message || '').toLowerCase().includes('network') ||
+        String(err?.message || '').toLowerCase().includes('failed to fetch');
+
+      const shouldRetry =
+        attemptRef.current < MAX_RETRIES &&
+        (err?.retryable || isNetworkError || timedOut);
+
       if (shouldRetry) {
-        const nextRetryCount = retryCount + 1;
-        setRetryCount(nextRetryCount);
-        
-        // Simple delay: 1s, 2s, 3s
-        const delay = nextRetryCount * 1000;
+        attemptRef.current += 1;
+        didRetry = true;
+
+        // Simple delay: 1s, 2s
+        const delay = attemptRef.current * 1000;
         retryTimeoutRef.current = setTimeout(() => {
           if (isMountedRef.current) {
             fetchData(true);
@@ -119,24 +144,31 @@ export default function useData(apiEndpoint, itemUrl = null, isCn = false) {
         }, delay);
         return;
       }
-      
-      // Log error instead of setting error state
+
       let errorMessage = 'Failed to fetch data';
-      if (err.name === 'TypeError' && (err.message.includes('fetch') || err.message.includes('network'))) {
+      if (timedOut) {
+        errorMessage = 'Request timeout - please try again';
+      } else if (isNetworkError) {
         errorMessage = 'Network error - please check your connection';
-      } else if (err.message && !err.message.includes('AbortError')) {
+      } else if (err?.message) {
         errorMessage = err.message;
       }
 
-      setData([]); // Reset to empty array on final error
-      setIsLoading(false); // Ensure loading is false on error
-      
+      // Keep whatever we already had — a failed refresh should not blank a
+      // page that was rendering fine a moment ago.
+      setData((prev) => (Array.isArray(prev) && prev.length ? prev : []));
+      setError(errorMessage);
+
     } finally {
-      if (isMountedRef.current) {
+      // The request has settled: the watchdog must not outlive it.
+      if (watchdog) clearTimeout(watchdog);
+
+      if (isMountedRef.current && !didRetry) {
+        retryTimeoutRef.current = null;
         setIsLoading(false);
       }
     }
-  }, [apiEndpoint, retryCount, cleanup, isCn]); // Add isCn dependency
+  }, [apiEndpoint, cleanup, isCn]); // Add isCn dependency
 
   // Initial data fetch
   useEffect(() => {
@@ -185,7 +217,7 @@ export default function useData(apiEndpoint, itemUrl = null, isCn = false) {
 
   // Manual refresh function
   const refetch = useCallback(() => {
-    setRetryCount(0); // Reset retry count on manual refetch
+    attemptRef.current = 0; // Reset retry count on manual refetch
     fetchData();
   }, [fetchData]);
 

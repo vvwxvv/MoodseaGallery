@@ -6,6 +6,11 @@ import { filterByLanguage } from "@/utils/filterByLanguage";
 import { artworkOrderValue } from "@/utils/artworkOrder";
 import { filterArtworksHiddenForPage, isArtistHoverImage } from "@/utils/mediaMarks";
 import { buildImageSourceIndex } from "@/components/pages/images/hooks/useImageSourceIndex";
+import { createImageYearResolver } from "@/utils/mediaMatching";
+import {
+  ARTIST_ROLLING_ORDER_KEY,
+  buildArtistRollingMap,
+} from "@/components/pages/artists/hooks/useArtistRollingImages";
 
 // ── Name normalization for matching About <-> Artwork ──
 // Trims, lowercases, and collapses internal whitespace so minor
@@ -121,7 +126,7 @@ function buildRecentArtworkMap(artworks) {
  * pinyin-aware when isCn is true.
  */
 function buildArtistProfilesFromAbout(aboutRows, artworkCoverMap, isCn, opts = {}) {
-  const { hoverImageByArtist, recentArtworkByArtist, sourceIndex } = opts;
+  const { hoverImageByArtist, recentArtworkByArtist, sourceIndex, rollingByArtist } = opts;
   const byName = new Map();
 
   for (const row of aboutRows || []) {
@@ -138,6 +143,10 @@ function buildArtistProfilesFromAbout(aboutRows, artworkCoverMap, isCn, opts = {
         ? String(sourceIndex.canonicalArtist(name) || name).toLowerCase()
         : key;
       const hoverImage = hoverImageByArtist?.get(hoverKey) || null;
+      // The artist's Artist Page rolling sequence (Manager → Image → Order →
+      // "Artist Page Order (Rolling Images)"): the preview column of THIS page
+      // follows exactly this order.
+      const rolling = rollingByArtist?.get(hoverKey) || [];
       // Nothing flagged → fall back to the artist's most recent artwork.
       const recent = recentArtworkByArtist?.get(key) || null;
       const hoverMeta =
@@ -156,6 +165,8 @@ function buildArtistProfilesFromAbout(aboutRows, artworkCoverMap, isCn, opts = {
         hoverImage: hoverImage || recent?.image || null,
         hoverIsFlagged: !!hoverImage,
         hoverMeta,
+        // Ordered slides for the preview (empty when nothing was selected).
+        rolling,
         order: Number(row.order) || 0,
         worksCount: artworkEntry?.worksCount || 0,
         caption: row.caption || null,
@@ -278,6 +289,40 @@ export default function useArtistListData(isCn) {
     [artworks]
   );
 
+  // ── Artist Page rolling sequence, per artist ──
+  // The preview column of this page follows the order saved in
+  //   Manager → Image → Order → "Artist Page Order (Rolling Images)"
+  // so the images are resolved through the SAME index the manager groups by
+  // (an image tagged with a show or a fair lands on its artist too), keyed
+  // exactly like `hoverImageByArtist` above.
+  const rollingByArtist = useMemo(
+    () =>
+      buildArtistRollingMap(rawImages, rawArtworks, {
+        orderKey: ARTIST_ROLLING_ORDER_KEY,
+        sourceIndex,
+        // Each slide carries the YEAR of the artwork / show its tag names, so
+        // the preview can caption it ("I Am Here · 2026").
+        yearFor: createImageYearResolver({
+          artworks: rawArtworks,
+          exhibitions: rawExhibitions,
+          fairs: rawFairs,
+          events: rawEvents,
+          bibliographies: rawBibliographies,
+        }),
+        keyFn: (artist) =>
+          String(sourceIndex.canonicalArtist(artist) || artist).toLowerCase(),
+      }),
+    [
+      rawImages,
+      rawArtworks,
+      rawExhibitions,
+      rawFairs,
+      rawEvents,
+      rawBibliographies,
+      sourceIndex,
+    ]
+  );
+
   // ── The list itself: every unique About artist, enriched with a
   //    cover image from Artwork where available, ordered by the first
   //    letter of the artist name ──
@@ -287,8 +332,17 @@ export default function useArtistListData(isCn) {
         hoverImageByArtist,
         recentArtworkByArtist,
         sourceIndex,
+        rollingByArtist,
       }),
-    [aboutRows, artworkCoverMap, isCn, hoverImageByArtist, recentArtworkByArtist, sourceIndex]
+    [
+      aboutRows,
+      artworkCoverMap,
+      isCn,
+      hoverImageByArtist,
+      recentArtworkByArtist,
+      sourceIndex,
+      rollingByArtist,
+    ]
   );
 
   // ── Group by first letter ──

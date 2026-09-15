@@ -76,8 +76,12 @@ export const MARK_REGISTRY = Object.freeze([
     token: "exhibition_page",
     kind: MARK_KIND.HIDE,
     label: { en: "Hidden on Exhibition Page", cn: "在展览页隐藏" },
-    entities: ["artwork"],
+    // Both collections can be hidden from a show page: artworks (Works grid) and
+    // images (the show's gallery — the eye on the manager's Exhibition tab).
+    entities: ["artwork", "image"],
     orderKey: "exhibition_page_order",
+    // Two places flip it, entity-dependent: /manager/artwork/order (Works grid)
+    // and /manager/image/order (Exhibition Page Order tab).
     toggledOn: "/manager/artwork/order",
     legacy: ["hide_in_exhibition_page"],
   },
@@ -85,7 +89,7 @@ export const MARK_REGISTRY = Object.freeze([
     token: "art_fair_page",
     kind: MARK_KIND.HIDE,
     label: { en: "Hidden on Art Fair Page", cn: "在艺博会页隐藏" },
-    entities: ["artwork"],
+    entities: ["artwork", "image"],
     orderKey: "art_fair_page_order",
     toggledOn: "/manager/artwork/order",
     legacy: ["hide_in_art_fair_page"],
@@ -98,6 +102,21 @@ export const MARK_REGISTRY = Object.freeze([
     orderKey: "rolling_img_order",
     toggledOn: "/manager/image/order",
     legacy: ["hide_in_artist_page_rolling_image"],
+  },
+  {
+    // The artist DETAIL page has its OWN rolling sequence, so it needs its own
+    // hide flag: the eye button on the "Artist Detail Page Order" tab writes
+    // this token, and only that page's slideshow reads it.
+    token: "artist_detail_rolling_image",
+    kind: MARK_KIND.HIDE,
+    label: {
+      en: "Hidden in Artist Detail Rolling Image",
+      cn: "在艺术家详情页轮播图隐藏",
+    },
+    entities: ["image"],
+    orderKey: "artist_detail_rolling_img_order",
+    toggledOn: "/manager/image/order",
+    legacy: [],
   },
 
   // ── FLAG marks (opt a record into a behaviour) ───────────────────────────

@@ -4,12 +4,16 @@ import useFont from "@/hooks/useFont";
 
 export default function AlertInfo({
   message = "NO DATA",
-  subMessage = "SYSTEM EMPTY",
+  // Never default this to "SYSTEM EMPTY": that string leaked onto every empty
+  // / error state whose call site omitted a sub-message (NoDataInfo, the
+  // artwork list, the image order page …), where it read like a crash. Pass an
+  // explicit sub-message when one helps; empty renders nothing.
+  subMessage = "",
   buttonText = "Back",
   onBack = null,
   isCn = null,
   messageCn = "无数据",
-  subMessageCn = "系统为空",
+  subMessageCn = "",
   buttonTextCn = "返回",
 }) {
   const langContext = useContext(LanguageContext);

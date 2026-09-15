@@ -14,7 +14,7 @@ export const getImageFieldGroups = (isCn) => {
   return {
     core: ["img_url", "tag_en", "tag_cn", "type"],
     content: ["caption_en", "caption_cn"],
-    classification: ["tag_source", "order.artist_page_order", "order.exhibition_page_order", "order.art_fair_page_order", "order.rolling_img_order"],
+    classification: ["tag_source", "order.artist_page_order", "order.exhibition_page_order", "order.art_fair_page_order", "order.rolling_img_order", "order.artist_detail_rolling_img_order"],
     groupKeyLabels,
   };
 };
@@ -34,6 +34,7 @@ export const getImageSchemaFields = () => [
   { name: "order.exhibition_page_order", labelKey: "order.exhibition_page_order", label: "Exhibition Page Order" },
   { name: "order.art_fair_page_order",   labelKey: "order.art_fair_page_order",   label: "Art Fair Page Order" },
   { name: "order.rolling_img_order",     labelKey: "order.rolling_img_order",     label: "Rolling Image Order" },
+  { name: "order.artist_detail_rolling_img_order", labelKey: "order.artist_detail_rolling_img_order", label: "Artist Detail Rolling Image Order" },
 ];
 
 /**
@@ -60,6 +61,7 @@ export const exportImageToCSV = (data, filename) => {
     "order.exhibition_page_order",
     "order.art_fair_page_order",
     "order.rolling_img_order",
+    "order.artist_detail_rolling_img_order",
   ];
 
   // Flatten the JSON `order` into the four flat columns before export.
@@ -71,6 +73,7 @@ export const exportImageToCSV = (data, filename) => {
       "order.exhibition_page_order": o.exhibition_page_order,
       "order.art_fair_page_order": o.art_fair_page_order,
       "order.rolling_img_order": o.rolling_img_order,
+      "order.artist_detail_rolling_img_order": o.artist_detail_rolling_img_order,
       order: undefined,
     };
   });

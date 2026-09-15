@@ -141,6 +141,7 @@ export default function useFairDetailData(slug, isCn) {
 
   // Image matching (uses cover_img_url field, common to both exhibition and fair)
   const { mainImageUrl, galleryImages } = useImageGallery(images, fair, isCn, {
+    entityType: "fair",
     imageUrlField: "img_url",
     coverImageField: "cover_img_url",
     fallbackImage: FALLBACK_IMAGE,

@@ -89,7 +89,7 @@ export default function ImageBatchEditPage() {
     "caption_en","caption_cn",
     "mark",      "tag_source",
     "order.artist_page_order", "order.exhibition_page_order",
-    "order.art_fair_page_order", "order.rolling_img_order",
+    "order.art_fair_page_order", "order.rolling_img_order", "order.artist_detail_rolling_img_order",
   ];
 
   const renderDeleteRow = useCallback(

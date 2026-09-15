@@ -21,10 +21,11 @@ export const getImageFields = (lang = 'EN') => [
   { key: 'tag_en', label: 'Tag (EN) / 标签 (英文)' },
   { key: 'tag_cn', label: 'Tag (CN) / 标签 (中文)' },
   { key: 'type', label: 'Type / 类型' },
-  { key: 'order.artist_page_order', label: 'Artist Page Order / 艺术家页排序' },
+  { key: 'order.rolling_img_order', label: 'Artist Page Order (Rolling Images) / 艺术家页排序（轮播图）' },
+  { key: 'order.artist_detail_rolling_img_order', label: 'Artist Detail Page Order (Rolling Images) / 艺术家详情页排序（轮播图）' },
   { key: 'order.exhibition_page_order', label: 'Exhibition Page Order / 展览页排序' },
   { key: 'order.art_fair_page_order', label: 'Art Fair Page Order / 艺博会页排序' },
-  { key: 'order.rolling_img_order', label: 'Rolling Image Order / 轮播图排序' },
+  { key: 'order.artist_page_order', label: 'Artist Page Order (legacy) / 艺术家页排序（旧）' },
   
   // Details
   { key: 'caption_en', label: 'Caption (EN) / 说明 (英文)' },
@@ -46,7 +47,7 @@ export const getDeleteDialogFields = (lang = 'EN') => [
 ];
 
 export const ARTWORK_SORT_FIELDS = [
-  'tag_en','order.artist_page_order',
+  'tag_en','order.rolling_img_order','order.artist_detail_rolling_img_order',
 ];
 
 
@@ -73,7 +74,7 @@ export const getEmptyImage = () => ({
   caption_en: '',
   caption_cn: '',
   tag_source: '',
-  order: { artist_page_order: '', exhibition_page_order: '', art_fair_page_order: '', rolling_img_order: '' },
+  order: { artist_page_order: '', exhibition_page_order: '', art_fair_page_order: '', rolling_img_order: '', artist_detail_rolling_img_order: '' },
   updatedAt: '',
 });
 
@@ -136,7 +137,8 @@ export const FIELD_DISPLAY_CONFIG = {
     'tag_en',
     'tag_cn',
     'type',
-    'order.artist_page_order',
+    'order.rolling_img_order',
+    'order.artist_detail_rolling_img_order',
   ],
   
   // Fields to show in detail accordion (expandable)
@@ -383,7 +385,7 @@ export const createImageControlPanelConfig = () => {
         label: { cn: '顺序排序', en: 'Sort by Order' },
         icon: <ArrowUpDown size={20} />,
         action: 'sortByField',
-        sortField: 'order.artist_page_order',
+        sortField: 'order.rolling_img_order',
         tooltip: { cn: '按顺序排序', en: 'Sort by Order' },
         activeColor: 'red',
         inactiveColor: 'var(--text-primary, #000000)',

@@ -1,4 +1,5 @@
 import {NextResponse} from 'next/server';
+import { invalidateListCache } from '@/app/api/_lib/list_cache';
 import { MongoClient, ObjectId } from 'mongodb';
 import { exhibitionApiConfig } from '@/app/api/_config/exhibition_api_config';
 
@@ -10,13 +11,9 @@ let cachedClient = null;
 let cachedDb = null;
 
 async function connectDB() {
-  if (cachedDb) return cachedDb;
-  if (!cachedClient) {
-    cachedClient = new MongoClient(uri);
-    await cachedClient.connect();
-  }
-  cachedDb = cachedClient.db(dbName);
-  return cachedDb;
+  // Shared client + single connect for the whole server (see _lib/mongo.js).
+  const { getDb } = await import('@/app/api/_lib/mongo');
+  return getDb();
 }
 
 export async function POST(request) {
@@ -40,6 +37,7 @@ export async function POST(request) {
       )
     );
 
+    invalidateListCache(collectionName);
     return NextResponse.json({ success: true, updated: orderedIds.length }, { status: 200 });
   } catch (error) {
     console.log('Error updating exhibition order:', error, error?.message || '');

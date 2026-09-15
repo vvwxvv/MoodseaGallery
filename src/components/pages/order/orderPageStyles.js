@@ -186,3 +186,67 @@ export const orderToolbarRightStyle = {
 
 /** Default page container (override via <OrderPageShell containerStyle>). */
 export const orderPageContainerStyle = { maxWidth: 1400, margin: "0 auto", padding: "24px 20px 80px" };
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  Per-tab info panel (<OrderInfoNote>)
+// ─────────────────────────────────────────────────────────────────────────────
+/** White box, hairline border — the explanatory panel under the order switcher. */
+export const orderInfoBoxStyle = {
+  border: "1px solid rgba(0,0,0,.14)",
+  borderRadius: 12,
+  background: "#fff",
+  padding: "13px 18px 15px",
+  marginBottom: 20,
+};
+
+/** ⓘ + panel title row. */
+export const orderInfoHeaderStyle = ({ fontFamily } = {}) => ({
+  display: "flex",
+  alignItems: "center",
+  gap: 10,
+  flexWrap: "wrap",
+  fontFamily,
+});
+
+/** Bold uppercase panel title. */
+export const orderInfoTitleStyle = ({ fontFamily } = {}) => ({
+  fontFamily,
+  fontSize: 12,
+  fontWeight: 800,
+  letterSpacing: 1.6,
+  textTransform: "uppercase",
+});
+
+/** Small outlined “where this order lives” chip. */
+export const orderInfoTagStyle = ({ fontFamily } = {}) => ({
+  fontFamily,
+  fontSize: 10.5,
+  fontWeight: 600,
+  letterSpacing: 0.4,
+  padding: "3px 8px",
+  border: "1px solid rgba(0,0,0,.2)",
+  borderRadius: 999,
+  color: "rgba(0,0,0,.62)",
+  whiteSpace: "nowrap",
+});
+
+/** Grey section label inside the panel (HOW IT WORKS / WHERE IT SHOWS). */
+export const orderInfoSectionLabelStyle = ({ fontFamily } = {}) => ({
+  fontFamily,
+  fontSize: 10.5,
+  fontWeight: 700,
+  letterSpacing: 1.3,
+  textTransform: "uppercase",
+  opacity: 0.45,
+  marginBottom: 7,
+});
+
+/** Bullet list inside the panel. */
+export const orderInfoListStyle = ({ fontFamily } = {}) => ({
+  fontFamily,
+  fontSize: 12.3,
+  lineHeight: 1.6,
+  color: "rgba(0,0,0,.72)",
+  margin: 0,
+  paddingLeft: 16,
+});

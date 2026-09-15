@@ -14,10 +14,11 @@ const IMAGE_FORM_LABELS = {
     // Metadata fields
     mark: { en: "Mark", cn: "标记" },
     order: { en: "Order", cn: "排序" },
-    "order.artist_page_order": { en: "Artist Page Order", cn: "艺术家页排序" },
+    "order.rolling_img_order": { en: "Artist Page Order (Rolling Images)", cn: "艺术家页排序（轮播图）" },
+    "order.artist_detail_rolling_img_order": { en: "Artist Detail Page Order (Rolling Images)", cn: "艺术家详情页排序（轮播图）" },
     "order.exhibition_page_order": { en: "Exhibition Page Order", cn: "展览页排序" },
     "order.art_fair_page_order": { en: "Art Fair Page Order", cn: "艺博会页排序" },
-    "order.rolling_img_order": { en: "Rolling Image Order", cn: "轮播图排序" },
+    "order.artist_page_order": { en: "Artist Page Order (legacy)", cn: "艺术家页排序（旧）" },
   },
   
   // Tab labels - these MUST match the schema keys exactly
@@ -45,10 +46,11 @@ const IMAGE_FORM_LABELS = {
     type: { en: "Type", cn: "类型" },
     mark: { en: "Mark", cn: "标记" },
     order: { en: "Order", cn: "排序" },
-    "order.artist_page_order": { en: "Artist Page Order", cn: "艺术家页排序" },
+    "order.rolling_img_order": { en: "Artist Page Order (Rolling Images)", cn: "艺术家页排序（轮播图）" },
+    "order.artist_detail_rolling_img_order": { en: "Artist Detail Page Order (Rolling Images)", cn: "艺术家详情页排序（轮播图）" },
     "order.exhibition_page_order": { en: "Exhibition Page Order", cn: "展览页排序" },
     "order.art_fair_page_order": { en: "Art Fair Page Order", cn: "艺博会页排序" },
-    "order.rolling_img_order": { en: "Rolling Image Order", cn: "轮播图排序" },
+    "order.artist_page_order": { en: "Artist Page Order (legacy)", cn: "艺术家页排序（旧）" },
     selectType: { en: "Select type", cn: "选择类型" },
     selectMark: { en: "Select mark", cn: "选择标记" },
   },

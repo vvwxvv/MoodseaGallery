@@ -25,7 +25,16 @@ const keyOf = (index, name) =>
   String(index?.canonicalArtist?.(name) || name || "").trim().toLowerCase();
 
 export default function useArtistHoverImageFor(artistName, isCn = false, options = {}) {
-  const { images: providedImages, artworks: providedArtworks } = options;
+  // `sourceIndex` (preferred): the page's shared buildImageSourceIndex over
+  // every collection, so a hover image tagged with a show / fair resolves to
+  // its artist. Without it we build a reduced index from artworks + images.
+  const {
+    images: providedImages,
+    artworks: providedArtworks,
+    sourceIndex = null,
+    /** (image) => year of the record its tag names (for the caption). */
+    yearFor = null,
+  } = options;
   const hasExternal = Array.isArray(providedImages) || Array.isArray(providedArtworks);
 
   const { data: fetchedImages = [] } = useData(hasExternal ? null : "/api/image");
@@ -38,10 +47,12 @@ export default function useArtistHoverImageFor(artistName, isCn = false, options
     if (!artistName) return null;
 
     const list = Array.isArray(images) ? images : [];
-    const index = buildImageSourceIndex({
-      artworks: Array.isArray(artworks) ? artworks : [],
-      images: list,
-    });
+    const index =
+      sourceIndex ||
+      buildImageSourceIndex({
+        artworks: Array.isArray(artworks) ? artworks : [],
+        images: list,
+      });
     const wanted = keyOf(index, artistName);
 
     for (const img of list) {
@@ -57,7 +68,7 @@ export default function useArtistHoverImageFor(artistName, isCn = false, options
         title: img.tag_en || img.caption_en || "",
         cover_img_url: url,
         caption: (isCn ? img.caption_cn : img.caption_en) || "",
-        year: "",
+        year: (yearFor && yearFor(img)) || "",
         medium: "",
         tag_en: img.tag_en || "",
         tag_cn: img.tag_cn || "",
@@ -67,5 +78,5 @@ export default function useArtistHoverImageFor(artistName, isCn = false, options
     }
 
     return null;
-  }, [images, artworks, artistName, isCn]);
+  }, [images, artworks, artistName, isCn, sourceIndex, yearFor]);
 }

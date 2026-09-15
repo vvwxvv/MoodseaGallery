@@ -3,12 +3,16 @@ import { markFieldSchema } from "./mark_schema";
 
 // Per-page ordering for an image. Mirrors the artwork order plus a rolling
 // image position:
-//   { artist_page_order, exhibition_page_order, art_fair_page_order, rolling_img_order }
+//   { artist_page_order, exhibition_page_order, art_fair_page_order,
+//     rolling_img_order, artist_detail_rolling_img_order }
 export const imageOrderSchema = z.object({
   artist_page_order: z.string().optional(),
   exhibition_page_order: z.string().optional(),
   art_fair_page_order: z.string().optional(),
   rolling_img_order: z.string().optional(),
+  // The artist DETAIL page's own rolling sequence (separate from the artist
+  // page one, and with its own hide flag).
+  artist_detail_rolling_img_order: z.string().optional(),
 });
 
 export type ImageOrder = z.infer<typeof imageOrderSchema>;
@@ -24,7 +28,8 @@ export const imageSchema = z.object({
   mark: markFieldSchema,
   tag_source: z.string().optional(),
   // JSON object (artist_page_order / exhibition_page_order /
-  // art_fair_page_order / rolling_img_order). A plain string is still
+  // art_fair_page_order / rolling_img_order / artist_detail_rolling_img_order).
+  // A plain string is still
   // accepted so legacy rows keep validating.
   order: z.union([imageOrderSchema, z.string(), z.null()]).optional(),
 });

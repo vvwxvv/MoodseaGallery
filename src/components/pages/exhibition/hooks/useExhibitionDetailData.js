@@ -80,6 +80,7 @@ export default function useExhibitionDetailData(slug, isCn) {
 
   // Image matching
   const { mainImageUrl, galleryImages } = useImageGallery(images, exhibition, isCn, {
+    entityType: "exhibition",
     imageUrlField: "img_url",
     coverImageField: "cover_img_url",
     fallbackImage: FALLBACK_IMAGE,

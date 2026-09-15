@@ -1,22 +1,53 @@
+/**
+ * useImageGallery — the image gallery of ONE entity page (exhibition / fair).
+ *
+ * Images are matched to the entity by `utils/mediaMatching` (tag or explicit id
+ * field — the SAME rule the manager's order page groups by, so the manager can
+ * never order images the page doesn't show) and ordered by the entity's OWN
+ * `Image.order` sub-key:
+ *
+ *   exhibition page → image.exhibition_page_order
+ *   fair page       → image.art_fair_page_order
+ *
+ * then by the rolling order (the artist-page sequence). Anything with neither
+ * keeps the incoming API order, which is already sorted by rolling_img_order.
+ *
+ * Images the manager hid for THIS page (`exhibition_page` / `art_fair_page`
+ * hide token — the eye button on the matching order tab) are left out, exactly
+ * like artworks hidden from the exhibition page's Works grid.
+ *
+ * The legacy `artist_page_order` an old image row may still carry is NOT read
+ * here — for images it was a duplicate of the artist-page rolling order.
+ *
+ * NOT used by the artist page: its images are the rolling slideshow
+ * (rolling_img_order — see useArtistRollingImages).
+ */
+
 import { useMemo } from "react";
 import { getImageOrder } from "@/utils/mediaOrder";
+import { isMarkHidden } from "@/utils/mediaMarks";
+import { imageMatchesEntity } from "@/utils/mediaMatching";
 
 const DEFAULT_ID_FIELD = "_id";
 const DEFAULT_TITLE_FIELD = "title";
 const DEFAULT_COVER_FIELD = "cover_img_url";
 
-/**
- * Which `Image.order` sub-key drives the gallery order for each entity page.
- * Images are only ever positioned from the image order page (rolling order),
- * so `rolling_img_order` is the fallback for every entity.
- */
+/** The entity's OWN key first. An unknown entity has no key of its own. */
 const ORDER_KEY_BY_ENTITY = {
-  artwork: "artist_page_order",
   exhibition: "exhibition_page_order",
   fair: "art_fair_page_order",
 };
 
-/** Rank for one image: first usable position wins; none → Infinity (last). */
+/** The hide token closed by the eye button of that same order tab. */
+const HIDE_TOKEN_BY_ENTITY = {
+  exhibition: "exhibition_page",
+  fair: "art_fair_page",
+};
+
+/** Read second: the image's position in the artist-page rolling sequence. */
+const ROLLING_ORDER_KEY = "rolling_img_order";
+
+/** Position for one image on this page: own key first, then rolling. */
 const rankOf = (img, orderKeys) => {
   for (const key of orderKeys) {
     const v = Number(getImageOrder(img, key));
@@ -26,56 +57,58 @@ const rankOf = (img, orderKeys) => {
 };
 
 /**
+ * Comparator that is safe when both sides are unranked — `Infinity - Infinity`
+ * is NaN and would make the sort order engine-dependent.
+ */
+const byRank = (orderKeys) => (a, b) => {
+  const ra = rankOf(a, orderKeys);
+  const rb = rankOf(b, orderKeys);
+  if (ra === rb) return 0; // both unranked → keep the incoming order
+  return ra - rb;
+};
+
+/**
  * Match images to a single entity. Safe against null/undefined inputs.
  */
-export const useSingleEntityImagesMaching = (allImages, entity, entityType = "artwork", isCn) => {
+export const useSingleEntityImagesMaching = (allImages, entity, entityType, isCn) => {
   return useMemo(() => {
     if (!Array.isArray(allImages) || !allImages.length || !entity) {
       return { matchedImages: [], coverImage: null };
     }
 
     const idField = DEFAULT_ID_FIELD;
-    const titleField = DEFAULT_TITLE_FIELD;
     const coverField = DEFAULT_COVER_FIELD;
 
-    const entityId = entity[idField] || entity._id || entity.id;
-    const entityTitle = entity[titleField] || "";
+    // This entity's own order key first, then the artist-page rolling order.
+    // Nothing else: one page → one key (+ the artist sequence as a tie-break).
+    const primaryKey = ORDER_KEY_BY_ENTITY[entityType] || null;
+    const hideToken = HIDE_TOKEN_BY_ENTITY[entityType] || null;
+    const orderKeys = [...(primaryKey ? [primaryKey] : []), ROLLING_ORDER_KEY];
 
-    // Order key chain: the entity's own page order, then the rolling order
-    // (images are positioned from the image order page), then everything else.
-    const primaryKey = ORDER_KEY_BY_ENTITY[entityType] || "artist_page_order";
-    const orderKeys = [
-      primaryKey,
-      "rolling_img_order",
-      ...Object.values(ORDER_KEY_BY_ENTITY).filter((k) => k !== primaryKey),
-    ];
+    // Sort the RAW images — the mapped copies below replace `order` with the
+    // resolved scalar, which would hide the rolling fallback from `rankOf`.
+    const matched = allImages.filter((img) => {
+      if (!img) return false;
+      if (!imageMatchesEntity(img, entity)) return false;
+      // Hidden for this page (manager eye button) → not on the page at all.
+      if (hideToken && isMarkHidden(img, hideToken)) return false;
+      return true;
+    });
 
-    const matchedImages = allImages
-      .filter((img) => {
-        if (!img) return false;
-        if (img.artworkId && img.artworkId === entityId) return true;
-        if (img.eventId && img.eventId === entityId) return true;
-        if (img.entityId && img.entityId === entityId) return true;
+    matched.sort(byRank(orderKeys));
 
-        const tagEn = (img.tag_en || "").toLowerCase();
-        const tagCn = (img.tag_cn || "").toLowerCase();
-        const titleLower = entityTitle.toLowerCase();
-
-        return (tagEn && tagEn === titleLower) || (tagCn && tagCn === titleLower);
-      })
-      .map((img) => ({
-        ...img,
-        id: img.id || img._id,
-        img_url: img.img_url,
-        caption_en: img.caption_en || "",
-        caption_cn: img.caption_cn || "",
-        tag_en: img.tag_en || "",
-        tag_cn: img.tag_cn || "",
-        // `order` is a JSON object on Image — expose the resolved position as a
-        // plain string so nothing downstream can render "[object Object]".
-        order: getImageOrder(img, primaryKey),
-      }))
-      .sort((a, b) => rankOf(a, orderKeys) - rankOf(b, orderKeys));
+    const matchedImages = matched.map((img) => ({
+      ...img,
+      id: img.id || img._id,
+      img_url: img.img_url,
+      caption_en: img.caption_en || "",
+      caption_cn: img.caption_cn || "",
+      tag_en: img.tag_en || "",
+      tag_cn: img.tag_cn || "",
+      // `order` is a JSON object on Image — expose the resolved position as a
+      // plain string so nothing downstream can render "[object Object]".
+      order: primaryKey ? getImageOrder(img, primaryKey) : "",
+    }));
 
     const coverImage =
       entity[coverField] || (matchedImages.length > 0 ? matchedImages[0].img_url : null);
@@ -91,7 +124,8 @@ const useImageGallery = (images, item, isCn, options = {}) => {
     imageUrlField = "img_url",
     coverImageField = "cover_img_url",
     fallbackImage = FALLBACK_IMAGE,
-    entityType = "artwork",
+    // "exhibition" | "fair" — required for the entity's own order key to apply.
+    entityType = null,
   } = options;
 
   const { matchedImages } = useSingleEntityImagesMaching(images, item, entityType, isCn);

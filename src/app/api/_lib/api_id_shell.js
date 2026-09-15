@@ -6,6 +6,7 @@ import { ObjectId } from 'mongodb';
 import { getCurrentFormattedDate } from '@/utils/dateFormatter';
 import { autoFillArtist } from '@/utils/artistUtils';
 import { cleanMarkForStore } from '@/utils/mediaMarks';
+import { invalidateListCache } from '@/app/api/_lib/list_cache';
 
 /**
  * `mark` is a JSON object now ({ value, hide }). Normalise it before sanitising,
@@ -17,10 +18,6 @@ function normalizeMarkField(config, data, existingMark) {
   if (!('mark' in data)) return data;
   return { ...data, mark: cleanMarkForStore(data.mark, existingMark) };
 }
-
-// Global connection pool (reuse connections)
-let cachedClient = null;
-let cachedDb = null;
 
 /**
  * Creates a complete API handler with GET, PUT, DELETE methods for single items by ID
@@ -61,34 +58,12 @@ export function createApiIdHandler(config) {
     throw new Error('collectionName is required in config');
   }
 
-  // MongoDB connection with pooling
+  // MongoDB connection — the ONE shared client for the whole server
+  // (see _lib/mongo.js). A per-module client meant every shell opened its own
+  // pool, and the connect cost (~1.4 s to this cluster) was paid per process.
   const getCollection = async () => {
-    const { MongoClient } = await import('mongodb');
-    const uri = process.env.MONGODB_URL || '';
-    const dbName = process.env.MONGODB_DB || '';
-    
-    if (!uri || !dbName) {
-      throw new Error('Please define MONGODB_URL and MONGODB_DB environment variables');
-    }
-    
-    // Reuse existing connection if available
-    if (cachedClient && cachedDb) {
-      return cachedDb.collection(CONFIG.collectionName);
-    }
-    
-    const client = new MongoClient(uri, {
-      maxPoolSize: 10,
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000,
-    });
-    
-    await client.connect();
-    const db = client.db(dbName);
-    
-    cachedClient = client;
-    cachedDb = db;
-    
-    return db.collection(CONFIG.collectionName);
+    const { getCollection: shared } = await import('@/app/api/_lib/mongo');
+    return shared(CONFIG.collectionName);
   };
 
   // Helper: Sanitize data based on validFields
@@ -252,6 +227,7 @@ export function createApiIdHandler(config) {
       }
       
       // Invalidate caches for both detail and list pages
+      invalidateListCache(CONFIG.collectionName);
       try {
         revalidatePath(`/api/${CONFIG.collectionName}`);
         revalidatePath(`/api/${CONFIG.collectionName}/${id}`);
@@ -312,6 +288,7 @@ export function createApiIdHandler(config) {
         }
         
         // CRITICAL: Invalidate ALL caches after delete
+        invalidateListCache(CONFIG.collectionName);
         try {
           revalidatePath(`/api/${CONFIG.collectionName}`);
           revalidatePath(`/api/${CONFIG.collectionName}/[id]`, 'page');
@@ -342,6 +319,7 @@ export function createApiIdHandler(config) {
         }
         
         // CRITICAL: Invalidate ALL caches after delete
+        invalidateListCache(CONFIG.collectionName);
         try {
           revalidatePath(`/api/${CONFIG.collectionName}`);
           revalidatePath(`/api/${CONFIG.collectionName}/[id]`, 'page');

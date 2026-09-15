@@ -4,7 +4,7 @@ import React from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, ArrowUpDown } from "lucide-react";
 import useFont from "@/hooks/useFont";
-import { ORDER_KEYS, ORDER_KEY_LABELS, getOrder } from "@/utils/mediaOrder";
+import { managedOrderKeys, ORDER_KEY_LABELS, getOrder } from "@/utils/mediaOrder";
 
 /**
  * OrderFieldsDisplay — read-only ordering block for forms.
@@ -50,9 +50,10 @@ export default function OrderFieldsDisplay({
   const muted = colors?.secondaryText || "rgba(0,0,0,.45)";
 
   const rows = React.useMemo(() => {
-    // JSON order object → one row per page key.
-    if (entity && ORDER_KEYS[entity]) {
-      return ORDER_KEYS[entity].map((key) => ({
+    // JSON order object → one row per page key this entity can be ordered for.
+    const keys = managedOrderKeys(entity);
+    if (entity && keys.length) {
+      return keys.map((key) => ({
         name: `${fieldName}.${key}`,
         label: (labels?.[key] || ORDER_KEY_LABELS[key] || { en: key, cn: key })[
           isCn ? "cn" : "en"

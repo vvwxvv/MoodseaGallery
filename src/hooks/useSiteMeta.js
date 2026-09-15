@@ -13,6 +13,32 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { DEFAULT_SITE_META, mergeSiteMeta } from "@/utils/siteMetaDefaults";
 
 let cache = null; // module-level cache: one fetch per page load
+let inflight = null; // the in-flight request, shared by every mounted consumer
+
+/**
+ * One `/api/meta` request per page load, no matter how many components mount.
+ *
+ * The nav, the footer, the document head, NoDataInfo … all call useSiteMeta, so
+ * on a fresh page load several of them mounted in the same tick while `cache`
+ * was still empty and each started its OWN fetch (the dev log showed 3–5
+ * `/api/meta` round trips per page). Sharing the promise collapses that to one.
+ */
+function loadSiteMeta() {
+  if (cache) return Promise.resolve(cache);
+  if (!inflight) {
+    inflight = fetch("/api/meta", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((json) => {
+        const doc = json?.data || null;
+        if (doc) cache = doc;
+        return cache;
+      })
+      .finally(() => {
+        inflight = null;
+      });
+  }
+  return inflight;
+}
 
 export default function useSiteMeta() {
   const [meta, setMeta] = useState(() => mergeSiteMeta(DEFAULT_SITE_META, cache));
@@ -22,13 +48,8 @@ export default function useSiteMeta() {
 
   const load = useCallback(async () => {
     try {
-      const res = await fetch("/api/meta", { cache: "no-store" });
-      const json = await res.json();
-      const doc = json?.data || null;
-      if (doc) {
-        cache = doc;
-        setMeta(mergeSiteMeta(DEFAULT_SITE_META, doc));
-      }
+      const doc = await loadSiteMeta();
+      if (doc) setMeta(mergeSiteMeta(DEFAULT_SITE_META, doc));
       setError(null);
     } catch (err) {
       console.log("[useSiteMeta] load failed:", err);

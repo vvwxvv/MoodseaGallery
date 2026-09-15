@@ -5,6 +5,8 @@ import { ObjectId } from 'mongodb';
 import { getCurrentFormattedDate } from '@/utils/dateFormatter';
 import { autoFillArtist } from '@/utils/artistUtils';
 import { cleanMarkForStore } from '@/utils/mediaMarks';
+import { getDb as getSharedDb } from '@/app/api/_lib/mongo';
+import { cacheKeyFor, invalidateListCache, readListCache, writeListCache } from '@/app/api/_lib/list_cache';
 
 /**
  * `mark` is a JSON object now ({ value, hide }). Normalise whatever was
@@ -19,28 +21,12 @@ function normalizeMarkField(config, data, existingMark) {
   return { ...data, mark: cleanMarkForStore(data.mark, existingMark) };
 }
 
-// MongoDB connection pooling (shared across all handlers)
-let cachedClient = null;
-let cachedDb = null;
-
+// MongoDB connection: ONE shared client for the whole server (see _lib/mongo.js).
+// It used to be a per-module client that every process re-created — and the
+// TLS handshake alone costs ~1.4 s against this cluster, so the shared client
+// is the difference between "slow page" and "instant page".
 async function getDb() {
-  if (cachedDb) return cachedDb;
-
-  const { MongoClient } = await import('mongodb');
-  const uri = process.env.MONGODB_URL || '';
-  const dbName = process.env.MONGODB_DB || '';
-
-  if (!uri || !dbName) {
-    throw new Error('Please define MONGODB_URL and MONGODB_DB environment variables');
-  }
-
-  if (!cachedClient) {
-    cachedClient = new MongoClient(uri);
-    await cachedClient.connect();
-  }
-
-  cachedDb = cachedClient.db(dbName);
-  return cachedDb;
+  return getSharedDb();
 }
 
 /**
@@ -59,6 +45,8 @@ export function createApiHandler(config) {
     enableBulkOperations: false,
     enableAutoFillArtist: false,
     collectionName: '',
+    // List (GET) responses are cached in-process for this long. 0 disables it.
+    listCacheMs: 15000,
     requiredFields: [],
     uniqueFields: [],
     searchableFields: [],
@@ -88,6 +76,9 @@ export function createApiHandler(config) {
     const db = await getDb();
     return db.collection(CONFIG.collectionName);
   };
+
+  /** Drop this collection's cached list responses (called after every write). */
+  const dropListCache = () => invalidateListCache(CONFIG.collectionName);
 
   // ─── Helper functions ───
 
@@ -239,6 +230,19 @@ export function createApiHandler(config) {
       const sort = CONFIG.enableSorting ? { [sortField]: sortOrder } : {};
       const skip = CONFIG.enablePagination ? (page - 1) * limit : 0;
 
+      // ── Cache ── list responses are re-used for CONFIG.listCacheMs and
+      // dropped by every write below, so navigating back to a page (or two
+      // pages asking for the same collection) is instant instead of paying
+      // another multi-second round trip to the cluster.
+      const cacheKey = cacheKeyFor(CONFIG.collectionName, query, projection, sort, skip, limit);
+      const cached = readListCache(cacheKey);
+      if (cached) {
+        return NextResponse.json(cached, {
+          status: 200,
+          headers: { 'X-List-Cache': 'HIT' },
+        });
+      }
+
       const [data, total] = await Promise.all([
         collection.find(query, { projection }).sort(sort).skip(skip).limit(limit).toArray(),
         CONFIG.enablePagination ? collection.countDocuments(query) : collection.estimatedDocumentCount()
@@ -249,7 +253,13 @@ export function createApiHandler(config) {
         mappedData = await CONFIG.transformResponse(mappedData);
       }
 
-      return NextResponse.json(buildPaginationResponse(mappedData, page, limit, total), { status: 200 });
+      const body = buildPaginationResponse(mappedData, page, limit, total);
+      writeListCache(cacheKey, body, CONFIG.listCacheMs);
+
+      return NextResponse.json(body, {
+        status: 200,
+        headers: { 'X-List-Cache': 'MISS' },
+      });
     } catch (error) {
       console.log(`[${CONFIG.collectionName} GET] Error:`, error.message);
       return NextResponse.json(
@@ -341,6 +351,9 @@ export function createApiHandler(config) {
       if (CONFIG.transformResponse) {
         responseData = await CONFIG.transformResponse(responseData);
       }
+
+      // A new row changes every cached list of this collection.
+      dropListCache();
 
       return NextResponse.json(
         { message: 'Created successfully', id: insertResult.insertedId, data: responseData },
@@ -474,6 +487,8 @@ export function createApiHandler(config) {
         responseData = await CONFIG.transformResponse(responseData);
       }
 
+      dropListCache();
+
       return NextResponse.json(
         { message: 'Updated successfully', modified: result.modifiedCount > 0, data: responseData },
         {
@@ -521,6 +536,7 @@ export function createApiHandler(config) {
             return NextResponse.json({ message: 'Item not found' }, { status: 404 });
           }
           if (CONFIG.afterDelete) await CONFIG.afterDelete(id, result);
+          dropListCache();
           return NextResponse.json({ message: 'Soft deleted successfully' }, { status: 200 });
         } else {
           const result = await collection.deleteOne(filter);
@@ -528,6 +544,7 @@ export function createApiHandler(config) {
             return NextResponse.json({ message: 'Item not found' }, { status: 404 });
           }
           if (CONFIG.afterDelete) await CONFIG.afterDelete(id, result);
+          dropListCache();
           return NextResponse.json({ message: 'Deleted successfully' }, { status: 200 });
         }
       }
@@ -543,9 +560,11 @@ export function createApiHandler(config) {
 
         if (CONFIG.enableSoftDelete) {
           const result = await collection.updateMany(filter, { $set: { deletedAt: getCurrentFormattedDate() } });
+          dropListCache();
           return NextResponse.json({ message: 'Soft deleted successfully', count: result.modifiedCount }, { status: 200 });
         } else {
           const result = await collection.deleteMany(filter);
+          dropListCache();
           return NextResponse.json({ message: 'Deleted successfully', count: result.deletedCount }, { status: 200 });
         }
       }

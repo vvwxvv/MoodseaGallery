@@ -50,6 +50,7 @@ import useData from "@/hooks/useData";
 import AlertInfo from "@/components/alerts/AlertInfo";
 import OrderPageShell from "@/components/pages/order/OrderPageShell";
 import OrderGroupBox from "@/components/pages/order/OrderGroupBox";
+import OrderInfoNote from "@/components/pages/order/OrderInfoNote";
 import OrderCard, {
   OrderCardGrid,
   OrderEmptyState,
@@ -192,7 +193,13 @@ export default function ArtworkOrderPageComponent() {
   const { colors } = useReverseTheme();
   const { fontFamily, labelFontFamily } = useFont();
 
-  const { data: rawWorks = [], isLoading, error, refetch } = useData("/api/artwork");
+  // `fields=` keeps the payload to the columns this page renders — the cluster
+  // is transfer bound, so asking for 9 columns instead of 22 is a real saving.
+  // Keep `language` (the list is language-filtered) and `order`/`mark` in sync
+  // with `getArtworkOrder` / `isArtworkHiddenForPage`.
+  const { data: rawWorks = [], isLoading, error, refetch } = useData(
+    "/api/artwork?fields=_id,title,artist,year,medium,cover_img_url,language,order,mark"
+  );
 
   const [orderKey, setOrderKey] = useState(ORDER_KEY_DEFAULT);
   const [listMode, setListMode] = useState(false);
@@ -437,6 +444,15 @@ export default function ArtworkOrderPageComponent() {
       saveLabel={T.save}
       savingLabel={T.saving}
       resetLabel={T.reset}
+      info={
+        <OrderInfoNote
+          orderKey={orderKey}
+          entity="artwork"
+          isCn={isCn}
+          fontFamily={fontFamily}
+          labelFontFamily={labelFontFamily}
+        />
+      }
       right={
         <OrderViewControls
           listMode={listMode}

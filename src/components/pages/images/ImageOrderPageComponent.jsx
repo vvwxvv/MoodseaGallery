@@ -1,5 +1,35 @@
 "use client";
 
+/**
+ * ImageOrderPageComponent — manager page for ordering images PER PAGE.
+ *
+ *   /manager/image/order
+ *
+ * Three tabs, each writing its own `Image.order.<key>` position:
+ *
+ *   Artist Page Order (Rolling Images)  rolling_img_order
+ *     → grouped by ARTIST (one numbered sequence per artist, the artist page's
+ *       rolling slideshow). The eye button is the rolling SELECTION: removed
+ *       images keep no position and drop under the dashed line.
+ *
+ *   Exhibition Page Order                exhibition_page_order
+ *     → grouped by EXHIBITION, newest show first; one numbered sequence per
+ *       show, holding exactly the images that show's page displays.
+ *
+ *   Art Fair Page Order                  art_fair_page_order
+ *     → the same, grouped by ART FAIR.
+ *
+ * Grouping is not cosmetic: a page shows ONE ordered gallery, so grouping by
+ * artist on the exhibition tab would number a sequence the page never shows
+ * (see orderGroups.js — it is the single builder all three modes share).
+ *
+ * Every tab renders an <OrderInfoNote> explaining what the active order does
+ * and which page it affects (copy: orderInfo.js).
+ *
+ * Save posts every group in ONE request: POST /api/image/reorder
+ * { groups, orderKey, clearIds }.
+ */
+
 import React, { useContext, useMemo, useState, useEffect, useCallback } from "react";
 import {
   DndContext,
@@ -21,34 +51,35 @@ import { LanguageContext } from "@/components/contexts/LanguageContext";
 import { useReverseTheme } from "@/hooks/useReverseTheme";
 import useFont from "@/hooks/useFont";
 import useData from "@/hooks/useData";
+import { buildImageSourceIndex } from "@/components/pages/images/hooks/useImageSourceIndex";
 import {
-  buildImageSourceIndex,
-  imageGroupKeys,
-  groupSourceLabel,
-  parseGroupKey,
-  compareGroupKeys,
-  SOURCE_ORDER,
-  UNGROUPED_KEY,
-} from "@/components/pages/images/hooks/useImageSourceIndex";
-import {
-  isHiddenInArtistRollingImage,
   IMAGE_MARK_HIDE_ARTIST_ROLLING_LABEL,
   applyMark,
   hideLabelForOrderKey,
   hideTokenForOrderKey,
   isMarkHidden,
-  HIDE_ARTIST_ROLLING_IMAGE,
-  MARK_FLAG_ARTIST_HOVER_IMAGE,
-  MARK_FLAG_LABELS,
-  isMarkFlagged,
 } from "@/utils/mediaMarks";
-import { IMAGE_ORDER_KEYS, ORDER_KEY_LABELS, normalizeImageOrder, getOrder } from "@/utils/mediaOrder";
-import { ARTIST_ROLLING_ORDER_KEY } from "@/components/pages/artists/hooks/useArtistRollingImages";
+import { IMAGE_PAGE_ORDER_KEYS, ORDER_KEY_LABELS, normalizeImageOrder } from "@/utils/mediaOrder";
+import {
+  ARTIST_DETAIL_ROLLING_ORDER_KEY,
+  ARTIST_ROLLING_ORDER_KEY,
+} from "@/components/pages/artists/hooks/useArtistRollingImages";
+import {
+  GROUP_MODE,
+  NO_ENTITY_KEY,
+  buildImageOrderGroups,
+  groupModeForOrderKey,
+  orderRankOf,
+} from "@/components/pages/order/orderGroups";
+import { formatDateRange } from "@/components/pages/exhibition/utils/exhibitionDates";
+import { formatDateRange as formatFairDateRange } from "@/components/pages/fair/utils/fairDates";
 import LoadingLayer from "@/components/animations/LoadingLayer";
 import AlertInfo from "@/components/alerts/AlertInfo";
 import OrderPageShell from "@/components/pages/order/OrderPageShell";
 import OrderGroupBox from "@/components/pages/order/OrderGroupBox";
+import OrderInfoNote from "@/components/pages/order/OrderInfoNote";
 import OrderRollingStrip from "@/components/pages/order/OrderRollingStrip";
+import OrderArtistRollingPreview from "@/components/pages/order/OrderArtistRollingPreview";
 import OrderCard, {
   OrderCardGrid,
   OrderHiddenStrip,
@@ -60,20 +91,17 @@ import OrderCard, {
 //  CONFIG
 // ─────────────────────────────────────────────────────────────────────────────
 // Which `order` sub-key is edited by default. An image can hold one position
-// per page (artist / exhibition / art-fair page) PLUS the artist rolling
-// order — the toolbar switches between them.
+// per page (artist rolling / exhibition page / art-fair page) — the toolbar
+// switches between them.
 const ORDER_KEY_DEFAULT = ARTIST_ROLLING_ORDER_KEY;
-
-// Sub-group id for one source inside an artist box: artist\u001fkind\u001ftitle
-const SOURCE_UNGROUPED = "__ungrouped__";
 
 const idOf = (item) => item?.id || item?._id;
 
 const T = {
   title: { en: "Order Images", cn: "图片排序" },
   subtitle: {
-    en: "Pick the order you are editing, then drag the cards. Images are grouped by artist — each exhibition, fair or work sits in its own box; hidden images drop to the bottom, half size, under the dashed line.",
-    cn: "选择要编辑的排序，然后拖动卡片。图片按艺术家分组，展览 / 艺博会 / 作品各自一个小盒；隐藏的图片缩小一半，统一放在虚线下方。",
+    en: "Pick the order you are editing, then drag the cards. Images are grouped by artist on the Rolling Images tab and by exhibition / art fair on the page-order tabs. Hidden images drop to the bottom, half size, under the dashed line.",
+    cn: "选择要编辑的排序，然后拖动卡片。轮播图标签按艺术家分组，页面排序标签按展览 / 艺博会分组。隐藏的图片缩小一半，统一放在虚线下方。",
   },
   dragHint: { en: "Drag cards to reorder", cn: "拖动卡片排序" },
   save: { en: "Save Order", cn: "保存排序" },
@@ -88,21 +116,20 @@ const T = {
   empty: { en: "No Images", cn: "暂无图片" },
   loadFail: { en: "Loading Failed", cn: "加载失败" },
   ungrouped: { en: "Ungrouped", cn: "未分组" },
-  shared: { en: "Shared", cn: "共享" },
   hiddenTitle: { en: "Hidden From Artist Page Rolling", cn: "不在艺术家页轮播中显示" },
+  hiddenTitlePage: { en: "Hidden From This Page", cn: "不在此页显示" },
   hiddenHint: {
     en: "Hidden images have no position — they are kept here, half size, under the dashed line.",
     cn: "隐藏的图片没有排序，统一放在虚线下方，尺寸缩小一半。",
   },
-  matched: { en: "grouped by artist", cn: "按艺术家分组" },
+  images: { en: "images", cn: "张图片" },
 };
 
 const txt = (entry, isCn) => (isCn ? entry.cn : entry.en);
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  Card — thin adapter over the shared <OrderCard> (see
-//  components/pages/order/OrderCard.jsx). Every order page uses that one card,
-//  so the artwork + hover pages finally look identical to this one.
+//  components/pages/order/OrderCard.jsx). Every order page uses that one card.
 // ─────────────────────────────────────────────────────────────────────────────
 function ImageCard({
   item,
@@ -113,11 +140,14 @@ function ImageCard({
   thumbWidth,
   hidden,
   onToggleHide,
+  hideLabel,
   busy,
 }) {
   const img = item?.img_url || item?.image_url;
   const meta = [item?.type, item?.tag_source].filter(Boolean);
-  const hideHint = isCn
+  const hideHint = hideLabel
+    ? txt(hideLabel, isCn)
+    : isCn
     ? IMAGE_MARK_HIDE_ARTIST_ROLLING_LABEL.cn
     : IMAGE_MARK_HIDE_ARTIST_ROLLING_LABEL.en;
 
@@ -139,16 +169,23 @@ function ImageCard({
         icon: hidden ? <EyeOff size={15} /> : <Eye size={15} />,
         pressed: !!hidden,
         busy,
-        title: hidden ? (isCn ? "取消隐藏" : "Show in artist page rolling") : hideHint,
+        title: hidden
+          ? isCn
+            ? "取消隐藏"
+            : "Show again"
+          : isCn
+          ? `隐藏（${hideHint}）`
+          : `Hide (${hideHint})`,
         onClick: () => onToggleHide?.(),
       }}
     />
   );
 }
+
 // ─────────────────────────────────────────────────────────────────────────────
-//  Source sub-group — one box per source (Works / Exhibition: … / Art Fair: …)
-//  inside its artist box. Dragging is only possible within a sub-group: the
-//  rolling order is a single sequence per artist, so the numbers continue
+//  Source sub-group — one box per source (Works / Exhibition: … / Fair: …)
+//  inside its group. Dragging is only possible within a sub-group: on the
+//  rolling tab the sequence belongs to the artist, so the numbers continue
 //  across the artist's boxes.
 // ─────────────────────────────────────────────────────────────────────────────
 function SourceGroup({
@@ -161,10 +198,8 @@ function SourceGroup({
   listMode,
   thumbWidth,
   onReorder,
-  isItemHidden,
   onToggleItemHidden,
-  isItemHover,
-  onToggleItemHover,
+  hideLabel,
   isItemBusy,
   showHeader = true,
 }) {
@@ -191,6 +226,7 @@ function SourceGroup({
     listMode,
     thumbWidth,
     hidden: false,
+    hideLabel,
     onToggleHide: () => onToggleItemHidden?.(item, groupKey),
     busy: isItemBusy ? isItemBusy(item) : false,
   });
@@ -232,18 +268,20 @@ function SourceGroup({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  Hidden strip — every hidden image of this artist, together at the bottom,
-//  half size, above a dashed separator. Not sortable (no position).
-//  Layout comes from the shared <OrderHiddenStrip>.
+//  Hidden strip — every image hidden from the active page, together at the
+//  bottom, half size, above a dashed separator. Not sortable (no position).
 // ─────────────────────────────────────────────────────────────────────────────
 function HiddenStrip({
   groupKey,
   items,
+  title,
+  hint,
   isCn,
   fontFamily,
   listMode,
   thumbWidth,
   onToggleItemHidden,
+  hideLabel,
   isItemBusy,
 }) {
   if (!items.length) return null;
@@ -251,8 +289,8 @@ function HiddenStrip({
   return (
     <OrderHiddenStrip
       items={items}
-      label={txt(T.hiddenTitle, isCn)}
-      hint={txt(T.hiddenHint, isCn)}
+      label={title}
+      hint={hint}
       count={items.length}
       listMode={listMode}
       thumbWidth={thumbWidth}
@@ -267,6 +305,7 @@ function HiddenStrip({
           listMode={listMode}
           thumbWidth={smallWidth}
           hidden
+          hideLabel={hideLabel}
           onToggleHide={() => onToggleItemHidden?.(item, groupKey)}
           busy={isItemBusy ? isItemBusy(item) : false}
         />
@@ -276,99 +315,124 @@ function HiddenStrip({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  Artist box — the big accordion: header + one sub-box per source
+//  Group box — the big accordion: header + one sub-box per source
 //  (Works / Exhibition: … / Art Fair: …) + the hidden strip at the bottom.
+//  The same component serves all three tabs: on the exhibition / art fair tabs
+//  a group is a single box (one show, one fair) with its images.
 // ─────────────────────────────────────────────────────────────────────────────
-function ArtistBlock({
+function GroupBlock({
   group,
   items,
   anchorId,
+  /** The active order sub-key (used by the rolling preview). */
+  orderKey,
   isRollingTab = false,
+  showRollingPreview = false,
   isCn,
   fontFamily,
   listMode,
   thumbWidth,
   onReorderSource,
-  isItemHidden,
   onToggleItemHidden,
-  isItemHover,
-  onToggleItemHover,
+  hideLabel,
   isItemBusy,
 }) {
-  // Number the visible images across the WHOLE artist (Works 1..27, then the
-  // exhibition continues 28..39): one rolling sequence per artist.
-  const numbers = useMemo(() => {
+  // Number the visible images across the WHOLE group (one sequence per artist
+  // on the rolling tab, one per show / fair on the page tabs). Hidden ones
+  // carry no number — they sit in the dashed strip below.
+  const hiddenItems = items.filter((item) => item.__hidden);
+  const visibleItems = items.filter((item) => !item.__hidden);
+
+  const numbered = useMemo(() => {
     const map = new Map();
     let n = 0;
-    for (const item of items) {
-      if (isItemHidden(item)) continue;
-      map.set(idOf(item), ++n);
-    }
+    for (const item of visibleItems) map.set(idOf(item), ++n);
     return map;
-  }, [items, isItemHidden]);
-
-  const hiddenItems = items.filter((item) => isItemHidden(item));
-  const visibleCount = items.length - hiddenItems.length;
-
-  // Split the artist's ordered list into its sources, keeping that order.
-  const sources = useMemo(() => {
-    const map = new Map();
-    for (const source of group.sources || []) map.set(source.key, { ...source, items: [] });
-
-    for (const item of items) {
-      if (isItemHidden(item)) continue;
-      const bucket = map.get(item.__sourceKey) || map.get(SOURCE_UNGROUPED);
-      if (bucket) bucket.items.push(item);
-    }
-    return [...map.values()];
-  }, [items, group.sources, isItemHidden]);
+  }, [visibleItems]);
 
   const showSourceHeaders = (group.sources || []).length > 1 || Boolean(group.artist);
+
+  const countLabel = [
+    `${visibleItems.length} ${
+      isRollingTab ? (isCn ? "轮播" : "rolling") : txt(T.images, isCn)
+    }`,
+    hiddenItems.length ? `${hiddenItems.length} ${isCn ? "隐藏" : "hidden"}` : "",
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
+  // Has this artist's order for the active sequence actually been saved? (The
+  // detail page keeps using the Artist Page sequence until it has, so the
+  // preview says so instead of pretending the order is live.)
+  const hasSavedOrder = visibleItems.some((item) =>
+    Number.isFinite(orderRankOf(item, orderKey))
+  );
+
+  // What this artist's DETAIL-page slideshow will show, in order — the same
+  // visible items, numbered (hidden ones are excluded exactly like the slides).
+  const previewItems = visibleItems.map((item, i) => ({
+    id: idOf(item),
+    number: i + 1,
+    title: item?.tag_en || item?.tag_cn || "",
+    url: item?.img_url || item?.image_url || "",
+  }));
 
   return (
     <OrderGroupBox
       id={anchorId}
       label={group.label}
-      count={
-        hiddenItems.length > 0
-          ? `${visibleCount}${isRollingTab ? ` ${isCn ? "轮播" : "rolling"}` : ""} · ${hiddenItems.length} ${isCn ? "隐藏" : "hidden"}`
-          : `${visibleCount}${isRollingTab ? ` ${isCn ? "轮播" : "rolling"}` : ""}`
-      }
+      count={countLabel}
+      hint={group.meta || undefined}
+      defaultOpen={group.key !== NO_ENTITY_KEY}
       fontFamily={fontFamily}
       labelFontFamily={fontFamily}
       bodyStyle={{ padding: "14px 16px 16px" }}
     >
-      {sources.map((source) => (
-        <SourceGroup
-          key={source.key}
-          groupKey={group.key}
-          label={source.label}
-          items={source.items}
-          numbers={numbers}
+      {showRollingPreview ? (
+        <OrderArtistRollingPreview
+          items={previewItems}
+          hasSavedOrder={hasSavedOrder}
           isCn={isCn}
           fontFamily={fontFamily}
-          listMode={listMode}
-          thumbWidth={thumbWidth}
-          onReorder={(next) => onReorderSource(group.key, source.key, next)}
-          isItemHidden={isItemHidden}
-          onToggleItemHidden={onToggleItemHidden}
-          isItemHover={isItemHover}
-          onToggleItemHover={onToggleItemHover}
-          isItemBusy={isItemBusy}
-          showHeader={showSourceHeaders}
+          labelFontFamily={fontFamily}
         />
-      ))}
+      ) : null}
+
+      {(group.sources || [])
+        // A source whose images are all hidden from this page holds nothing to
+        // order — those cards already sit in the dashed strip below (it used to
+        // render as an empty "Works 0" box).
+        .filter((source) => source.items.some((item) => !item.__hidden))
+        .map((source) => (
+          <SourceGroup
+            key={source.key}
+            groupKey={group.key}
+            label={source.label}
+            items={source.items.filter((item) => !item.__hidden)}
+            numbers={numbered}
+            isCn={isCn}
+            fontFamily={fontFamily}
+            listMode={listMode}
+            thumbWidth={thumbWidth}
+            onReorder={(next) => onReorderSource(group.key, source.key, next)}
+            onToggleItemHidden={onToggleItemHidden}
+            hideLabel={hideLabel}
+            isItemBusy={isItemBusy}
+            showHeader={showSourceHeaders}
+          />
+        ))}
 
       <HiddenStrip
         groupKey={group.key}
         items={hiddenItems}
+        title={isRollingTab ? txt(T.hiddenTitle, isCn) : txt(T.hiddenTitlePage, isCn)}
+        hint={txt(T.hiddenHint, isCn)}
         isCn={isCn}
         fontFamily={fontFamily}
         listMode={listMode}
         thumbWidth={thumbWidth}
         onToggleItemHidden={onToggleItemHidden}
-        isItemHover={isItemHover}
-        onToggleItemHover={onToggleItemHover}
+        hideLabel={hideLabel}
         isItemBusy={isItemBusy}
       />
     </OrderGroupBox>
@@ -383,17 +447,72 @@ export default function ImageOrderPageComponent() {
   const { colors } = useReverseTheme();
   const { fontFamily } = useFont();
 
-  const { data: rawImages = [], isLoading: l1, error: e1, refetch: refetchImages } = useData("/api/image");
-  const { data: rawArtworks = [], isLoading: l2, error: e2 } = useData("/api/artwork");
-  // The other places an artist can hide. An image's tag may name an exhibition,
-  // a fair, an event, a bibliography or a biography — those records are what
-  // resolve the tag back to an artist, so without them every non-work image
-  // falls into "Ungrouped" instead of joining its artist's box.
-  const { data: rawExhibitions = [], isLoading: l3, error: e3 } = useData("/api/exhibition");
-  const { data: rawFairs = [], isLoading: l4, error: e4 } = useData("/api/fair");
-  const { data: rawEvents = [], isLoading: l5, error: e5 } = useData("/api/event");
-  const { data: rawBibliographies = [], isLoading: l6, error: e6 } = useData("/api/bibliography");
-  const { data: rawAbouts = [], isLoading: l7, error: e7 } = useData("/api/about");
+  // ── Which order is being edited (switchable in the toolbar) ──
+  const [orderKey, setOrderKey] = useState(ORDER_KEY_DEFAULT);
+  const mode = groupModeForOrderKey(orderKey);
+  const needsArtistIndex = mode === GROUP_MODE.ARTIST;
+
+  // Only fetch what the ACTIVE tab needs — the Mongo endpoints are slow, and
+  // the exhibition / fair tabs never touch the artist index. `useData(null)`
+  // simply fetches nothing (no error), and switching a tab to one that needs
+  // the data starts that request then. The `fields=` projection keeps each
+  // response to the columns this page actually reads (the transfer is the slow
+  // part of every request against this cluster).
+  const { data: rawImages = [], isLoading: l1, error: e1, refetch: refetchImages } = useData(
+    "/api/image?fields=_id,img_url,tag_en,tag_cn,type,tag_source,mark,order"
+  );
+  const {
+    data: rawExhibitions = [],
+    isLoading: l3,
+    error: e3,
+    refetch: refetchExhibitions,
+  } = useData(
+    mode === GROUP_MODE.FAIR
+      ? null
+      : "/api/exhibition?fields=_id,title,date_start,date_end,year,status,language,related_gallery_artist,participating_artists,related_artwork,cover_img_url"
+  );
+  const { data: rawFairs = [], isLoading: l4, error: e4, refetch: refetchFairs } = useData(
+    mode === GROUP_MODE.EXHIBITION
+      ? null
+      : "/api/fair?fields=_id,title,date_start,date_end,year,status,language,related_gallery_artist,participating_artists,cover_img_url"
+  );
+  const { data: rawArtworks = [], isLoading: l2, error: e2, refetch: refetchArtworks } = useData(
+    needsArtistIndex ? "/api/artwork?fields=_id,title,artist,related_gallery_exhibition" : null
+  );
+  // Other places an artist can hide. An image's tag may name an event, a
+  // bibliography or a biography — those records resolve the tag back to an
+  // artist, so without them every non-work image falls into "Ungrouped".
+  const { data: rawEvents = [], isLoading: l5, error: e5, refetch: refetchEvents } = useData(
+    needsArtistIndex ? "/api/event?fields=_id,title,related_artist" : null
+  );
+  const {
+    data: rawBibliographies = [],
+    isLoading: l6,
+    error: e6,
+    refetch: refetchBibliographies,
+  } = useData(needsArtistIndex ? "/api/bibliography?fields=_id,title,related_artist" : null);
+  const { data: rawAbouts = [], isLoading: l7, error: e7, refetch: refetchAbouts } = useData(
+    needsArtistIndex ? "/api/about?fields=_id,artist" : null
+  );
+
+  /** One retry button that re-requests everything this tab needs. */
+  const refetchAll = useCallback(() => {
+    refetchImages?.();
+    refetchExhibitions?.();
+    refetchFairs?.();
+    refetchArtworks?.();
+    refetchEvents?.();
+    refetchBibliographies?.();
+    refetchAbouts?.();
+  }, [
+    refetchImages,
+    refetchExhibitions,
+    refetchFairs,
+    refetchArtworks,
+    refetchEvents,
+    refetchBibliographies,
+    refetchAbouts,
+  ]);
 
   const isLoading = l1 || l2 || l3 || l4 || l5 || l6 || l7;
   const error = e1 || e2 || e3 || e4 || e5 || e6 || e7;
@@ -404,9 +523,6 @@ export default function ImageOrderPageComponent() {
   const [listMode, setListMode] = useState(false);
   const [thumbWidth, setThumbWidth] = useState(240);
 
-  // ── Which order is being edited (switchable in the toolbar) ──
-  // Declared before `groups`, which reads it.
-  const [orderKey, setOrderKey] = useState(ORDER_KEY_DEFAULT);
   const hideToken = useMemo(() => hideTokenForOrderKey(orderKey), [orderKey]);
   const hideLabel = hideLabelForOrderKey(orderKey);
 
@@ -417,23 +533,26 @@ export default function ImageOrderPageComponent() {
 
   const artworks = useMemo(() => (Array.isArray(rawArtworks) ? rawArtworks : []), [rawArtworks]);
 
-  // ── Structure: artist box → source sub-boxes (Works / Exhibition / Fair) ──
+  // ── Artist index (rolling tab only) ──
   // A tag is resolved against Artwork + Exhibition + Fair + Event +
   // Bibliography + About, so an image whose tag names a show or a fair is
-  // placed under EVERY artist of that show/fair (all their images end up in
-  // the artist's box) instead of falling into "Ungrouped".
+  // placed under EVERY artist of that show/fair instead of falling out of the
+  // grouping.
   const sourceIndex = useMemo(
     () =>
-      buildImageSourceIndex({
-        artworks,
-        images,
-        exhibitions: Array.isArray(rawExhibitions) ? rawExhibitions : [],
-        fairs: Array.isArray(rawFairs) ? rawFairs : [],
-        events: Array.isArray(rawEvents) ? rawEvents : [],
-        bibliographies: Array.isArray(rawBibliographies) ? rawBibliographies : [],
-        abouts: Array.isArray(rawAbouts) ? rawAbouts : [],
-      }),
+      needsArtistIndex
+        ? buildImageSourceIndex({
+            artworks,
+            images,
+            exhibitions: Array.isArray(rawExhibitions) ? rawExhibitions : [],
+            fairs: Array.isArray(rawFairs) ? rawFairs : [],
+            events: Array.isArray(rawEvents) ? rawEvents : [],
+            bibliographies: Array.isArray(rawBibliographies) ? rawBibliographies : [],
+            abouts: Array.isArray(rawAbouts) ? rawAbouts : [],
+          })
+        : null,
     [
+      needsArtistIndex,
       artworks,
       images,
       rawExhibitions,
@@ -444,117 +563,7 @@ export default function ImageOrderPageComponent() {
     ]
   );
 
-  const groups = useMemo(() => {
-    const orderValue = (item) => {
-      const value = Number(getOrder(item, orderKey));
-      return Number.isFinite(value) && value > 0 ? value : Infinity;
-    };
-    const byTag = (a, b) =>
-      String(a?.tag_en || "").localeCompare(String(b?.tag_en || ""), undefined, {
-        numeric: true,
-        sensitivity: "base",
-      });
-
-    const artists = new Map();
-
-    for (const image of images) {
-      const keys = imageGroupKeys(image, sourceIndex);
-
-      for (const rawKey of keys) {
-        const parts = parseGroupKey(rawKey);
-
-        let artistKey;
-        let artistLabel;
-        let matched = true;
-
-        if (parts.ungrouped) {
-          artistKey = UNGROUPED_KEY;
-          artistLabel = txt(T.ungrouped, isCn);
-          matched = false;
-        } else if (parts.sourceOnly) {
-          artistKey = rawKey;
-          artistLabel = groupSourceLabel(rawKey, { isCn });
-          matched = false;
-        } else {
-          artistKey = parts.artist;
-          artistLabel = sourceIndex.labelFor(parts.artist, {
-            lang: isCn ? "cn" : "en",
-          });
-        }
-
-        if (!artists.has(artistKey)) {
-          artists.set(artistKey, {
-            key: artistKey,
-            label: artistLabel,
-            artist: parts.artist || "",
-            matched,
-            sources: new Map(),
-            items: [],
-          });
-        }
-
-        const bucket = artists.get(artistKey);
-        const sourceKey = parts.ungrouped ? SOURCE_UNGROUPED : rawKey;
-
-        if (!bucket.sources.has(sourceKey)) {
-          bucket.sources.set(sourceKey, {
-            key: sourceKey,
-            label: parts.ungrouped
-              ? txt(T.ungrouped, isCn)
-              : groupSourceLabel(rawKey, { isCn }),
-            kind: parts.kind || "artwork",
-            title: parts.title || "",
-            items: [],
-          });
-        }
-
-        // One copy per artist box (an image can belong to several artists), each
-        // remembering which sub-box it came from.
-        bucket.sources
-          .get(sourceKey)
-          .items.push({ ...image, __sourceKey: sourceKey });
-      }
-    }
-
-    const groups = [...artists.values()];
-
-    for (const group of groups) {
-      const sources = [...group.sources.values()];
-      sources.sort((a, b) => {
-        const ka = SOURCE_ORDER[a.kind] ?? 9;
-        const kb = SOURCE_ORDER[b.kind] ?? 9;
-        if (ka !== kb) return ka - kb;
-        return String(a.title).localeCompare(String(b.title), undefined, {
-          numeric: true,
-          sensitivity: "base",
-        });
-      });
-      for (const source of sources) source.items.sort((a, b) => {
-        const av = orderValue(a);
-        const bv = orderValue(b);
-        if (av !== bv) return av - bv;
-        return byTag(a, b);
-      });
-      group.sources = sources;
-      group.items = sources.flatMap((source) => source.items);
-    }
-
-    groups.sort((a, b) => compareGroupKeys(a.key, b.key));
-    return groups;
-  }, [images, sourceIndex, isCn, orderKey]);
-
-  // Reset the draft whenever the groups change.
-  useEffect(() => {
-    const next = {};
-    for (const g of groups) next[g.key] = g.items;
-    setDraft(next);
-  }, [groups]);
-
-  // Drag inside one source box → splice those cards back into the artist's
-  // running order, leaving every other source box where it was.
-  // (Declared after isItemHidden — it is read from this hook's dep array.)
-
-  // Per-card hide/show state (declared before handleSave, which reads it).
+  // ── Per-card hide/show state (declared before groups is consumed) ──
   // Optimistic overrides: id → mark value, applied instantly on toggle and
   // persisted with a PUT to /api/image.
   const [markOverrides, setMarkOverrides] = useState({});
@@ -562,7 +571,6 @@ export default function ImageOrderPageComponent() {
   // Groups touched by a hide/show toggle → re-number them on Save.
   const [dirtyKeys, setDirtyKeys] = useState({});
 
-  // How many images are marked to be hidden from the artist page rolling set.
   const markOf = useCallback(
     (item) => {
       const id = item?.id || item?._id;
@@ -579,35 +587,66 @@ export default function ImageOrderPageComponent() {
     [markOf, hideToken]
   );
 
-  // Is this image flagged as its artist's hover preview?
-  const isItemHoverImage = useCallback(
-    (item) => isMarkFlagged({ mark: markOf(item) }, MARK_FLAG_ARTIST_HOVER_IMAGE),
-    [markOf]
-  );
-
-  // Drag inside one source box → splice those cards back into the artist's
-  // running order, leaving every other source box where it was.
-  const onReorder = useCallback(
-    (artistKey, sourceKey, nextItems) => {
-      setDraft((prev) => {
-        const list = prev[artistKey] || [];
-        let cursor = 0;
-        const next = list.map((item) => {
-          if (item.__sourceKey !== sourceKey || isItemHidden(item)) return item;
-          return nextItems[cursor++] || item;
-        });
-        return { ...prev, [artistKey]: next };
-      });
-    },
-    [isItemHidden]
-  );
-
   const isItemBusy = useCallback(
     (item) => {
       const id = item?.id || item?._id;
       return Boolean(id && markBusy[id]);
     },
     [markBusy]
+  );
+
+  // ── Structure ──
+  // One builder for all three tabs (orderGroups.js): artist mode for the
+  // rolling tab, exhibition / art-fair mode for the page-order tabs. Hidden
+  // images are stamped on the copies here so the block can split them without
+  // re-reading the marks per render.
+  const groups = useMemo(() => {
+    const metaOf = (entity) =>
+      mode === GROUP_MODE.FAIR ? formatFairDateRange(entity, isCn) : formatDateRange(entity, isCn);
+
+    const built = buildImageOrderGroups({
+      images,
+      orderKey,
+      sourceIndex,
+      exhibitions: rawExhibitions,
+      fairs: rawFairs,
+      isCn,
+      metaOf,
+    });
+
+    return built.map((group) => ({
+      ...group,
+      items: group.items.map((item) => ({ ...item, __hidden: isItemHidden(item) })),
+      sources: (group.sources || []).map((source) => ({
+        ...source,
+        items: source.items.map((item) => ({ ...item, __hidden: isItemHidden(item) })),
+      })),
+    }));
+  }, [images, orderKey, sourceIndex, rawExhibitions, rawFairs, isCn, isItemHidden, mode]);
+
+  // Reset the draft whenever the groups change.
+  useEffect(() => {
+    const next = {};
+    for (const g of groups) next[g.key] = g.items;
+    setDraft(next);
+  }, [groups]);
+
+  // Drag inside one source box → splice those cards back into the group's
+  // running order, leaving every other source box where it was.
+  const onReorder = useCallback(
+    (groupKey, sourceKey, nextItems) => {
+      setDraft((prev) => {
+        const list = prev[groupKey] || [];
+        let cursor = 0;
+        const next = list.map((item) => {
+          if (item.__sourceKey !== sourceKey || item.__hidden) return item;
+          return nextItems[cursor++] || item;
+        });
+        return { ...prev, [groupKey]: next };
+      });
+      setDirtyKeys((prev) => ({ ...prev, [groupKey]: true }));
+    },
+    []
   );
 
   const onToggleItemHidden = useCallback(
@@ -652,7 +691,7 @@ export default function ImageOrderPageComponent() {
               : "Hidden · order cleared"
             : isCn
             ? "已恢复显示"
-            : "Shown in artist page rolling",
+            : "Shown again",
         });
       } catch (err) {
         console.log("[image order] mark update failed:", err);
@@ -661,125 +700,16 @@ export default function ImageOrderPageComponent() {
           delete next[id];
           return next;
         });
-        setNotice({
-          type: "err",
-          text: isCn ? "标记保存失败" : "Failed to save mark",
-        });
-      } finally {
-        setMarkBusy((prev) => {
-          const next = { ...prev };
-          delete next[id];
-          return next;
-        });
-      }
-    },
-    [isItemHidden, isCn]
-  );
-
-
-  // Set / clear the `artist_hover_image` flag. Turning it ON also clears the
-  // flag from any OTHER image that resolves to the same artist(s), so each
-  // artist keeps exactly one hover image.
-  const onToggleItemHover = useCallback(
-    async (item) => {
-      const id = item?.id || item?._id;
-      if (!id) return;
-
-      const nextOn = !isItemHoverImage(item);
-      const nextMark = applyMark(markOf(item), MARK_FLAG_ARTIST_HOVER_IMAGE, nextOn);
-
-      // Which other images must lose the flag (same artist)?
-      const cleared = [];
-      if (nextOn) {
-        const artists = new Set(
-          (sourceIndex.resolveImageSource(item)?.artists || []).map((a) =>
-            String(a).toLowerCase()
-          )
-        );
-        if (artists.size) {
-          for (const other of images) {
-            const oid = other?.id || other?._id;
-            if (!oid || oid === id) continue;
-            if (!isMarkFlagged({ mark: markOf(other) }, MARK_FLAG_ARTIST_HOVER_IMAGE)) continue;
-            const oArtists = sourceIndex.resolveImageSource(other)?.artists || [];
-            if (oArtists.some((a) => artists.has(String(a).toLowerCase()))) {
-              cleared.push(other);
-            }
-          }
-        }
-      }
-
-      // Optimistic update — this image + any cleared ones.
-      setMarkOverrides((prev) => {
-        const next = { ...prev, [id]: nextMark };
-        for (const other of cleared) {
-          const oid = other?.id || other?._id;
-          if (oid) next[oid] = applyMark(markOf(other), MARK_FLAG_ARTIST_HOVER_IMAGE, false);
-        }
-        return next;
-      });
-      setMarkBusy((prev) => {
-        const next = { ...prev, [id]: true };
-        for (const other of cleared) {
-          const oid = other?.id || other?._id;
-          if (oid) next[oid] = true;
-        }
-        return next;
-      });
-
-      const put = (iid, mark) =>
-        fetch(`/api/image?id=${iid}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ mark }),
-        });
-
-      try {
-        const res = await put(id, nextMark);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        await Promise.all(
-          cleared.map((other) => {
-            const oid = other?.id || other?._id;
-            return oid
-              ? put(oid, applyMark(markOf(other), MARK_FLAG_ARTIST_HOVER_IMAGE, false))
-              : null;
-          })
-        );
-        setNotice({
-          type: "ok",
-          text: nextOn
-            ? isCn
-              ? "已设为艺术家悬停图"
-              : "Set as artist hover image"
-            : isCn
-            ? "已取消悬停图"
-            : "Hover image cleared",
-        });
-      } catch (err) {
-        console.log("[image order] hover flag update failed:", err);
-        setMarkOverrides((prev) => {
-          const next = { ...prev };
-          delete next[id];
-          for (const other of cleared) {
-            const oid = other?.id || other?._id;
-            if (oid) delete next[oid];
-          }
-          return next;
-        });
         setNotice({ type: "err", text: isCn ? "标记保存失败" : "Failed to save mark" });
       } finally {
         setMarkBusy((prev) => {
           const next = { ...prev };
           delete next[id];
-          for (const other of cleared) {
-            const oid = other?.id || other?._id;
-            if (oid) delete next[oid];
-          }
           return next;
         });
       }
     },
-    [images, sourceIndex, isItemHoverImage, markOf, isCn]
+    [isItemHidden, hideToken, markOf, orderKey, isCn]
   );
 
   const handleSave = useCallback(async () => {
@@ -788,8 +718,8 @@ export default function ImageOrderPageComponent() {
       setNotice(null);
 
       // Only send groups whose visible order actually changed (single request).
-      // Hidden images are excluded from the numbering and have their rolling
-      // order cleared, so "hidden" rows never carry a position.
+      // Hidden images are excluded from the numbering and have their position
+      // cleared, so "hidden" rows never carry a position.
       const groupsToSave = [];
       const hiddenSet = new Set();
       for (const g of groups) {
@@ -797,7 +727,7 @@ export default function ImageOrderPageComponent() {
         const visible = [];
         for (const it of items) {
           const id = it.id || it._id;
-          if (isItemHidden(it)) {
+          if (it.__hidden || isItemHidden(it)) {
             if (id) hiddenSet.add(id);
           } else if (id) {
             visible.push(id);
@@ -837,7 +767,7 @@ export default function ImageOrderPageComponent() {
     } finally {
       setSaving(false);
     }
-  }, [groups, draft, dirtyKeys, isItemHidden, refetchImages, isCn, orderKey]);
+  }, [groups, draft, isItemHidden, refetchImages, isCn, orderKey]);
 
   const handleReset = useCallback(() => {
     const next = {};
@@ -850,11 +780,11 @@ export default function ImageOrderPageComponent() {
     const ids = new Set();
     for (const group of groups) {
       for (const item of draft[group.key] || group.items) {
-        if (isItemHidden(item)) ids.add(idOf(item));
+        if (item.__hidden) ids.add(idOf(item));
       }
     }
     return ids.size;
-  }, [groups, draft, isItemHidden]);
+  }, [groups, draft]);
 
   // ── Rolling selection overview (top strip) ──────────────────────────────
   // The Rolling Image Order tab is the one that decides what the artist pages
@@ -862,6 +792,9 @@ export default function ImageOrderPageComponent() {
   // selection: artists in page order, each artist's images in rolling order,
   // numbered 1..N across the whole artist (same numbers as the cards).
   const isRollingTab = orderKey === ARTIST_ROLLING_ORDER_KEY;
+  // The artist DETAIL page sequence gets a per-artist preview inside each box
+  // (the artist-page tab already has the global selection strip at the top).
+  const isDetailRollingTab = orderKey === ARTIST_DETAIL_ROLLING_ORDER_KEY;
 
   const groupAnchorId = useCallback((key) => `ordgroup-${String(key)}`, []);
 
@@ -871,7 +804,7 @@ export default function ImageOrderPageComponent() {
       const items = draft[g.key] || g.items;
       const rolling = [];
       for (const item of items) {
-        if (isItemHidden(item)) continue;
+        if (item.__hidden) continue;
         rolling.push({
           id: idOf(item),
           number: rolling.length + 1,
@@ -882,15 +815,17 @@ export default function ImageOrderPageComponent() {
       }
       return { key: g.key, label: g.label, items: rolling };
     });
-  }, [groups, draft, isItemHidden, isRollingTab]);
+  }, [groups, draft, isRollingTab]);
 
   if (isLoading) return <LoadingLayer isLoading />;
   if (error) {
     return (
       <AlertInfo
         message={txt(T.loadFail, isCn)}
+        subMessage={String(error || "")}
+        messageCn={txt(T.loadFail, true)}
         buttonText={isCn ? "重试" : "Retry"}
-        onBack={() => refetchImages?.()}
+        onBack={refetchAll}
         isCn={isCn}
       />
     );
@@ -913,7 +848,7 @@ export default function ImageOrderPageComponent() {
         onBack={() => history.back()}
         orderLabel={orderLabel}
         orderByLabel={{ en: "Order by", cn: "排序维度" }}
-        orderKeys={IMAGE_ORDER_KEYS}
+        orderKeys={IMAGE_PAGE_ORDER_KEYS}
         orderLabels={ORDER_KEY_LABELS}
         orderKey={orderKey}
         onOrderKeyChange={setOrderKey}
@@ -924,6 +859,15 @@ export default function ImageOrderPageComponent() {
         saveLabel={T.save}
         savingLabel={T.saving}
         resetLabel={T.reset}
+        info={
+          <OrderInfoNote
+            orderKey={orderKey}
+            entity="image"
+            isCn={isCn}
+            fontFamily={fontFamily}
+            labelFontFamily={fontFamily}
+          />
+        }
         switcherExtra={
           hiddenCount > 0 ? (
             <span
@@ -983,28 +927,28 @@ export default function ImageOrderPageComponent() {
           />
         ) : null}
 
-        {/* Groups (one per artist) */}
+        {/* Groups — one per artist (rolling tab) or per exhibition / art fair. */}
         {groups.length === 0 ? (
           <div style={{ fontFamily, fontSize: 14, opacity: 0.6, padding: 40, textAlign: "center" }}>
             {txt(T.empty, isCn)}
           </div>
         ) : (
           groups.map((g) => (
-            <ArtistBlock
+            <GroupBlock
               key={g.key}
               group={g}
               items={draft[g.key] || g.items}
               anchorId={groupAnchorId(g.key)}
+              orderKey={orderKey}
               isRollingTab={isRollingTab}
+              showRollingPreview={isDetailRollingTab}
               isCn={isCn}
               fontFamily={fontFamily}
               listMode={listMode}
               thumbWidth={thumbWidth}
               onReorderSource={onReorder}
-              isItemHidden={isItemHidden}
               onToggleItemHidden={onToggleItemHidden}
-              isItemHover={isItemHoverImage}
-              onToggleItemHover={onToggleItemHover}
+              hideLabel={hideLabel}
               isItemBusy={isItemBusy}
             />
           ))

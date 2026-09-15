@@ -249,6 +249,17 @@ export default function useArtistDetailData(artistName, isCn) {
 
   return {
     profile,
+    // Raw (unfiltered) collections — ArtistDetailPageComponent builds the shared
+    // image→artist source index from them, so the rolling sequences resolve
+    // show-tagged images exactly like the image manager does.
+    rawCollections: {
+      abouts: rawAbouts,
+      artworks: rawArtworks,
+      exhibitions: rawExhibitions,
+      fairs: rawFairs,
+      events: rawEvents,
+      bibliographies: rawBibliographies,
+    },
     artworks: profile?.artworks || [],
     exhibitions: profile?.exhibitions || [],
     fairs: profile?.fairs || [],
