@@ -24,9 +24,15 @@ import { buildImageSourceIndex } from "@/components/pages/images/hooks/useImageS
 const keyOf = (index, name) =>
   String(index?.canonicalArtist?.(name) || name || "").trim().toLowerCase();
 
-export default function useArtistHoverImageFor(artistName, isCn = false) {
-  const { data: images = [] } = useData("/api/image");
-  const { data: artworks = [] } = useData("/api/artwork");
+export default function useArtistHoverImageFor(artistName, isCn = false, options = {}) {
+  const { images: providedImages, artworks: providedArtworks } = options;
+  const hasExternal = Array.isArray(providedImages) || Array.isArray(providedArtworks);
+
+  const { data: fetchedImages = [] } = useData(hasExternal ? null : "/api/image");
+  const { data: fetchedArtworks = [] } = useData(hasExternal ? null : "/api/artwork");
+
+  const images = hasExternal ? providedImages || [] : fetchedImages;
+  const artworks = hasExternal ? providedArtworks || [] : fetchedArtworks;
 
   return useMemo(() => {
     if (!artistName) return null;

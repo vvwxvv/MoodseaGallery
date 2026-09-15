@@ -9,6 +9,7 @@ import useFont from "@/hooks/useFont";
 import { useReverseTheme } from "@/hooks/useReverseTheme";
 import AlertInfo from "@/components/alerts/AlertInfo";
 import useArtistDetailData from "@/components/pages/artists/hooks/useArtistDetailData";
+import useData from "@/hooks/useData";
 import useArtistRollingImages from "@/components/pages/artists/hooks/useArtistRollingImages";
 import useArtistHoverImageFor from "@/components/pages/artists/hooks/useArtistHoverImageFor";
 import PDFViewer from "@/components/others/PDFViewer";
@@ -1172,21 +1173,46 @@ export default function ArtistDetailPageComponent({ artistSlug }) {
   // Matched to this artist via tag_en/tag_cn → artwork title/artist, with the
   // language-split EN/CN artist rows merged, and images marked
   // "hide in artist page rolling image" excluded.
+  //
+  // The two big lists are loaded ONCE here and handed to the rolling + hover
+  // lookups, so the page does not fetch Image/Artwork twice more.
+  const {
+    data: rawImagesForRolling = [],
+    isLoading: rollingNamesLoading,
+    error: rollingNamesError,
+    refetch: refetchRollingNames,
+  } = useData("/api/image");
+  const {
+    data: rawArtworksForRolling = [],
+    isLoading: rollingWorksLoading,
+    error: rollingWorksError,
+    refetch: refetchRollingWorks,
+  } = useData("/api/artwork");
+
   const { slides: rollingSlides } = useArtistRollingImages(
     profile?.artist || profile?.name || artistName,
-    isCn
+    isCn,
+    { images: rawImagesForRolling, artworks: rawArtworksForRolling }
   );
 
   // The image flagged `artist_hover_image` for this artist (set on
   // Manager → Media → Hover Image). Null when nothing is chosen.
   const hoverSlide = useArtistHoverImageFor(
     profile?.artist || profile?.name || artistName,
-    isCn
+    isCn,
+    { images: rawImagesForRolling, artworks: rawArtworksForRolling }
   );
+
+  // Nothing renders until EVERY part is in — otherwise the right column would
+  // paint "no images available" for a beat and then pop the rolling images in.
+  const isPageLoading =
+    isLoading || rollingNamesLoading || rollingWorksLoading;
 
   const { execute: safeRefetch, isExecuting: isRefetching } = useAsyncAction(
     async () => {
       await refetch();
+      refetchRollingNames?.();
+      refetchRollingWorks?.();
     },
     {
       throttleMs: 1000,
@@ -1196,7 +1222,7 @@ export default function ArtistDetailPageComponent({ artistSlug }) {
     }
   );
 
-  if (isLoading) {
+  if (isPageLoading) {
     return (
       <div
         style={{
@@ -1208,7 +1234,7 @@ export default function ArtistDetailPageComponent({ artistSlug }) {
     );
   }
 
-  if (hasError) {
+  if (hasError || rollingNamesError || rollingWorksError) {
     return (
       <AlertInfo
         message={isCn ? "加载失败" : "Loading Failed"}
@@ -1258,38 +1284,20 @@ export default function ArtistDetailPageComponent({ artistSlug }) {
   // const withImages = dedupedArtworks.filter((aw) => aw.cover_img_url);
 
   // ----------------------------------------------------------------------
-  // NEW: featured right-column slideshow prefers the artist's EXHIBITION
-  // images. If the artist has no exhibition images at all, it falls back
-  // to showing the artist's own ARTWORK images instead. If exhibition
-  // images exist, artwork images are not shown alongside them.
+  // FEATURED RIGHT-COLUMN SLIDESHOW
   //
-  // ⚠️ Adjust the field names in the `.filter()` / `.map()` below to match
-  // whatever image field your exhibition records actually use — right now
-  // it checks (in order) cover_img_url, image_url, poster_url.
+  // The column shows ONLY the images selected for rolling in
+  //   Manager → Media → Rolling Image Order
+  // i.e. the images of this artist that are NOT marked "hidden from artist
+  // rolling" (each one carrying an `order.rolling_img_order` position that
+  // sets the sequence). Selection is the single source of truth — the old
+  // exhibition-image / artwork-cover fallbacks are gone, so pages can never
+  // show an image the manager did not put in the rolling set.
+  //
+  // The artist's marked hover image still leads the slideshow when one is set
+  // (it is itself an explicit selection).
   // ----------------------------------------------------------------------
-  const withImages = dedupedArtworks.filter((aw) => aw.cover_img_url);
-
-  const exhibitionSlides = (exhibitions || [])
-    .filter((ex) => ex?.cover_img_url || ex?.image_url || ex?.poster_url)
-    .map((ex) => ({
-      title: ex.title,
-      cover_img_url: ex.cover_img_url || ex.image_url || ex.poster_url,
-      year: ex.date_start
-        ? String(ex.date_start).slice(0, 4)
-        : ex.date_end
-        ? String(ex.date_end).slice(0, 4)
-        : "",
-      medium: ex.venue || ex.location || "",
-    }));
-
-  // Prefer the IMAGE-SCHEMA rolling images (sorted by order.rolling_img_order,
-  // hidden ones excluded); then exhibition images; then artwork covers.
-  const baseSlides =
-    rollingSlides.length > 0
-      ? rollingSlides
-      : exhibitionSlides.length > 0
-      ? exhibitionSlides
-      : withImages;
+  const baseSlides = rollingSlides;
 
   // The artist's marked hover image leads the slideshow (deduped by URL), so
   // the picture chosen on the Hover Image page is the one the detail page
@@ -1460,12 +1468,11 @@ export default function ArtistDetailPageComponent({ artistSlug }) {
               */}
 
               {/*
-                NEW: right-column featured slideshow.
-                Priority: artist's EXHIBITION images first; if the artist
-                has none, falls back to the artist's own ARTWORK images
-                (`withImages`). When exhibition images exist, artwork
-                images are not shown alongside them — `featuredSlides`
-                already picks exactly one source above.
+                Right-column featured slideshow — ONLY the rolling images
+                selected in Manager → Media → Rolling Image Order (ordered by
+                order.rolling_img_order, hidden ones excluded), with the
+                artist's chosen hover image in front when one is set. Nothing
+                else is shown here: no exhibition/artwork fallback.
               */}
               {featuredSlides.length > 0 ? (
                 <FeaturedArtworkSlideshow

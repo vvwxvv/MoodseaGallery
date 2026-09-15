@@ -149,8 +149,16 @@ export const normalizeMark = (mark) => {
 
   if (typeof mark === "object") {
     const value = typeof mark.value === "string" ? mark.value : "";
-    const hide = readFlagList(mark.hide);
-    const marks = readFlagList(mark.marks);
+    // A token belongs in exactly ONE list. Rows written by older code paths
+    // stored HIDE tokens inside `marks` (e.g. marks: ["artist_rolling_image"])
+    // — that made a hidden row look like it carried a flag. Route by kind so
+    // the stored shape is always canonical and the stale entry disappears on
+    // the next write.
+    const isHideToken = (t) => isKnownMark(t) && markKind(t) === MARK_KIND.HIDE;
+    const hideRaw = readFlagList(mark.hide);
+    const marksRaw = readFlagList(mark.marks);
+    const hide = unique([...hideRaw, ...marksRaw.filter(isHideToken)]);
+    const marks = marksRaw.filter((t) => !isHideToken(t));
     // A legacy value-string hiding under `value` (e.g. {value:"hide_in_..."}).
     if (!hide.length) {
       const tokens = tokensForLegacyValue(value);

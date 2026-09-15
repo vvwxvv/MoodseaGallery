@@ -18,6 +18,11 @@
  *      order manager saves) — numbered images first, ascending; images without
  *      a position fall to the end, then by tag.
  *
+ * SELECTION IS THE SOURCE OF TRUTH: `rollingSlides` is exactly what the
+ * artist detail page's right column shows, and what the Rolling Image Order
+ * manager's selection strip lists. There is no exhibition / artwork-cover
+ * fallback any more — an image that was never selected can never appear there.
+ *
  * Returns slides in the same shape the artist page's slideshow expects:
  *   [{ id, title, cover_img_url, caption, year, medium, tag_en, tag_cn, order }]
  */
@@ -34,6 +39,13 @@ import { getOrder } from "@/utils/mediaOrder";
 
 /** Sub-key inside `Image.order` that drives the artist page rolling order. */
 export const ARTIST_ROLLING_ORDER_KEY = "rolling_img_order";
+
+/**
+ * Is this image part of its artist's rolling selection? (i.e. not hidden from
+ * the artist-page rolling slideshow). The manager's eye button writes exactly
+ * this flag, so this is the one predicate the manager and the artist page share.
+ */
+export const isRollingSelected = (image) => !isHiddenInArtistRollingImage(image);
 
 /** Position value: numbered (1..N) first & ascending; unnumbered → Infinity. */
 const positionOf = (image, orderKey) => {
@@ -99,10 +111,26 @@ export function buildArtistRollingSlides(
 }
 
 export default function useArtistRollingImages(artistName, isCn = false, options = {}) {
-  const { orderKey = ARTIST_ROLLING_ORDER_KEY, includeHidden = false } = options;
+  const {
+    orderKey = ARTIST_ROLLING_ORDER_KEY,
+    includeHidden = false,
+    // Callers that already hold the raw Image / Artwork lists (the artist detail
+    // page does) pass them in so the same big payload is not fetched twice.
+    images: providedImages,
+    artworks: providedArtworks,
+  } = options;
 
-  const { data: rawImages = [], isLoading: loadingImages } = useData("/api/image");
-  const { data: rawArtworks = [], isLoading: loadingArtworks } = useData("/api/artwork");
+  const hasExternal = Array.isArray(providedImages) || Array.isArray(providedArtworks);
+
+  const { data: fetchedImages = [], isLoading: loadingImages } = useData(
+    hasExternal ? null : "/api/image"
+  );
+  const { data: fetchedArtworks = [], isLoading: loadingArtworks } = useData(
+    hasExternal ? null : "/api/artwork"
+  );
+
+  const rawImages = hasExternal ? providedImages || [] : fetchedImages;
+  const rawArtworks = hasExternal ? providedArtworks || [] : fetchedArtworks;
 
   const slides = useMemo(
     () =>
@@ -114,5 +142,8 @@ export default function useArtistRollingImages(artistName, isCn = false, options
     [rawImages, rawArtworks, artistName, isCn, orderKey, includeHidden]
   );
 
-  return { slides, isLoading: loadingImages || loadingArtworks };
+  return {
+    slides,
+    isLoading: hasExternal ? false : loadingImages || loadingArtworks,
+  };
 }

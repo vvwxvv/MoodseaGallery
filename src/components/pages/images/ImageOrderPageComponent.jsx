@@ -48,6 +48,7 @@ import LoadingLayer from "@/components/animations/LoadingLayer";
 import AlertInfo from "@/components/alerts/AlertInfo";
 import OrderPageShell from "@/components/pages/order/OrderPageShell";
 import OrderGroupBox from "@/components/pages/order/OrderGroupBox";
+import OrderRollingStrip from "@/components/pages/order/OrderRollingStrip";
 import OrderCard, {
   OrderCardGrid,
   OrderHiddenStrip,
@@ -281,6 +282,8 @@ function HiddenStrip({
 function ArtistBlock({
   group,
   items,
+  anchorId,
+  isRollingTab = false,
   isCn,
   fontFamily,
   listMode,
@@ -324,11 +327,12 @@ function ArtistBlock({
 
   return (
     <OrderGroupBox
+      id={anchorId}
       label={group.label}
       count={
         hiddenItems.length > 0
-          ? `${visibleCount} + ${hiddenItems.length} ${isCn ? "隐藏" : "hidden"}`
-          : visibleCount
+          ? `${visibleCount}${isRollingTab ? ` ${isCn ? "轮播" : "rolling"}` : ""} · ${hiddenItems.length} ${isCn ? "隐藏" : "hidden"}`
+          : `${visibleCount}${isRollingTab ? ` ${isCn ? "轮播" : "rolling"}` : ""}`
       }
       fontFamily={fontFamily}
       labelFontFamily={fontFamily}
@@ -852,6 +856,34 @@ export default function ImageOrderPageComponent() {
     return ids.size;
   }, [groups, draft, isItemHidden]);
 
+  // ── Rolling selection overview (top strip) ──────────────────────────────
+  // The Rolling Image Order tab is the one that decides what the artist pages
+  // actually show, so it gets an at-a-glance filmstrip of the current
+  // selection: artists in page order, each artist's images in rolling order,
+  // numbered 1..N across the whole artist (same numbers as the cards).
+  const isRollingTab = orderKey === ARTIST_ROLLING_ORDER_KEY;
+
+  const groupAnchorId = useCallback((key) => `ordgroup-${String(key)}`, []);
+
+  const rollingOverview = useMemo(() => {
+    if (!isRollingTab) return [];
+    return groups.map((g) => {
+      const items = draft[g.key] || g.items;
+      const rolling = [];
+      for (const item of items) {
+        if (isItemHidden(item)) continue;
+        rolling.push({
+          id: idOf(item),
+          number: rolling.length + 1,
+          title: item?.tag_en || item?.tag_cn || "",
+          url: item?.img_url || item?.image_url || "",
+          artistLabel: g.label,
+        });
+      }
+      return { key: g.key, label: g.label, items: rolling };
+    });
+  }, [groups, draft, isItemHidden, isRollingTab]);
+
   if (isLoading) return <LoadingLayer isLoading />;
   if (error) {
     return (
@@ -939,6 +971,18 @@ export default function ImageOrderPageComponent() {
         }
       >
 
+        {/* Rolling selection — every image that will roll on an artist page,
+            in order, numbered. Only relevant on the Rolling Image Order tab. */}
+        {isRollingTab ? (
+          <OrderRollingStrip
+            groups={rollingOverview}
+            isCn={isCn}
+            fontFamily={fontFamily}
+            labelFontFamily={fontFamily}
+            anchorIdFor={(key) => groupAnchorId(key)}
+          />
+        ) : null}
+
         {/* Groups (one per artist) */}
         {groups.length === 0 ? (
           <div style={{ fontFamily, fontSize: 14, opacity: 0.6, padding: 40, textAlign: "center" }}>
@@ -950,6 +994,8 @@ export default function ImageOrderPageComponent() {
               key={g.key}
               group={g}
               items={draft[g.key] || g.items}
+              anchorId={groupAnchorId(g.key)}
+              isRollingTab={isRollingTab}
               isCn={isCn}
               fontFamily={fontFamily}
               listMode={listMode}

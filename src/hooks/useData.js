@@ -3,7 +3,11 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 export default function useData(apiEndpoint, itemUrl = null, isCn = false) {
   
   const [data, setData] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+  // A provided endpoint ALWAYS starts a fetch, so begin in the loading state.
+  // Starting at `false` made the very first paint look like "finished, no data",
+  // which flashed empty states / "not found" before the request resolved (and
+  // mismatched the server render, where effects never run).
+  const [isLoading, setIsLoading] = useState(() => Boolean(apiEndpoint));
   const [error, setError] = useState(null);
   const [retryCount, setRetryCount] = useState(0);
   

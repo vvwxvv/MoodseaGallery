@@ -20,6 +20,8 @@ import React, { useId, useState } from "react";
 import { ChevronDown } from "lucide-react";
 
 export default function OrderGroupBox({
+  /** Optional DOM id — used as a scroll anchor from the rolling strip. */
+  id: anchorId,
   label,
   /** Right-hand meta: a number, or a string like "4 + 1 hidden". */
   count,
@@ -134,6 +136,7 @@ export default function OrderGroupBox({
 
   return (
     <section
+      id={anchorId}
       style={{
         border: "1px solid rgba(0,0,0,.16)",
         borderRadius: 12,
