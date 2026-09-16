@@ -16,6 +16,8 @@ import { useState, useCallback, useMemo } from "react";
  * Returns:
  *   hoveredName    – currently hovered artist name (null if none)
  *   hoverImage     – cover_img_url matched to the hovered artist
+ *   hoverIsFlagged – true when that image is the artist's EXPLICITLY chosen
+ *                    hover image (`artist_hover_image`), not a fallback cover
  *   onHover(name)  – call on mouse enter
  *   onLeave()      – call on mouse leave
  */
@@ -40,7 +42,11 @@ export function useArtistHoverImage(allProfiles) {
   // Prefer the image explicitly flagged `artist_hover_image` in the image
   // manager; fall back to the artist's derived cover image.
   const hoverImage = hoveredProfile?.hoverImage || hoveredProfile?.image || null;
+  // Was that a real pick (manager → Image → Artist Name Hover Image) rather
+  // than just the artist's cover? The artist page uses this to decide whether
+  // the hover image wins over the rolling sequence — see ArtistsPagecComponent.
+  const hoverIsFlagged = !!hoveredProfile?.hoverIsFlagged;
   const hoverCount = hoveredProfile?.artworks?.length || 0;
 
-  return { hoveredName, hoverImage, hoverCount, onHover, onLeave };
+  return { hoveredName, hoverImage, hoverIsFlagged, hoverCount, onHover, onLeave };
 }

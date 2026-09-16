@@ -20,11 +20,11 @@ const I = (en, cn) => ({ en, cn });
 export const ORDER_INFO = Object.freeze({
   // ── IMAGES ────────────────────────────────────────────────────────────────
   "image:rolling_img_order": {
-    title: I("Artist Page — Rolling Images", "艺术家页 — 轮播图"),
-    tag: I("Artist page", "艺术家页"),
+    title: I("Artist Page Order (Rolling Images)", "艺术家页排序（轮播图）"),
+    tag: I("Artist list + artist page", "艺术家列表 + 艺术家页"),
     intro: I(
-      "This is the order (and the selection) of the images in each artist's rolling slideshow. An image takes part only while it is kept in the rolling set — the eye button on the card is that switch.",
-      "这里决定每位艺术家轮播图的顺序与选取范围。只有保留在轮播集合中的图片才会出现 — 卡片上的眼睛按钮就是开关。"
+      "This decides WHICH images take part in the artist-side rolling slideshow, and in what order. If an artist has no separately-chosen “hover image”, this sequence is also what shows in the right-hand preview column of the /artists list while a name is hovered.",
+      "这里决定参与“艺术家侧轮播”的图片有哪些、顺序如何。若某位艺术家没有单独选择“悬停图”，这条序列也会用于 /artists 列表右侧预览栏在悬停名称时的显示。"
     ),
     how: [
       I(
@@ -32,8 +32,8 @@ export const ORDER_INFO = Object.freeze({
         "卡片按艺术家分组（A→Z）。每位艺术家只有一条序列：编号会跨越该艺术家的来源分组（作品 / 展览：… / 艺博会：…）继续。"
       ),
       I(
-        "Numbers are per artist and start at 1 — #1 is the first image the artist page shows.",
-        "编号按艺术家从 1 开始 — 1 号就是艺术家页最先显示的图片。"
+        "Numbers are per artist and start at 1 — #1 is the first image this artist's slideshow shows.",
+        "编号按艺术家从 1 开始 — 1 号就是这位艺术家轮播最先显示的图片。"
       ),
       I(
         "Drag inside a box to change the order. Dragging across boxes is not offered on purpose: the sequence belongs to the artist, not to a box.",
@@ -46,11 +46,15 @@ export const ORDER_INFO = Object.freeze({
     ],
     where: [
       I(
-        "Artist page (`/artists/<artist>`) → the right-hand rolling slideshow.",
-        "艺术家页（`/artists/<artist>`）→ 右侧轮播图。"
+        "`/artists` (Artists list) → the preview column on the RIGHT. While a name is hovered this sequence rolls through the artist's images — UNLESS the artist has a chosen “hover image”, which wins (that is the next page).",
+        "`/artists`（艺术家列表）→ 右侧预览栏。悬停名称时这条序列会轮播该艺术家的图片 — 除非该艺术家选了“悬停图”，悬停图优先（见下一个页面）。"
       ),
       I(
-        "The same sequence is the default order of the image library API, so it is also the order used by pages that list images without their own order.",
+        "`/artists/<artist>` (artist DETAIL page, e.g. `/artists/chen_hongzhi`) → the rolling slideshow in the RIGHT column — used as the fallback until you save that artist's “Artist Detail Page Order”.",
+        "`/artists/<artist>`（艺术家详情页，如 `/artists/chen_hongzhi`）→ 右栏的轮播图 — 在保存该艺术家的“艺术家详情页排序”之前作为回退使用。"
+      ),
+      I(
+        "The image library API's default order, so any image list without its own order follows it.",
         "同一条序列也是图片库 API 的默认排序，因此没有独立排序的图片列表也按它显示。"
       ),
     ],
@@ -60,25 +64,25 @@ export const ORDER_INFO = Object.freeze({
         "保存在图片的 `order.rolling_img_order`。没有编号的图片会排在有序图片之后。"
       ),
       I(
-        "The image shown when hovering an artist's name is a different page: Image → Artist Name Hover Image.",
-        "悬停艺术家名称时显示的图片属于另一个页面：图库 → 艺术家名称悬停图。"
+        "Do not confuse the two rolling tabs: THIS one drives the artist LIST + is the detail page's fallback; “Artist Detail Page Order” drives the detail page's own slideshow.",
+        "不要混淆两个轮播标签：本标签驱动“艺术家列表”并作为详情页回退；“艺术家详情页排序”驱动详情页自己的轮播。"
       ),
       I(
-        "Only images tagged to an artist (or to something that resolves to one) can be grouped — anything else lives in “Ungrouped”.",
-        "只有能解析到艺术家的图片才会被分组 — 其他图片会落在“未分组”中。"
+        "The picture shown when HOVERING an artist's name is a separate pick: Image → Artist Name Hover Image.",
+        "悬停艺术家名称时显示的图片属于另一个页面：图库 → 艺术家名称悬停图。"
       ),
     ],
   },
 
   "image:artist_detail_rolling_img_order": {
     title: I(
-      "Artist Detail Page — Rolling Images",
-      "艺术家详情页 — 轮播图"
+      "Artist Detail Page Order (Rolling Images)",
+      "艺术家详情页排序（轮播图）"
     ),
-    tag: I("Artist detail page", "艺术家详情页"),
+    tag: I("Artist detail page only", "仅艺术家详情页"),
     intro: I(
-      "This is the order (and the selection) of the images in each artist DETAIL page's rolling slideshow — a sequence of its own, separate from the artist page one. An image takes part only while it is kept in this set: the eye button on the card is that switch.",
-      "这里决定每位艺术家详情页轮播图的顺序与选取范围 — 这是独立于艺术家页的另一条序列。只有保留在此集合中的图片才会出现：卡片上的眼睛按钮就是开关。"
+      "A SECOND, independent rolling sequence. It controls ONLY the artist DETAIL page — the page a visitor reaches by clicking a name (e.g. /artists/chen_hongzhi), NOT the /artists list. It is separate from “Artist Page Order” on purpose, so the two surfaces can roll different pictures. It only starts being used for an artist AFTER you save it for that artist.",
+      "这是第二条独立的轮播序列，仅控制“艺术家详情页” — 访问者点击姓名后进入的页面（如 /artists/chen_hongzhi），不是 /artists 列表。它与“艺术家页排序”刻意分开，两个界面可以轮播不同图片。只有在为某位艺术家保存之后，该艺术家的详情页才会开始使用它。"
     ),
     how: [
       I(
@@ -86,8 +90,8 @@ export const ORDER_INFO = Object.freeze({
         "卡片按艺术家分组（A→Z，与艺术家页标签相同的分组），每位艺术家一条编号序列：1…N。"
       ),
       I(
-        "Each artist's box starts with a preview strip of that artist's detail-page rolling images, in order — so the box shows what the page will show before you drag anything.",
-        "每位艺术家的分组顶部会显示该艺术家详情页轮播图的顺序预览 — 在拖动之前就能看到页面将会显示什么。"
+        "Each artist's box STARTS with a preview strip of what that artist's detail page will show, in order — so you see the result before you save.",
+        "每位艺术家的分组顶部会显示该艺术家详情页将会显示的内容预览（按顺序） — 在保存之前就能看到结果。"
       ),
       I(
         "Drag inside a box to change the order; the numbers follow the slides.",
@@ -100,8 +104,12 @@ export const ORDER_INFO = Object.freeze({
     ],
     where: [
       I(
-        "Artist detail page (`/artists/<artist>`) → the rolling slideshow at the top of the right column.",
-        "艺术家详情页（`/artists/<artist>`）→ 右栏顶部的轮播图。"
+        "`/artists/<artist>` (artist DETAIL page — the page you get by CLICKING a name) → the rolling slideshow in the RIGHT-hand column, at the top.",
+        "`/artists/<artist>`（艺术家详情页 — 点击姓名后进入的页面）→ 右侧栏顶部的轮播图。"
+      ),
+      I(
+        "NOT `/artists` (the name list) — that right-hand preview is a different surface (it uses the hover image, else “Artist Page Order”).",
+        "不是 `/artists`（名称列表）— 那里右侧的预览是另一个界面（使用悬停图，否则用“艺术家页排序”）。"
       ),
     ],
     notes: [
@@ -111,11 +119,11 @@ export const ORDER_INFO = Object.freeze({
       ),
       I(
         "Until you SAVE this order for an artist, that artist's detail page keeps using the Artist Page sequence — so the slideshow is never empty and nothing changes by accident. Each artist switches over on its own once its order is saved (the box says so until then).",
-        "在某位艺术家保存这条排序之前，该艺术家的详情页仍使用“艺术家页”序列 — 因此轮播图不会为空，也不会被意外改动。每位艺术家在保存后会各自切换（未保存前分组内会提示）。"
+        "在未为某位艺术家保存这条排序之前，该艺术家的详情页仍使用“艺术家页”序列 — 因此轮播图不会为空，也不会被意外改动。每位艺术家在保存后会各自切换（未保存前分组内会提示）。"
       ),
       I(
-        "The artist page sequence itself is the first tab: “Artist Page Order (Rolling Images)”.",
-        "艺术家页序列是第一个标签：“艺术家页排序（轮播图）”。"
+        "See it in context: the shape of the DETAIL page is different from the list — name + bio on the left, this slideshow fixed on the right.",
+        "实际位置：详情页与列表不同 — 左侧是姓名 + 简介，这个轮播固定在右侧。"
       ),
     ],
   },
@@ -294,19 +302,50 @@ export const ORDER_INFO = Object.freeze({
     title: I("Artist Name Hover Image", "艺术家名称悬停图"),
     tag: I("Artist names", "艺术家名称"),
     intro: I(
-      "One image per artist: what a visitor sees when they hover the artist's name on the site. It is a pick (a flag), not an order — the rolling sequence is untouched.",
-      "每位艺术家一张图片：访客在网站上悬停艺术家名称时看到的图片。这是一个“选择”（标记），不是排序 — 不会改变轮播顺序。"
+      "ONE image per artist: the picture a visitor sees when they hover the artist's NAME. It is a single pick (a flag), not an order — the rolling sequences are untouched by it.",
+      "每位艺术家一张图片：访客悬停艺术家“名称”时看到的图片。它是一次单选（标记），不是排序 — 不会改变任何轮播序列。"
     ),
     how: [
-      I("Cards are grouped by artist (A→Z). Everything is grey until it is picked; the picked image turns to full colour and jumps to the front of its group.", "卡片按艺术家分组（A→Z）。未被选中的都是灰色；被选中的图片恢复颜色并移到该组最前。"),
-      I("Choosing another image for the same artist clears the previous choice — only one per artist.", "为同一艺术家选择另一张图片会自动取消上一张 — 每位艺术家只保留一张。"),
-      I("Clicking the button saves immediately; there is no separate save step.", "点击按钮即保存，无需额外保存步骤。"),
+      I(
+        "Cards are grouped by artist, A→Z (one box per artist). Everything is grey until it is picked; the picked image turns to full colour and jumps to the front of its group.",
+        "卡片按艺术家分组（A→Z，每位艺术家一个分组）。未被选中的都是灰色；被选中的图片恢复颜色并移到该组最前。"
+      ),
+      I(
+        "Only ONE per artist. Choosing another image for the same artist clears the previous choice automatically.",
+        "每位艺术家只保留一张。为同一艺术家选择另一张时，会自动取消上一张。"
+      ),
+      I(
+        "If an artist somehow has more than one (older data / import), a red banner appears at the top — click “Keep the first, clear the rest” to fix every artist at once.",
+        "若某位艺术家意外拥有多张（旧数据 / 导入），页面顶部会出现红色提示 — 点击“保留第一张，清除其余”可一次修好所有艺术家。"
+      ),
+      I(
+        "Clicking the button saves immediately; there is no separate save step.",
+        "点击按钮即保存，无需额外保存步骤。"
+      ),
     ],
     where: [
-      I("Artist names across the site (artist pages, artist list, menus) → the hover preview image.", "网站中的艺术家名称（艺术家页、艺术家列表、菜单）→ 悬停预览图。"),
+      I(
+        "`/artists` (Artists list) → the preview column on the RIGHT: hovering the artist's NAME shows this exact image (it overrides the rolling preview while hovered).",
+        "`/artists`（艺术家列表）→ 右侧预览栏：悬停艺术家“名称”时显示的就是这张图片（悬停期间它优先于轮播预览）。"
+      ),
+      I(
+        "`/artists/<artist>` (artist detail page) → the rolling slideshow; hovering the slideshow reveals this image (it also leads the slideshow).",
+        "`/artists/<artist>`（艺术家详情页）→ 轮播图；悬停轮播图会显示这张图片（它也会作为轮播的第一张）。"
+      ),
+      I(
+        "Artist names shown elsewhere on the site (menus / lists) → the same hover preview.",
+        "网站其他位置的艺术家名称（菜单 / 列表）→ 同样的悬停预览。"
+      ),
     ],
     notes: [
-      I("Saved on the image as the `artist_hover_image` flag inside `mark`.", "保存在图片的 `mark.artist_hover_image` 标记中。"),
+      I(
+        "Saved on the image as the `artist_hover_image` flag inside `mark`.",
+        "保存在图片的 `mark.artist_hover_image` 标记中。"
+      ),
+      I(
+        "If an artist has NO hover image, the /artists preview falls back to the rolling sequence (Image → Artist Page Order), then to the artist's latest work.",
+        "若某位艺术家未设置悬停图，/artists 预览会回退到轮播序列（图库 → 艺术家页排序），再回退到该艺术家的最新作品。"
+      ),
     ],
   },
 });

@@ -21,6 +21,8 @@ export default function OrderRollingStrip({
   fontFamily,
   labelFontFamily,
   labels = {},
+  /** Where this sequence shows on the public site (a short sentence). */
+  where,
   /** Optional: id of the artist box to scroll to. */
   anchorIdFor,
 }) {
@@ -38,6 +40,12 @@ export default function OrderRollingStrip({
         : "No rolling images selected yet — use the eye button below to hide the ones you don't want."),
     jump: labels.jump || (isCn ? "跳转到该艺术家" : "Jump to this artist"),
   };
+
+  const whereText =
+    where ||
+    (isCn
+      ? "显示位置：/artists（艺术家列表）右侧预览栏 · /artists/<artist>（详情页）右侧轮播（作为回退）"
+      : "Shows on: /artists (artist list) → right preview column · /artists/<artist> (detail page) → right rolling slideshow (fallback)");
 
   const jump = (key) => {
     if (!anchorIdFor) return;
@@ -87,6 +95,19 @@ export default function OrderRollingStrip({
           {total} {t.images}
           {rows.length > 0 ? ` · ${rows.length} ${t.artists}` : ""}
         </span>
+      </div>
+
+      <div
+        style={{
+          padding: "7px 18px",
+          borderBottom: "1px dashed rgba(0,0,0,.14)",
+          fontFamily: labelFontFamily || fontFamily,
+          fontSize: 11,
+          color: "rgba(0,0,0,.5)",
+          lineHeight: 1.5,
+        }}
+      >
+        {whereText}
       </div>
 
       {total === 0 ? (

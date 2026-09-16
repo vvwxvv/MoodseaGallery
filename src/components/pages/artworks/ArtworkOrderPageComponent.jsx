@@ -69,6 +69,7 @@ import {
   hideLabelForOrderKey,
   hideTokenForOrderKey,
   isArtworkHiddenForPage,
+  toWireMark,
 } from "@/utils/mediaMarks";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -305,7 +306,7 @@ export default function ArtworkOrderPageComponent() {
       setMarkBusy((prev) => ({ ...prev, [id]: true }));
 
       try {
-        const payload = { mark: nextMark };
+        const payload = { mark: toWireMark(nextMark) };
         if (nextHidden) {
           // A hidden work keeps no position on this page — clear it now
           // (the other pages' positions are preserved).

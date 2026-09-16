@@ -409,7 +409,7 @@ export default function ArtistsPageComponent() {
   const profiles = allProfiles || [];
 
   const [activeName, setActiveName] = useState(null);
-  const { hoveredName, hoverImage, onHover, onLeave } = useArtistHoverImage(profiles);
+  const { hoveredName, hoverImage, hoverIsFlagged, onHover, onLeave } = useArtistHoverImage(profiles);
 
   const { randomArtist, randomImage } = useRandomArtworkImage(profiles, {
     paused: !!hoveredName,
@@ -438,15 +438,17 @@ export default function ArtistsPageComponent() {
     return randomArtist || profiles[0] || null;
   }, [hoveredName, profiles, randomArtist]);
 
-  // ── The preview follows the ARTIST PAGE ROLLING sequence ────────────────
-  // `previewArtist.rolling` is that artist's images in the order saved in
+  // ── The preview: a chosen hover image first, else the ROLLING sequence ──
+  // While a name is hovered we show that artist's chosen hover image (set on
+  // Manager → Image → Artist Name Hover Image). If the artist has none, the
+  // preview follows the ARTIST PAGE ROLLING sequence:
+  //   `previewArtist.rolling` is the artist's images in the order saved in
   //   Manager → Image → Order → "Artist Page Order (Rolling Images)".
-  // • hovering an artist name → the sequence rolls, one image per interval
-  // • idle                    → the artist rotation above picks the artist and
-  //                             shows the first image of their sequence
-  // When an artist has no selected rolling images we fall back to the old
-  // behaviour (hover image → most recent artwork cover → random image), so the
-  // column is never blank.
+  // • hovering a name, no hover image → the sequence rolls, one per interval
+  // • idle                            → the artist rotation above picks the
+  //                                     artist and shows their sequence's #1
+  // When neither exists we fall back to the old behaviour (most recent artwork
+  // cover → random image), so the column is never blank.
   const rollingSlides = previewArtist?.rolling || [];
   const [rollStep, setRollStep] = useState(0);
 
@@ -467,8 +469,19 @@ export default function ArtistsPageComponent() {
     ? rollingSlides[Math.min(rollStep, rollingSlides.length - 1)]
     : null;
 
-  const previewImage = rollingSlide?.cover_img_url || hoverImage || randomImage;
-  const previewSource = rollingSlide
+  // ── A CHOSEN hover image WINS while a name is hovered ───────────────────
+  // Manager → Image → Artist Name Hover Image picks ONE picture per artist:
+  // that is what a visitor should see when hovering the artist's NAME. Only
+  // when an artist has no chosen hover image do we fall back to the rolling
+  // sequence (and, failing that, the recent-artwork / random chain), so the
+  // column is never blank.
+  const hoveredFlagged = !!hoveredName && !!hoverIsFlagged && !!hoverImage;
+  const previewImage = hoveredFlagged
+    ? hoverImage
+    : rollingSlide?.cover_img_url || hoverImage || randomImage;
+  const previewSource = hoveredFlagged
+    ? "hover:artist_hover_image"
+    : rollingSlide
     ? `artist_rolling:${rollingSlide.orderKey || ""}`
     : hoverImage
     ? "hover"
@@ -575,7 +588,9 @@ export default function ArtistsPageComponent() {
               previewImage={previewImage}
               previewArtist={previewArtist}
               previewMeta={
-                rollingSlide
+                hoveredFlagged
+                  ? ""
+                  : rollingSlide
                   ? [rollingSlide.title, rollingSlide.year].filter(Boolean).join(" · ")
                   : previewArtist?.hoverMeta || ""
               }

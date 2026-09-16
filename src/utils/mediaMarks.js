@@ -182,7 +182,9 @@ export const markIsEmpty = (mark) => {
   return !n.value && n.hide.length === 0 && n.marks.length === 0;
 };
 
-/** Collapse a mark to the minimal stored shape — or null when empty. */
+/**
+ * Collapse a mark to the minimal stored shape — or null when empty.
+ */
 export const toStoredMark = (mark) => {
   const n = normalizeMark(mark);
   if (!n.value && !n.hide.length && !n.marks.length) return null;
@@ -195,6 +197,21 @@ export const toStoredMark = (mark) => {
   if (n.hide.length) out.hide = unique(n.hide);
   if (n.marks.length) out.marks = unique(n.marks);
   return out;
+};
+
+/**
+ * TRANSPORT form of a mark for the API — always carries `value`, `hide` AND
+ * `marks`, even when the lists are empty.
+ *
+ * Why this exists: `toStoredMark` omits empty keys (the compact DB shape), but
+ * the API's `cleanMarkForStore` reads a MISSING `hide` / `marks` key as
+ * "keep the existing value". So a client that sent the compact shape when
+ * CLEARING a flag (or un-hiding a row) would silently no-op — the write went
+ * through but the flag stayed. Send this shape over the wire instead.
+ */
+export const toWireMark = (mark) => {
+  const n = normalizeMark(mark);
+  return { value: n.value || "", hide: [...n.hide], marks: [...n.marks] };
 };
 
 /**

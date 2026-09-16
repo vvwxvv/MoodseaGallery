@@ -58,6 +58,7 @@ import {
   hideLabelForOrderKey,
   hideTokenForOrderKey,
   isMarkHidden,
+  toWireMark,
 } from "@/utils/mediaMarks";
 import { IMAGE_PAGE_ORDER_KEYS, ORDER_KEY_LABELS, normalizeImageOrder } from "@/utils/mediaOrder";
 import {
@@ -667,7 +668,7 @@ export default function ImageOrderPageComponent() {
       setMarkBusy((prev) => ({ ...prev, [id]: true }));
 
       try {
-        const payload = { mark: nextMark };
+        const payload = { mark: toWireMark(nextMark) };
         if (nextHidden) {
           // A hidden image keeps NO position for this page — clear it right
           // away (the other order keys are preserved).

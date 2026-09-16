@@ -31,6 +31,9 @@ export default function OrderArtistRollingPreview({
   const t = {
     title: isCn ? "详情页轮播预览" : "Detail page rolling preview",
     images: isCn ? "张图片" : "images",
+    where: isCn
+      ? "显示位置：/artists/<artist>（艺术家详情页）→ 右栏顶部的轮播图"
+      : "Shows on: /artists/<artist> (artist detail page) → the rolling slideshow at the top of the right column",
     notSaved: isCn
       ? "· 尚未保存（页面暂用艺术家页序列）"
       : "· not saved yet (page still uses the Artist Page sequence)",
@@ -94,6 +97,17 @@ export default function OrderArtistRollingPreview({
             {t.notSaved}
           </span>
         ) : null}
+      </div>
+
+      <div
+        style={{
+          fontFamily: labelFontFamily || fontFamily,
+          fontSize: 10.5,
+          color: "rgba(0,0,0,.45)",
+          marginBottom: items.length ? 9 : 3,
+        }}
+      >
+        {t.where}
       </div>
 
       {items.length === 0 ? (
