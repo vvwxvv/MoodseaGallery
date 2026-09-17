@@ -4,7 +4,7 @@ import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import { useReverseTheme } from "@/hooks/useReverseTheme";
-import useFont from "@/hooks/useFont";
+import useFont from '@/hooks/useFont';
 
 /**
  * @param {boolean} open
@@ -13,7 +13,7 @@ import useFont from "@/hooks/useFont";
  */
 export default function RightSlideDrawer({ open, onClose, children }) {
   const { colors } = useReverseTheme();
-  const { fontFamily } = useFont("13px");
+  const { fontFamily } = useFont();
 
   const handleClose = (e) => {
     e.stopPropagation();

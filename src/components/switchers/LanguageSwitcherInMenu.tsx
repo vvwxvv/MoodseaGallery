@@ -3,7 +3,7 @@
 import React, { useCallback, useContext, useState } from "react";
 import { motion } from "framer-motion";
 import { LanguageContext } from "../contexts/LanguageContext";
-import useFont from "@/hooks/useFont";
+import useFont from '@/hooks/useFont';
 import useSwitcher from "@/hooks/useSwitcher";
 
 // ============================================================================

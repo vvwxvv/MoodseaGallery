@@ -15,7 +15,7 @@ import {
   TableView as TableViewIcon,
 } from "@mui/icons-material";
 import { LanguageContext } from "@/components/contexts/LanguageContext";
-import useFont from "@/hooks/useFont";
+import useFont from '@/hooks/useFont';
 import { getSystemLabel } from "@/components/labels/system_labels";
 import EditableCell from "@/components/pages/manager/batch_edit/components/EditableCell";
 import { getBatchGroupOptions } from "@/components/pages/manager/batch_edit/utils/batchGroupOptions";

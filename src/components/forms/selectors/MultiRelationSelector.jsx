@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Check, ChevronDown, Loader2, Plus, X } from "lucide-react";
 import { Controller } from "react-hook-form";
 import useRelationOptions from "@/hooks/useRelationOptions";
-import useFont from "@/hooks/useFont";
+import useFont from '@/hooks/useFont';
 
 /**
  * MultiRelationSelector — reusable cross-entity relation picker for Prisma

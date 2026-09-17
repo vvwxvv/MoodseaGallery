@@ -21,7 +21,7 @@ const LogoComponent = React.memo(({
   isCn 
 }) => {
   const [logoError, setLogoError] = useState(false);
-  const { contentFontFamily } = useFont("20px");
+  const { contentFontFamily } = useFont();
 
   const handleLogoError = useCallback(() => {
     console.log('Logo failed to load, showing fallback text');

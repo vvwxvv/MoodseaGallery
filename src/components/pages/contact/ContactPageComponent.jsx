@@ -8,7 +8,7 @@ import useAboutData from "@/components/pages/about/hooks/useAboutData";
 import useGalleryContactData from "@/components/pages/about/hooks/useGalleryContactData";
 import AlertInfo from "@/components/alerts/AlertInfo";
 import ContactInfo from "@/components/lists/ContactInfo";
-import useFont from "@/hooks/useFont";
+import useFont from '@/hooks/useFont';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // TYPOGRAPHY TOKENS
@@ -132,7 +132,7 @@ const ContactPageComponent = () => {
   };
 
   // ── Font ──
-  const { fontFamily } = useFont(TYPE.bodySize);
+  const { fontFamily } = useFont();
   const effectiveFont = aboutFontFamily || fontFamily;
 
   const hasData = Boolean(galleryAbout);

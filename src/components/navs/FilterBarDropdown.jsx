@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FONT_FACES } from '@/lib/typography';
+import { resolveFontFamily } from '@/lib/typography';
 import { useAsyncAction } from '@/hooks/useAsyncAction'; // 导入自定义 hook
 
 /**
@@ -34,8 +34,8 @@ const FilterBarDropdown = ({
   const buttonRef = useRef(null);
 
   // Font families for CN and EN, read straight from the typography scale
-  const fontFamilyCn = FONT_FACES.zh?.regular || 'PingFangRegular';
-  const fontFamilyEn = FONT_FACES.en?.regular || 'AvenirNextRegular';
+  const fontFamilyCn = resolveFontFamily('bodyText', 'zh');
+  const fontFamilyEn = resolveFontFamily('bodyText', 'en');
 
   // Use filters if provided, otherwise use single filter props
   const isMultiFilter = filters && filters.length > 0;

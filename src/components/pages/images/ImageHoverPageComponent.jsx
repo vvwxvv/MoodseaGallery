@@ -32,7 +32,7 @@ import { useRouter } from "next/navigation";
 import { Image, ImageOff, AlertTriangle } from "lucide-react";
 import { LanguageContext } from "@/components/contexts/LanguageContext";
 import useData from "@/hooks/useData";
-import useFont from "@/hooks/useFont";
+import useFont from '@/hooks/useFont';
 import { buildImageSourceIndex } from "@/components/pages/images/hooks/useImageSourceIndex";
 import OrderPageShell from "@/components/pages/order/OrderPageShell";
 import OrderGroupBox from "@/components/pages/order/OrderGroupBox";

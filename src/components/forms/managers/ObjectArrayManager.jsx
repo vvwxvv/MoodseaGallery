@@ -4,7 +4,7 @@ import { Button, Input } from "antd";
 import { useWatch } from "react-hook-form";
 import { Trash2, Plus, Braces } from "lucide-react";
 import { LanguageContext } from "@/components/contexts/LanguageContext";
-import useFont from "@/hooks/useFont";
+import useFont from '@/hooks/useFont';
 import FormTextField from "@/components/forms/fields/FormTextField";
 import ItemSelector from "@/components/forms/selectors/ItemSelector";
 
@@ -35,7 +35,7 @@ const ObjectArrayManager = ({
 }) => {
   const context = useContext(LanguageContext);
   const isCn = context?.isCn;
-  const { inputFontFamily: fontInput, labelFontFamily: fontLabel } = useFont(isCn);
+  const { inputFontFamily: fontInput, labelFontFamily: fontLabel } = useFont();
   const inputFontFamily = inputFontFamilyProp || fontInput;
   const labelFontFamily = labelFontFamilyProp || fontLabel;
 

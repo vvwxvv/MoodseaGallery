@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"; // Import useRouter
 import ImageZoomModal from "../images/ImageZoomModal";
 import DividerLine from "@/components/others/DividerLine";
 import useAppType from "@/hooks/useAppType";
-import useFont from "@/hooks/useFont";
+import useFont from '@/hooks/useFont';
 import CardMediaPreview from "@/components/images/CardMediaPreview";
 import CardTitleUnderlineAnimation from "@/components/animations/CardTitleUnderlineAnimation";
 import ExpandButton from "@/components/buttons/ExpandButton";

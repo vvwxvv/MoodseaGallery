@@ -17,7 +17,7 @@ import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import { LanguageContext } from "@/components/contexts/LanguageContext";
 import { DeviceContext } from "@/components/contexts/DeviceContext";
-import useFont from "@/hooks/useFont";
+import useFont from '@/hooks/useFont';
 import { useReverseTheme } from "@/hooks/useReverseTheme";
 import AlertInfo from "@/components/alerts/AlertInfo";
 import useFairListData from "@/components/pages/fair/hooks/useFairListData";

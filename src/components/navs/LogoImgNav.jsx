@@ -8,7 +8,7 @@ import Link from "next/link";
 // 外部 hooks（保留导入，非组件）
 import { useBreakpoint, useMenuOverflow, useLogoSize, useDrawerKeyboard, useDrawerFocusTrap } from "@/hooks/useNav";
 import { useReverseTheme } from "@/hooks/useReverseTheme";
-import useFont from "@/hooks/useFont";
+import useFont from '@/hooks/useFont';
 import useBackgroundColor from "@/hooks/useBackgroundColor";
 
 // 外部组件（保留导入，非导航子组件）

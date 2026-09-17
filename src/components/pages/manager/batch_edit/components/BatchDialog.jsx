@@ -89,7 +89,7 @@ const BatchDialog = ({
   const defaults = typeDefaults[type] || typeDefaults.info;
   const showList = Array.isArray(rowsData) && rowsData.length > 0;
 
-  const { style: fontStyle } = useFont('12px'); // Changed to 12px base
+  const { style: fontStyle } = useFont(); // Changed to 12px base
 
   // Default row renderer if not provided
   const defaultRenderRow = (row, index) => (

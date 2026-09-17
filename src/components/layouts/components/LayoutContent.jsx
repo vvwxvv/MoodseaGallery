@@ -7,7 +7,7 @@ import { DeviceContext } from "@/components/contexts/DeviceContext";
 import Footer from "@/components/footers/Footer";
 import ConstructionBWPageComponent from "@/components/pages/constructions/ConstructionBWPageComponent";
 import LayoutMainContent from "@/components/layouts/components/LayoutMainContent";
-import useFont from "@/hooks/useFont";
+import useFont from '@/hooks/useFont';
 import useBackgroundColor from "@/hooks/useBackgroundColor";
 import { isHomepage } from "@/utils/routeUtils";
 import { LAYOUT_LOADING_TIME } from "@/components/layouts/constants/layout_constants";

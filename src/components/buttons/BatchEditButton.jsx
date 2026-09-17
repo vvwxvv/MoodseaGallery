@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Button, Box } from "@mui/material";
 import { motion } from "framer-motion";
 import { TableRows as TableRowsIcon } from "@mui/icons-material";
-import useFont from "@/hooks/useFont";
+import useFont from '@/hooks/useFont';
 import useButtonStyle from "@/hooks/useButtonStyle";
 import { DeviceContext } from "@/components/contexts/DeviceContext";
 

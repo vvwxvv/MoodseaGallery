@@ -3,7 +3,7 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, ArrowUpDown } from "lucide-react";
-import useFont from "@/hooks/useFont";
+import useFont from '@/hooks/useFont';
 import { managedOrderKeys, ORDER_KEY_LABELS, getOrder } from "@/utils/mediaOrder";
 
 /**

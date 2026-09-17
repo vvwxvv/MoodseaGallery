@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { LanguageContext } from "@/components/contexts/LanguageContext";
-import useFont from "@/hooks/useFont";
+import useFont from '@/hooks/useFont';
 
 export default function AlertInfo({
   message = "NO DATA",

@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Box, Typography } from "@mui/material";
-import useFont from "@/hooks/useFont";
+import useFont from '@/hooks/useFont';
 
 /**
  * ArtworkInfoCard — card component for displaying artwork info on grid layout.

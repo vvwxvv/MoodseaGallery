@@ -10,7 +10,7 @@ import MarkChips from "@/components/marks/MarkChips";
 import DividerLine from "@/components/others/DividerLine";
 import EditAndDeleteButtonOnManagerCard from "@/components/buttons/EditAndDeleteButtonOnManagerCard";
 import useAppType from "@/hooks/useAppType";
-import useFont from "@/hooks/useFont";
+import useFont from '@/hooks/useFont';
 import CardMediaPreview from "@/components/images/CardMediaPreview";
 import UnderlineTitleAnimation from "@/components/animations/UnderlineTitleAnimation";
 import ExpandButton from "@/components/buttons/ExpandButton";

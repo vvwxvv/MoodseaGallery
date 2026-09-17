@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 import { motion } from 'framer-motion';
 import { LanguageContext } from "../contexts/LanguageContext";
-import useFont from "@/hooks/useFont";
+import useFont from '@/hooks/useFont';
 import useBackgroundColor from "@/hooks/useBackgroundColor";
 import { useReverseTheme } from '@/hooks/useReverseTheme';
 import { DeviceContext } from "@/components/contexts/DeviceContext";
@@ -10,7 +10,7 @@ import useSiteMeta from "@/hooks/useSiteMeta";
 const Footer = () => {
   const { isCn, isLoading } = useContext(LanguageContext);
   const { isMobile } = useContext(DeviceContext);
-  const { contentFontFamily } = useFont('13px');
+  const { contentFontFamily } = useFont();
   const { colors } = useReverseTheme();
 
   const { getBackgroundStyle } = useBackgroundColor('transparent', {

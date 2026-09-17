@@ -5,7 +5,7 @@ import { Box, Container, Typography, Grid, Chip } from "@mui/material";
 import { LanguageContext } from "@/components/contexts/LanguageContext";
 import { DeviceContext } from "@/components/contexts/DeviceContext";
 import AlertInfo from "@/components/alerts/AlertInfo";
-import useFont from "@/hooks/useFont";
+import useFont from '@/hooks/useFont';
 
 // ============================================================
 // 加载状态 —— 纯白屏，无骨架、无动画、无特效

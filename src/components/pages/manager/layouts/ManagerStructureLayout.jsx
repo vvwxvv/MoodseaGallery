@@ -16,7 +16,7 @@ import { LanguageContext } from "@/components/contexts/LanguageContext";
 import { DeviceContext } from "@/components/contexts/DeviceContext";
 
 // ─── Hooks ─────────────────────────────────────────────────────────────────
-import useFont from "@/hooks/useFont";
+import useFont from '@/hooks/useFont';
 import useData from "@/hooks/useData";
 import useDeleteItem from "@/hooks/useDeleteItem";
 import useDataExport from "@/hooks/useDataExport";

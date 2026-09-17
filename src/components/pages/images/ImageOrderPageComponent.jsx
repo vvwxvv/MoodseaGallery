@@ -49,7 +49,7 @@ import { Eye, EyeOff, GripVertical } from "lucide-react";
 
 import { LanguageContext } from "@/components/contexts/LanguageContext";
 import { useReverseTheme } from "@/hooks/useReverseTheme";
-import useFont from "@/hooks/useFont";
+import useFont from '@/hooks/useFont';
 import useData from "@/hooks/useData";
 import { buildImageSourceIndex } from "@/components/pages/images/hooks/useImageSourceIndex";
 import {

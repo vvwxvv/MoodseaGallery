@@ -3,7 +3,7 @@
 import { useContext, useMemo, useCallback } from "react";
 import { LanguageContext } from "@/components/contexts/LanguageContext";
 import useData from "@/hooks/useData";
-import useFont from "@/hooks/useFont";
+import useFont from '@/hooks/useFont';
 import { useReverseTheme } from "@/hooks/useReverseTheme";
 import { filterByLanguage } from "@/utils/filterByLanguage";
 

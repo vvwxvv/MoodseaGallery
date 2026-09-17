@@ -114,7 +114,7 @@ const DescriptionManager = ({
 }) => {
   const context = useContext(LanguageContext);
   const isCn = typeof isCnProp === 'boolean' ? isCnProp : context?.isCn;
-  const { style: fontStyle, inputFontFamily } = useFont(isCn);
+  const { style: fontStyle, inputFontFamily } = useFont();
 
   if (!append || !remove || !register) {
     console.log('DescriptionManager: Missing required props (append, remove, register)');

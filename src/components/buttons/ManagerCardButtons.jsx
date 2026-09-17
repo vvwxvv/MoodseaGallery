@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useCallback } from "react";
-import useFont from "@/hooks/useFont";
+import useFont from '@/hooks/useFont';
 
 // Reusable single button with pointer-event based press feedback.
 // Avoids onClick + onTouchEnd double-fire pattern.

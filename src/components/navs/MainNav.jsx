@@ -16,7 +16,7 @@ import { ManagerContext } from "@/components/contexts/ManagerContext";
 import { useReverseTheme } from "@/hooks/useReverseTheme";
 import { DEFAULT_MENUS } from "@/utils/siteMetaDefaults";
 import useSiteMeta from "@/hooks/useSiteMeta";
-import useFont from "@/hooks/useFont";
+import useFont from '@/hooks/useFont';
 import MenuIconButton from "@/components/buttons/MenuIconButton";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 
@@ -28,17 +28,16 @@ import { useAsyncAction } from "@/hooks/useAsyncAction";
 // is set here. Nothing visual should be hardcoded further down; if you
 // need to tweak how the nav looks, this is the only block to touch.
 //
-// FONT FAMILY specifically: this component doesn't hardcode a font file.
+// FONT FAMILY specifically: this component never hardcodes a font.
 // It reads `FONT.ROLE` below and hands it to useFont(), which looks the
-// role up in lib/typography.js to pick the actual font FILE per language
-// (see FONT_FACES / TYPE_SCALE there). To change which typography role
-// this nav uses, edit FONT.ROLE. To change what font FILE that role
-// resolves to, edit lib/typography.js — not this file.
+// role up in lib/typography.js (see TYPE_SCALE → FONT_FAMILIES there).
+// To change which typography role this nav uses, edit FONT.ROLE. To change
+// what family that role resolves to, edit lib/typography.js — not this file.
 //
-// Current resolution for ROLE "navLink": zh → PingFang-Regular (language
-// default); en → Jost-Medium (display face, TYPE_SCALE.navLink.en in
-// lib/typography.js). Make sure the Jost-Medium @font-face is declared in
-// the site's global CSS or this will silently fall back to system sans.
+// Current resolution for ROLE "navLink": zh → PingFang-Regular (default);
+// en → Jost-Medium (display face, TYPE_SCALE.navLink.en in lib/typography.js).
+// The Jost-Medium @font-face must exist in globals.css or the role falls
+// back to the language default.
 //
 const NAV_CONFIG = {
   // ── Font ─────────────────────────────────────────────────────────

@@ -91,7 +91,7 @@ const ConstructionBWPageComponent = () => {
                 pdfUrl={PDF_CONFIG.url} buttonText={PDF_CONFIG.buttonText}
                 titleCn={PDF_CONFIG.titleCn} titleEn={PDF_CONFIG.titleEn}
                 authorCn={PDF_CONFIG.authorCn} authorEn={PDF_CONFIG.authorEn}
-                year={PDF_CONFIG.year} colors="black" fontFamily="20px" isCn={isCn}
+                year={PDF_CONFIG.year} colors="black" isCn={isCn}
               />
             </motion.div>
           </motion.div>

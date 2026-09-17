@@ -83,7 +83,7 @@ const ArrayManager = ({
 }) => {
   const context = useContext(LanguageContext);
   const isCn = typeof isCnProp === 'boolean' ? isCnProp : context?.isCn;
-  const { style: fontStyle, inputFontFamily } = useFont(isCn);
+  const { style: fontStyle, inputFontFamily } = useFont();
 
   const liveValue = useWatch({ control, name: fieldName, disabled: !control }) || [];
 

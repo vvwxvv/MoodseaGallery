@@ -17,7 +17,7 @@ import React, { useContext, useEffect, useMemo, useState } from "react";
 import { Box, Typography, CircularProgress } from "@mui/material";
 import { Check, Disc, Globe, ListTree, Plus, Trash2 } from "lucide-react";
 import { LanguageContext } from "@/components/contexts/LanguageContext";
-import useFont from "@/hooks/useFont";
+import useFont from '@/hooks/useFont';
 import useSiteMeta from "@/hooks/useSiteMeta";
 
 // ─── style tokens (white surfaces, 1px black hairlines, no fills) ───────────

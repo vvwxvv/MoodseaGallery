@@ -10,7 +10,7 @@ import useGalleryContactData from "@/components/pages/about/hooks/useGalleryCont
 import AlertInfo from "@/components/alerts/AlertInfo";
 import ContactInfo from "@/components/lists/ContactInfo";
 import { renderArrayContent } from "@/utils/textFormatting";
-import useFont from "@/hooks/useFont";
+import useFont from '@/hooks/useFont';
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  ✦ CONFIG — 分区清晰，改哪块看哪块
@@ -37,13 +37,13 @@ const CONFIG = Object.freeze({
       size: "20px",
       weight: 600,
       margin: "0 0 28px 0",
-      letterSpacing: "0.02em",
+      letterSpacing: "0.1em",
     },
     body: {
       size: "13px",
-      weight: 400,
+      weight: 700,
       lineHeight: 1.7,
-      opacity: 0.62,
+      opacity: 1, // ★ 加深正文颜色（原 0.62 偏灰）★
       gap: "1.2em",
       align: "justify",
     },
@@ -226,7 +226,6 @@ const AboutPageComponent = () => {
   const {
     isCn,
     colors,
-    fontFamily: aboutFontFamily,
     galleryAbout,
     isLoading: aboutLoading,
     error: aboutError,
@@ -240,9 +239,8 @@ const AboutPageComponent = () => {
     handleRetry: contactRetry,
   } = useGalleryContactData();
 
-  const { fontFamily } = useFont(CONFIG.text.body.size);
-  const effectiveFont = aboutFontFamily || fontFamily;
-
+  const { fontFamily } = useFont();
+  const { fontFamily: aboutFontFamily } = useFont("aboutBody");
   const isLoading = aboutLoading || contactLoading;
   const error = aboutError || contactError;
   const handleRetry = () => {
@@ -268,12 +266,13 @@ const AboutPageComponent = () => {
   const hasIntroduction = Array.isArray(introductions) && introductions.length > 0;
   const hasCaption = Boolean(caption && caption.trim());
 
+
   // ── 联系信息（第一条记录）──
   const contact = contacts?.[0] || null;
 
   // ── 样式 ──
   const headingStyle = {
-    fontFamily: effectiveFont,
+    fontFamily: aboutFontFamily, // ★ 与艺术家页同款 Iowan 字体
     fontSize: CONFIG.text.heading.size,
     fontWeight: CONFIG.text.heading.weight,
     color: colors.text,
@@ -282,7 +281,7 @@ const AboutPageComponent = () => {
   };
 
   const bodyStyle = {
-    fontFamily: effectiveFont,
+    fontFamily: aboutFontFamily, // ★ 与艺术家页同款 Iowan 字体
     fontSize: CONFIG.text.body.size,
     fontWeight: CONFIG.text.body.weight,
     color: colors.text,
@@ -339,7 +338,7 @@ const AboutPageComponent = () => {
                 <motion.div variants={itemVariants}>
                   <ContactInfo
                     contact={contact}
-                    fontFamily={effectiveFont}
+                    fontFamily={aboutFontFamily}
                     sx={{ mt: CONFIG.contact.topGap, color: colors.text }}
                   />
                 </motion.div>

@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import { Typography } from "@mui/material";
-import useFont from "@/hooks/useFont";
+import useFont from '@/hooks/useFont';
 
 /**
  * FieldError displays a validation message from react-hook-form errors.

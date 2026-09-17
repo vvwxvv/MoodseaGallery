@@ -5,7 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "./utils"
 
 // Define a customizable font family variable
-const fontFamily = "Arial, sans-serif";
+const fontFamily = "inherit";
 
 // Define button variants without font size or size variants
 const buttonVariants = cva(

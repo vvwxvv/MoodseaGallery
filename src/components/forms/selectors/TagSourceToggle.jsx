@@ -8,7 +8,7 @@ import React, {
 } from "react";
 import { motion } from "framer-motion";
 import { Image, Calendar, Tag, User, Layers, Folder, FileText } from "lucide-react";
-import useFont from "@/hooks/useFont";
+import useFont from '@/hooks/useFont';
 
 const createButtonStyles = (isDark, fontFamily) => ({
   base: {
@@ -90,7 +90,7 @@ const TagSourceToggle = ({
   isArtistweb = false,
   testId,
 }) => {
-  const { fontFamily } = useFont("13px");
+  const { fontFamily } = useFont();
   const [isDark, setIsDark] = useState(false);
   const [isHovered, setIsHovered] = useState({});
   const containerRef = useRef(null);

@@ -3,7 +3,7 @@
 import React, { useState, useCallback } from "react";
 import { ChevronLeft } from "lucide-react";
 import { motion } from "framer-motion";
-import useFont from "@/hooks/useFont";
+import useFont from '@/hooks/useFont';
 import { useReverseTheme } from "@/hooks/useReverseTheme";
 
 export default function BackButton({ onClick, ...props }) {

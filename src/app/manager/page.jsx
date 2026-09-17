@@ -5,6 +5,7 @@ import Link from "next/link";
 import { LanguageContext } from "@/components/contexts/LanguageContext";
 import { getManagerSections, getManagerModels } from "@/lib/managerMenu";
 import useSiteMeta from "@/hooks/useSiteMeta";
+import useFont from '@/hooks/useFont';
 import AnimatedUnderline from "@/components/animations/AnimatedUnderline";
 
 // ─── UI Text ────────────────────────────────────────────────────────────────
@@ -19,6 +20,7 @@ const t = (node, isCn) => (isCn ? node.cn : node.en);
 // ─── Data Row Component ─────────────────────────────────────────────────────
 function DataRow({ item, count, rowIndex }) {
   const [hovered, setHovered] = useState(false);
+  const { fontFamily } = useFont();
 
   return (
     <Link
@@ -43,7 +45,7 @@ function DataRow({ item, count, rowIndex }) {
 
       <span
         style={{
-          fontFamily: "'Helvetica Neue', Arial, sans-serif",
+          fontFamily,
           fontWeight: 700,
           fontSize: 15,
           letterSpacing: "0.06em",
@@ -56,7 +58,7 @@ function DataRow({ item, count, rowIndex }) {
 
       <span
         style={{
-          fontFamily: "'Helvetica Neue', Arial, sans-serif",
+          fontFamily,
           fontWeight: 700,
           fontSize: 22,
           lineHeight: 1,
@@ -86,6 +88,7 @@ function DataRow({ item, count, rowIndex }) {
 
 // ─── Section Group Component ──────────────────────────────────────────────
 function SectionGroup({ section, stats, startRowIndex }) {
+  const { fontFamily } = useFont();
   const groupTotal = section.items.reduce(
     (sum, it) => sum + (stats[it.key] ?? 0),
     0
@@ -106,7 +109,7 @@ function SectionGroup({ section, stats, startRowIndex }) {
       >
         <span
           style={{
-            fontFamily: "'Helvetica Neue', Arial, sans-serif",
+            fontFamily,
             fontWeight: 700,
             fontSize: 12,
             letterSpacing: "0.2em",
@@ -138,6 +141,7 @@ const SYNC_THROTTLE_MS = 800;
 
 export default function ManagerPage() {
   const { isCn } = useContext(LanguageContext);
+  const { fontFamily } = useFont();
 
   // Menus come from the Meta document (JSON fallback) so the manager nav/home
   // always matches what the manager page edits.
@@ -251,7 +255,7 @@ export default function ManagerPage() {
       <div style={{ width: "min(90%, 720px)", margin: "0 auto" }}>
         {/* Header */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "3px solid #000", paddingBottom: 14, paddingTop: 6, flexWrap: "wrap", gap: 12 }}>
-          <span style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif", fontWeight: 700, fontSize: 20, letterSpacing: "0.1em", textTransform: "uppercase", color: "#000" }}>
+          <span style={{ fontFamily, fontWeight: 700, fontSize: 20, letterSpacing: "0.1em", textTransform: "uppercase", color: "#000" }}>
             {t(UI_TEXT.title, isCn)}
           </span>
 

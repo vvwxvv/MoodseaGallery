@@ -88,7 +88,7 @@ export default function BatchEditDialog({
   renderRow,
   ...props
 }) {
-  const { style: fontStyle, contentFontFamily, buttonFontFamily } = useFont('14px');
+  const { style: fontStyle, contentFontFamily, buttonFontFamily } = useFont();
   const { isDark } = useReverseTheme();
   
   const showLoading = isLoading || (loadingId && loadingId === itemId);

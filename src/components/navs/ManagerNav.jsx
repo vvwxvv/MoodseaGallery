@@ -20,7 +20,7 @@ import { useInteraction } from "@/hooks/useInteraction";
 import { useMenuItemNavigation } from "@/hooks/useMenuItemNavigation";
 import { TAP_STYLE, buildInteractiveStyle } from "@/hooks/useInteractionStyles";
 import { useReverseTheme } from "@/hooks/useReverseTheme";
-import useFont from "@/hooks/useFont";
+import useFont from '@/hooks/useFont';
 import useBackgroundColor from "@/hooks/useBackgroundColor";
 
 // 外部组件（不内联）

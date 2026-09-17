@@ -29,7 +29,7 @@ import {
 } from "lucide-react";
 import { LanguageContext } from "@/components/contexts/LanguageContext";
 import { DeviceContext } from "@/components/contexts/DeviceContext";
-import useFont from "@/hooks/useFont";
+import useFont from '@/hooks/useFont';
 import GUIDE from "@/data/manager_user_guide_doc.json";
 
 /**

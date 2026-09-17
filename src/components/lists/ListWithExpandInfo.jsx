@@ -20,6 +20,7 @@ import ExpandButton from '@/components/buttons/ExpandButton';
 import MediaPreviewModal from '@/components/modals/MediaPreviewModal';
 import EditDeleteButtonsInList from '@/components/buttons/EditDeleteButtonsInList';
 import useFont from '@/hooks/useFont';
+import { resolveFontFamily } from '@/lib/typography';
 import {
   TYPOGRAPHY,
   isImageField,
@@ -34,11 +35,6 @@ import {
 
 
 // ─── Constants ───────────────────────────────────────────────────────────────
-
-const FONT_FAMILIES = {
-  cn: 'HuaWenFangSong',
-  en: 'AndaleMono',
-};
 
 const ANIMATION = {
   expandButton: {
@@ -76,7 +72,7 @@ const BUTTON_CONFIG = {
 const buildFontStyle = (fontSize, fieldName) => {
   const name = fieldName?.toString()?.toLowerCase() ?? '';
   const isCn = name.endsWith('_cn') || name.endsWith('.cn');
-  return { fontFamily: isCn ? FONT_FAMILIES.cn : FONT_FAMILIES.en, fontSize };
+  return { fontFamily: resolveFontFamily('bodyText', isCn ? 'zh' : 'en'), fontSize };
 };
 
 
@@ -192,8 +188,8 @@ export default function ListWithExpandInfo({
   const [previewType, setPreviewType] = useState('image');
 
   // ── Font hooks (title & subtitle only) ────────────────────────────────────
-  const titleFont    = useFont(TYPOGRAPHY.title.fontSize, titleKey);
-  const subtitleFont = useFont(TYPOGRAPHY.sub.fontSize, subtitleKey);
+  const titleFont    = useFont('bodyText');
+  const subtitleFont = useFont('bodyText');
 
   // ── Derived data ───────────────────────────────────────────────────────────
   const mediaInfo = useMemo(

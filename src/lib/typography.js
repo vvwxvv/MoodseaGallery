@@ -1,260 +1,161 @@
 // lib/typography.js
-// ─────────────────────────────────────────────────────────────────────────
-// Single source of truth for the site's typography.
+// ════════════════════════════════════════════════════════════════════════
+//  FONT FAMILY — the single source of truth for the site's typefaces.
 //
-// Three layers, ordered by how often you touch them:
-//   1. FONT_FACES / FONT_FAMILIES  → the real @font-face family NAMES.
-//   2. Resolution config           → language defaults + fallbacks.
-//   3. TYPE_SCALE                  → per-role weight / size / spacing.
+//  There is ONE concept here: a FONT FAMILY. Everything is two plain maps:
 //
-// ⚠️ Every string in layer 1 MUST match a `font-family` in the site's
-//    @font-face CSS character-for-character. A mismatch does NOT error — the
-//    browser just silently falls back to a system font. Keep them in sync.
-// ─────────────────────────────────────────────────────────────────────────
+//    FONT_FAMILIES  →  every face the site owns   (key → family)
+//    TYPE_SCALE     →  every layout role          (role → family key)
+//
+//  A role just points at a family key, per language. That's the whole model.
+//  No weights, no variants, no sizes, no fallback chains to juggle.
+//
+//  A family that is unknown or not yet shipped (see `missing`) resolves to
+//  the language DEFAULT — the browser never gets a dead font name, and you
+//  never have to reference a font file or URL here. File URLs live only in
+//  globals.css @font-face blocks (the `name` below must match them exactly).
+//
+//  Read through  useFont(role)        → hooks/useFont.js  (React, language-aware)
+//          or    resolveFontFamily()  → this file         (pure, no React)
+//
+//  TO CHANGE A FONT
+//    • Add / rename a face   → one line in FONT_FAMILIES.
+//    • Point a role at it    → one line in TYPE_SCALE.
+//    • Role now renders a different language default → edit DEFAULT_FAMILY.
+// ════════════════════════════════════════════════════════════════════════
 
-// ── 1a. Language-default typefaces ───────────────────────────────────────
-// The workhorse faces nearly every role uses, keyed by weight.
-//   zh → PingFang   ·   en → Avenir Next
-// A weight that isn't shipped (e.g. zh `medium`) resolves DOWN to `regular`
-// at read time, so a role may safely ask for `medium` in zh without a
-// PingFang-Medium @font-face existing. (This replaces the old
-// medium→regular alias hack + its TODO — the fallback is now automatic.)
-export const FONT_FACES = {
-  zh: {
-    thin: 'PingFang-Thin',
-    light: 'PingFang-Light',
-    regular: 'PingFang-Regular',
-  },
-  en: {
-    // ⚠️ AvenirNext-UltraLight has NO @font-face declared in the site CSS yet,
-    // and no .ttf shipped. Until you add both, any role using this weight
-    // (artworkCardCaption / artworkCardMeta en) falls back to system sans-serif
-    // — NOT to Avenir Regular. See the note in the delivery message.
-    ultraLight: 'AvenirNext-UltraLight',
-    regular: 'AvenirNext-Regular',
-    medium: 'AvenirNext-Medium',
-  },
-};
-
-// ── 1b. Display typefaces ────────────────────────────────────────────────
-// Latin-only faces used only by roles that opt in with `font: '<key>'` in
-// TYPE_SCALE. They ship NO Chinese glyphs, so the resolver always appends the
-// CJK_FALLBACK family after them (see below) — Chinese text in a Palatino /
-// Caslon / Iowan role still renders branded (PingFang) instead of a system
-// serif.
+// ── 1. FONT FAMILIES ────────────────────────────────────────────────────
+// The complete palette. Every key is a family you can assign to a role.
+//
+//   name     the real @font-face family (must match globals.css exactly)
+//   generic  CSS tail, defaults to 'sans-serif'
+//   cjk      true → Chinese glyphs (absent from Latin-only display faces)
+//            fall back to CJK_FALLBACK instead of a system font
+//   missing  true → file not shipped yet; roles using it fall back to the
+//            language DEFAULT automatically (no dead name emitted)
 export const FONT_FAMILIES = {
-  palatino: {
-    regular: 'Palatino',
-  },
-  bigCaslon: {
-    medium: 'BigCaslon-Medium',
-  },
-  jost: {                    // Nav link face (en only) → Jost-Medium
-    medium: 'Jost-Medium',
-  },
-  iowanOldStyle: {
-    roman: 'IowanOldStyle-Roman',
-    italic: 'IowanOldStyle-Italic',
-    bold: 'IowanOldStyle-Bold',
-    boldItalic: 'IowanOldStyle-BoldItalic',
-    black: 'IowanOldStyle-Black',
-    blackItalic: 'IowanOldStyle-BlackItalic',
-  },
+  // — Language-default faces —
+  pingFangThin:     { name: 'PingFang-Thin' },
+  pingFangLight:    { name: 'PingFang-Light' },
+  pingFangRegular:  { name: 'PingFang-Regular' },
+  avenirUltraLight: { name: 'AvenirNext-UltraLight', missing: true }, // no .ttf yet
+  avenirRegular:    { name: 'AvenirNext-Regular' },
+  avenirMedium:     { name: 'AvenirNext-Medium' },
+
+  // — Display faces (Latin-only → append the CJK fallback) —
+  palatino:   { name: 'Palatino',             cjk: true, generic: 'serif' },
+  bigCaslon:  { name: 'BigCaslon-Medium',     cjk: true, generic: 'serif' },
+  jost:       { name: 'Jost-Medium',          cjk: true, generic: 'sans-serif' },
+  iowanRoman: { name: 'IowanOldStyle-Roman',  cjk: true, generic: 'serif' },
 };
 
-// ── 2. Resolution config (read by useFont — you rarely edit these) ────────
-
-// Generic CSS family tailing each language-default stack.
-export const LANG_DEFAULT = {
-  zh: { generic: 'sans-serif' },
-  en: { generic: 'sans-serif' },
+// The face a language uses when nothing else applies (and for any missing
+// family). Changing this changes the site-wide default in that language.
+export const DEFAULT_FAMILY = {
+  zh: 'pingFangRegular',
+  en: 'avenirRegular',
 };
 
-// CJK-capable family appended to every display-typeface stack.
+// CJK glyph fallback appended to Latin-only display faces.
 export const CJK_FALLBACK = 'PingFang-Regular';
 
-// Generic CSS family tailing each display-typeface stack.
-export const TYPEFACE_GENERIC = {
-  palatino: 'serif',
-  bigCaslon: 'serif',
-  jost: 'sans-serif',
-  iowanOldStyle: 'serif',
-};
+// Generic CSS family tailing every stack that doesn't override it.
+export const GENERIC_FALLBACK = 'sans-serif';
 
-// Variant picked when a role names a `font` but omits `variant`.
-export const TYPEFACE_DEFAULT_VARIANT = {
-  palatino: 'regular',
-  bigCaslon: 'medium',
-  jost: 'medium',
-  iowanOldStyle: 'roman',
-};
-
-// ── 3. TYPE_SCALE ────────────────────────────────────────────────────────
-// One entry per layout role. Each language spec supplies EITHER:
-//   • weight            → that weight of the language-default face, OR
-//   • font [+ variant]  → a display typeface from FONT_FAMILIES.
-//                         (`weight` may still be given as the fallback used
-//                         only if the display face fails to resolve.)
-// Optional fontSize / lineHeight / letterSpacing may be attached to any role;
-// roles that omit them set sizing inline in their own component CONFIG (noted
-// per role). fontSize / lineHeight are pt→px 1:1; letterSpacing is
-// Illustrator tracking / 1000 (native em).
+// ── 2. ROLES ────────────────────────────────────────────────────────────
+// One line per layout role → the family key it uses, per language.
+// That's all a role is. Sizes / line-heights / tracking live with the
+// component that renders the role — never here.
 export const TYPE_SCALE = {
-  sectionTitle: {                        // "艺术家/Artists" page heading → Big Caslon Medium
-    zh: { font: 'bigCaslon', weight: 'regular', fontSize: 60, lineHeight: 72, letterSpacing: 14 / 1000 },
-    en: { font: 'bigCaslon', weight: 'regular', fontSize: 60, lineHeight: 72, letterSpacing: 14 / 1000 },
-  },
+  // Index / section headings
+  sectionTitle:            { zh: 'bigCaslon',       en: 'bigCaslon' },
+  artistListItem:          { zh: 'palatino',        en: 'palatino' },
+  artistName:              { zh: 'bigCaslon',       en: 'bigCaslon' },
 
-  artistListItem: {                      // 蔡向燭 / 陈鸿志 / … index list → Palatino
-    zh: { font: 'palatino', weight: 'thin',    fontSize: 43, lineHeight: 92, letterSpacing: 50 / 1000 },
-    en: { font: 'palatino', weight: 'regular', fontSize: 43, lineHeight: 92, letterSpacing: 50 / 1000 },
-  },
+  // Navigation
+  navLink:                 { zh: 'pingFangRegular', en: 'jost' },
+  managerNavLink:          { zh: 'pingFangRegular', en: 'avenirRegular' },
 
-  artistName: {                          // "汪一舟" detail-page heading → Big Caslon Medium
-    zh: { font: 'bigCaslon', weight: 'medium',  fontSize: 56, lineHeight: 67.2, letterSpacing: 100 / 1000 },
-    en: { font: 'bigCaslon', weight: 'regular', fontSize: 56, lineHeight: 67.2, letterSpacing: 100 / 1000 },
-  },
+  // Language switcher
+  languageSwitcher:        { zh: 'pingFangRegular', en: 'avenirRegular' },
 
-  // NAV — picks the font FILE. All other nav styling lives in NAV_CONFIG in
-  // components/nav/MainNav.js.
-  //   zh → stays on the PingFang language default (weight-only).
-  //   en → Jost-Medium display face. `weight: 'regular'` is kept only as the
-  //        fallback used if 'jost' ever fails to resolve (see TYPE_SCALE
-  //        header note above).
-  navLink: {
-    zh: { weight: 'regular' },
-    en: { font: 'jost', variant: 'medium', weight: 'regular' },
-  },
+  // Exhibitions list page
+  exhibitionCaption:       { zh: 'pingFangRegular', en: 'avenirRegular' },
+  exhibitionSectionHeading:{ zh: 'pingFangRegular', en: 'avenirRegular' },
+  yearDropdownLabel:       { zh: 'pingFangRegular', en: 'avenirRegular' },
+  exhibitionCardLabel:     { zh: 'pingFangRegular', en: 'avenirRegular' },
 
-  // MANAGER NAV — weight-only. Sizing/spacing inline in ManagerNav.js.
-  managerNavLink: {
-    zh: { weight: 'medium' },
-    en: { weight: 'regular' },
-  },
+  // Artworks page
+  artworkSectionTitle:     { zh: 'pingFangRegular', en: 'avenirRegular' },
+  artworkCardArtist:       { zh: 'pingFangRegular', en: 'avenirRegular' },
+  artworkCardCaption:      { zh: 'pingFangLight',   en: 'avenirUltraLight' },
+  artworkCardMeta:         { zh: 'pingFangLight',   en: 'avenirUltraLight' },
+  artworkCardEnquire:      { zh: 'pingFangRegular', en: 'avenirRegular' },
+  artworkCardFallback:     { zh: 'pingFangRegular', en: 'avenirRegular' },
 
-  // ⚠️ Placeholder sizing (old hardcoded 12px) — resample from the comp.
-  languageSwitcher: {
-    zh: { weight: 'regular', fontSize: 12, lineHeight: 16, letterSpacing: 0 },
-    en: { weight: 'regular', fontSize: 12, lineHeight: 16, letterSpacing: 0 },
-  },
+  // Artist pages
+  artistListMeta:          { zh: 'pingFangLight',   en: 'avenirRegular' },
+  artistBio:               { zh: 'iowanRoman',      en: 'iowanRoman' },
+  artistWorksHeading:      { zh: 'pingFangRegular', en: 'avenirRegular' },
 
-  // ── Exhibitions list page (weight-only; sizing in EXHIBITIONS_CONFIG) ────
-  exhibitionCaption: {                   // ExhibitionCard title + date
-    zh: { weight: 'regular' },
-    en: { weight: 'regular' },
-  },
-  exhibitionSectionHeading: {            // "Current" / "Past" / year heading
-    zh: { weight: 'medium' },
-    en: { weight: 'medium' },
-  },
-  yearDropdownLabel: {                   // Year-filter trigger + menu items
-    zh: { weight: 'regular' },
-    en: { weight: 'regular' },
-  },
-  exhibitionCardLabel: {                 // Fallback gallery-name label (no cover)
-    zh: { weight: 'regular' },
-    en: { weight: 'regular' },
-  },
-  bodyText: {                            // Generic paragraph copy / empty states
-    zh: { weight: 'regular' },
-    en: { weight: 'regular' },
-  },
+  // About page
+  aboutBody:               { zh: 'palatino',        en: 'palatino' },
 
-  // ── Artworks page (weight-only; sizing in ARTWORK_CONFIG) ───────────────
-  artworkSectionTitle: {                 // "作品" / "Artworks" heading
-    zh: { weight: 'regular' },
-    en: { weight: 'regular' },
-  },
-  artworkCardArtist: {                   // Artist name line on each card
-    zh: { weight: 'regular' },
-    en: { weight: 'regular' },
-  },
-  artworkCardCaption: {                  // Artist / title (italic) line → Avenir Next Ultra Light (en)
-    zh: { weight: 'light' },
-    en: { weight: 'ultraLight' },        // ⚠️ needs AvenirNext-UltraLight @font-face (see FONT_FACES.en note)
-  },
-  artworkCardMeta: {                     // Year / medium / size line → Avenir Next Ultra Light (en)
-    zh: { weight: 'light' },
-    en: { weight: 'ultraLight' },        // ⚠️ needs AvenirNext-UltraLight @font-face (see FONT_FACES.en note)
-  },
-  artworkCardEnquire: {                  // "咨询" / "Enquire" button label
-    zh: { weight: 'regular' },
-    en: { weight: 'regular' },
-  },
-  artworkCardFallback: {                 // "无图片" / "No Image" placeholder
-    zh: { weight: 'regular' },
-    en: { weight: 'regular' },
-  },
+  // Exhibition & Fair detail pages (shared)
+  detailTitle:             { zh: 'pingFangRegular', en: 'avenirRegular' },
+  detailSubtitle:          { zh: 'iowanRoman',      en: 'iowanRoman' },
+  detailDate:              { zh: 'pingFangRegular', en: 'avenirRegular' },
+  detailCaption:           { zh: 'iowanRoman',      en: 'iowanRoman' },
+  detailBody:              { zh: 'iowanRoman',      en: 'iowanRoman' },
+  detailSectionHeading:    { zh: 'pingFangRegular', en: 'avenirRegular' },
+  detailLink:              { zh: 'iowanRoman',      en: 'iowanRoman' },
+  detailMetaLabel:         { zh: 'pingFangRegular', en: 'avenirRegular' },
+  detailMetaValue:         { zh: 'iowanRoman',      en: 'iowanRoman' },
 
-  // ── Artist pages (weight-only; sizing in ARTIST_CONFIG) ─────────────────
-  artistListMeta: {                      // Secondary line beside each index name
-    zh: { weight: 'light' },
-    en: { weight: 'regular' },           // no Avenir Light available
-  },
-  artistBio: {                           // Detail-page biography paragraph → Iowan Old Style Roman
-    zh: { font: 'iowanOldStyle', weight: 'light' },
-    en: { font: 'iowanOldStyle', weight: 'regular' },
-  },
-  artistWorksHeading: {                  // "作品" / "Works" sub-heading
-    zh: { weight: 'medium' },
-    en: { weight: 'medium' },
-  },
-
-  // ── About page (weight-only; sizing in About CONFIG.text.body) ──────────
-  // Centered single-column layout: brand logo image + body copy only, no
-  // heading. Language-default face (PingFang / Avenir Next), regular weight —
-  // matches the site's generic `body` / `bodyText` convention. If you later
-  // reintroduce an "关于 / About" heading, add an `aboutHeading` role here.
-  aboutBody: {                           // MOODSEA intro paragraphs (caption + introductions)
-    zh: { weight: 'regular' },
-    en: { weight: 'regular' },
-  },
-
-  // ── Exhibition & Fair detail pages (shared; sizing in TEXT/LAYOUT_CONFIG)─
-  detailTitle: {
-    zh: { weight: 'medium' },
-    en: { weight: 'medium' },
-  },
-  detailSubtitle: {                      // → Iowan Old Style Roman
-    zh: { font: 'iowanOldStyle', weight: 'regular' },
-    en: { font: 'iowanOldStyle', weight: 'regular' },
-  },
-  detailDate: {
-    zh: { weight: 'medium' },
-    en: { weight: 'medium' },
-  },
-  detailCaption: {                       // Works-grid + cover captions → Iowan Old Style Roman
-    zh: { font: 'iowanOldStyle', weight: 'regular' },
-    en: { font: 'iowanOldStyle', weight: 'regular' },
-  },
-  detailBody: {                          // Intro / description / press release → Iowan Old Style Roman
-    zh: { font: 'iowanOldStyle', weight: 'regular' },
-    en: { font: 'iowanOldStyle', weight: 'regular' },
-  },
-  detailSectionHeading: {
-    zh: { weight: 'medium' },
-    en: { weight: 'medium' },
-  },
-  detailLink: {                          // Works + related-artist text links → Iowan Old Style Roman
-    zh: { font: 'iowanOldStyle', weight: 'regular' },
-    en: { font: 'iowanOldStyle', weight: 'regular' },
-  },
-  detailMetaLabel: {
-    zh: { weight: 'medium' },
-    en: { weight: 'medium' },
-  },
-  detailMetaValue: {                     // Artists: / Preface: lines + meta values → Iowan Old Style Roman
-    zh: { font: 'iowanOldStyle', weight: 'regular' },
-    en: { font: 'iowanOldStyle', weight: 'regular' },
-  },
-
-  // ── Generic / fallback ──────────────────────────────────────────────────
-  body: {                                // Default — used by useFont() w/o a role
-    zh: { weight: 'regular', fontSize: 15, lineHeight: 24, letterSpacing: 0 },
-    en: { weight: 'regular', fontSize: 15, lineHeight: 24, letterSpacing: 0 },
-  },
-  LoadingLayer: {                        // Skeleton / loading pages
-    zh: { weight: 'regular', fontSize: 13, lineHeight: 20, letterSpacing: 1 / 1000 },
-    en: { weight: 'regular', fontSize: 13, lineHeight: 20, letterSpacing: 1 / 1000 },
-  },
+  // Generic / shared
+  bodyText:                { zh: 'pingFangRegular', en: 'avenirRegular' },
+  body:                    { zh: 'pingFangRegular', en: 'avenirRegular' },
+  input:                   { zh: 'pingFangRegular', en: 'avenirRegular' },
+  button:                  { zh: 'pingFangRegular', en: 'avenirRegular' },
+  label:                   { zh: 'pingFangRegular', en: 'avenirRegular' },
 };
+
+// ── 3. RESOLVER ─────────────────────────────────────────────────────────
+// Pure functions — no React, no context. Safe to call anywhere.
+
+const quote = (name) => `'${name}'`;
+
+// Build the CSS stack for a family key, falling back to the language default
+// (exactly once) when the key is unknown or its file isn't shipped.
+function familyStack(key, lang, isFallback = false) {
+  const family = FONT_FAMILIES[key];
+
+  if (!family || family.missing) {
+    // Unknown / not-yet-shipped → the language default. Guarded so a bad
+    // DEFAULT_FAMILY can never recurse.
+    if (isFallback) return GENERIC_FALLBACK;
+    return familyStack(DEFAULT_FAMILY[lang] || DEFAULT_FAMILY.en, lang, true);
+  }
+
+  const { name, generic = GENERIC_FALLBACK, cjk } = family;
+  return cjk
+    ? `${quote(name)}, ${quote(CJK_FALLBACK)}, ${generic}`
+    : `${quote(name)}, ${generic}`;
+}
+
+/**
+ * resolveFontFamily(role, lang) → CSS font-family stack
+ *
+ * @param {string} role  a key in TYPE_SCALE (unknown → 'body')
+ * @param {'zh'|'en'} lang
+ * @returns {string} e.g. "'BigCaslon-Medium', 'PingFang-Regular', serif"
+ *
+ * Total function: never throws, never returns an empty string. An unknown
+ * role degrades to `body`; a `body` role is always defined.
+ */
+export function resolveFontFamily(role, lang = 'en') {
+  const l = lang === 'zh' ? 'zh' : 'en';
+  const spec = TYPE_SCALE[role] || TYPE_SCALE.body;
+  const key = spec[l] ?? spec.en ?? DEFAULT_FAMILY[l];
+  return familyStack(key, l);
+}

@@ -13,7 +13,7 @@ import {
 } from "@mui/material";
 import { TableIcon, AlertTriangle } from "lucide-react";
 import { LanguageContext } from "@/components/contexts/LanguageContext";
-import useFont from "@/hooks/useFont";
+import useFont from '@/hooks/useFont';
 import { getSystemLabel } from "@/components/labels/system_labels";
 import EditableCell from "@/components/pages/manager/batch_edit/EditableCell";
 import { AnimatedBox } from "@/components/pages/manager/batch_edit/batchEditStyles";

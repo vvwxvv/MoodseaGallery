@@ -6,7 +6,7 @@ import useFont from '@/hooks/useFont';
  */
 export default function useButtonStyle() {
 
-  const { buttonFontFamily } = useFont("16px");
+  const { buttonFontFamily } = useFont();
 
   // You can use context if you want to make styles language/theme aware
   // const { isCn } = useContext(LanguageContext);

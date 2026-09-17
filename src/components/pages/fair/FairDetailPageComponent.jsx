@@ -9,7 +9,7 @@ import { motion } from "framer-motion";
 // Context & Hooks
 import { LanguageContext } from "@/components/contexts/LanguageContext";
 import { DeviceContext } from "@/components/contexts/DeviceContext";
-import useFont from "@/hooks/useFont";
+import useFont from '@/hooks/useFont';
 import useImageZoom from "@/hooks/useImageZoom";
 import useFairDetailData from "@/components/pages/fair/hooks/useFairDetailData";
 import { useReverseTheme } from "@/hooks/useReverseTheme";
