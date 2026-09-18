@@ -505,7 +505,6 @@ function InstallationViewsRow({ images, onImageClick, isMobile }) {
 function ArtistNameLink({ name, slug, index, isMobile, fontFamily, textColor }) {
   const [isHovered, setIsHovered] = useState(false);
   const C = TEXT_CONFIG.ARTIST_LINK;
-  const color = C.color || TEXT_CONFIG.BASE_COLOR || textColor;
   const fontSize = pickResponsive(C, isMobile, "fontSize");
 
   return (
@@ -521,36 +520,20 @@ function ArtistNameLink({ name, slug, index, isMobile, fontFamily, textColor }) 
         onMouseLeave={() => setIsHovered(false)}
         style={{
           textDecoration: "none",
-          color,
+          color: isHovered ? textColor : "#999999", // grey → black on hover
           display: "inline-block",
           position: "relative",
           fontFamily,
           fontSize,
           fontWeight: C.fontWeight,
           lineHeight: C.lineHeight,
-          opacity: isHovered ? C.hoverOpacity : C.idleOpacity,
+          opacity: 1,
           padding: "2px 0 4px",
-          transition: "opacity 0.2s ease",
+          transition: "color 0.2s ease",
           outline: "none",
         }}
       >
         {name}
-        <motion.span
-          aria-hidden
-          initial={false}
-          animate={{ scaleX: isHovered ? 1 : 0 }}
-          transition={{ duration: 0.25, ease: "easeInOut" }}
-          style={{
-            position: "absolute",
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: "1px",
-            backgroundColor: color,
-            transformOrigin: "left",
-            pointerEvents: "none",
-          }}
-        />
       </Link>
     </motion.div>
   );
@@ -640,42 +623,28 @@ function WorkCard({ artwork, index, textColor, captionFont, metaFont, isCn, isMo
         <Box
           sx={{
             fontSize: cardFontSize,
-            color: textColor,
+            color: isHovered ? textColor : "#999999", // grey → black on hover
             lineHeight: R.CARD_LINE_HEIGHT,
             letterSpacing: R.CARD_LETTER_SPACING,
+            transition: "color 0.2s ease",
             display: "flex",
             flexDirection: "column",
             gap: "2px",
           }}
         >
-          <Typography component="span" sx={{ fontFamily: captionFont, opacity: 0.9, fontSize: "inherit" }}>
+          <Typography component="span" sx={{ color: "inherit", fontFamily: captionFont, opacity: 0.9, fontSize: "inherit" }}>
             {artwork.artist || ""}
           </Typography>
 
-          <Box sx={{ display: "inline-block", position: "relative", width: "fit-content" }}>
-            <Typography component="span" sx={{ fontFamily: captionFont, fontStyle: "italic", opacity: 0.85, fontSize: "inherit" }}>
+          <Box sx={{ color: "inherit", display: "inline-block", position: "relative", width: "fit-content" }}>
+            <Typography component="span" sx={{ color: "inherit", fontFamily: captionFont, fontStyle: "italic", opacity: 0.85, fontSize: "inherit" }}>
               {artwork.title || (isCn ? "无题" : "Untitled")}
-              {artwork.year && <span style={{ fontStyle: "normal" }}>, {artwork.year}</span>}
+              {artwork.year && <span style={{ color: "inherit", fontStyle: "normal" }}>, {artwork.year}</span>}
             </Typography>
-            <motion.span
-              aria-hidden
-              initial={false}
-              animate={{ scaleX: isHovered ? 1 : 0 }}
-              transition={{ duration: R.UNDERLINE_DURATION, ease: "easeInOut" }}
-              style={{
-                position: "absolute",
-                bottom: 0,
-                left: 0,
-                right: 0,
-                height: "1px",
-                backgroundColor: textColor,
-                transformOrigin: "left",
-              }}
-            />
           </Box>
 
           {(artwork.medium || artwork.size) && (
-            <Typography component="span" sx={{ fontFamily: metaFont, opacity: R.CARD_META_OPACITY, mt: "2px", fontSize: "inherit" }}>
+            <Typography component="span" sx={{ color: "inherit", fontFamily: metaFont, opacity: R.CARD_META_OPACITY, mt: "2px", fontSize: "inherit" }}>
               {[artwork.medium, artwork.size].filter(Boolean).join(" · ")}
             </Typography>
           )}

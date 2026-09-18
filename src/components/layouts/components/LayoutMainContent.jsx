@@ -2,9 +2,9 @@
 import { useContext } from "react";
 import { Box } from "@mui/material";
 import { ManagerContext } from "@/components/contexts/ManagerContext";
+import { DeviceContext } from "@/components/contexts/DeviceContext";
 import TitleTextNavSimpleStyle from "@/components/navs/ManagerNav";
 import MainNav from "@/components/navs/MainNav";
-import LanguageSwitcherInMenu from "@/components/switchers/LanguageSwitcherInMenu";
 import ManagerAuthGate from "@/components/layouts/components/ManagerAuthGate";
 import {
   ESTIMATED_FOOTER_HEIGHT,
@@ -20,6 +20,8 @@ import {
  */
 export default function LayoutMainContent({ children, showBackButton, isMobile, backgroundColor }) {
   const { isManager } = useContext(ManagerContext);
+  // MainNav uses the drawer (and hides the desktop nav row) on mobile + tablet.
+  const { isTablet } = useContext(DeviceContext);
 
   // MainNav includes its own 56px spacer — only add extra pt for manager nav
   const pt = isManager ? (isMobile ? MAIN_PT_MOBILE : MAIN_PT_DESKTOP) : 0;
@@ -37,17 +39,6 @@ export default function LayoutMainContent({ children, showBackButton, isMobile, 
   const content = (
     <>
       {navSlot}
-
-      <LanguageSwitcherInMenu
-        sx={{
-          position: "fixed",
-          // Hug the top-right corner so it can never sit on top of the page
-          // title (the title gets matching side padding, see AppTextTitle).
-          top: "20px",
-          right: "10px",
-          zIndex: 1200,
-        }}
-      />
 
 
 

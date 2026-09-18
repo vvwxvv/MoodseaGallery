@@ -60,30 +60,40 @@ const PDFViewerButton = ({
 
   return (
     <>
-      <button
-        type="button"
+      {/* Rendered as a span[role=button]: globals.css forces
+          `[data-theme] button { color:#000 !important }`, which would stop the
+          grey→black colour from applying (same workaround as the language switch). */}
+      <span
+        role="button"
+        tabIndex={isDisabled ? -1 : 0}
+        aria-disabled={isDisabled || undefined}
         onClick={handlePDFOpen}
-        disabled={isDisabled}
+        onKeyDown={(e) => {
+          if (!isDisabled && (e.key === "Enter" || e.key === " ")) {
+            e.preventDefault();
+            handlePDFOpen(e);
+          }
+        }}
         onMouseEnter={() => !isDisabled && setHovered(true)}
         onMouseLeave={() => setHovered(false)}
         style={{
+          display: "inline-block",
           fontSize: "12px",
           padding: "4px 0",
           backgroundColor: "transparent",
           border: "none",
-          color: isDisabled ? `${colors.text}50` : colors.text,
+          color: isDisabled ? `${colors.text}50` : hovered ? colors.text : "#999999",
           cursor: isDisabled ? "not-allowed" : "pointer",
           fontFamily,
-          fontWeight: hovered ? "bold" : "normal",
-          textDecoration: "underline",
-          textUnderlineOffset: "4px",
-          transition: "all 0.2s ease",
+          fontWeight: "normal",
+          textDecoration: "none",
+          transition: "color 0.2s ease",
           pointerEvents: "auto",
           ...style,
         }}
       >
         {isCn ? buttonText.cn : buttonText.en}
-      </button>
+      </span>
 
       <PDFViewer
         isOpen={isOpen}
@@ -350,17 +360,18 @@ const CollectionItem = memo(function CollectionItem({
         onMouseLeave={() => setIsHovered(false)}
         style={{
           textDecoration: "none",
-          color: textColor,
+          color: isHovered ? textColor : "#999999",
           display: "flex",
           flexDirection: isMobile ? "column" : "row",
           alignItems: isMobile ? "flex-start" : "baseline",
           gap: isMobile ? "2px" : "16px",
-          opacity: isHovered ? C.HOVER_OPACITY : C.CARD_OPACITY,
-          transition: `opacity ${C.TRANSITION_DURATION}s ease`,
+          opacity: 1,
+          transition: "color 0.2s ease",
         }}
       >
         <span
           style={{
+            color: "inherit",
             position: "relative",
             display: "inline-block",
             fontFamily: bioFont,
@@ -372,28 +383,10 @@ const CollectionItem = memo(function CollectionItem({
           }}
         >
           {title}
-          <motion.span
-            aria-hidden
-            initial={false}
-            animate={{ scaleX: isHovered ? 1 : 0 }}
-            transition={{
-              duration: CONFIG.RELATED.UNDERLINE_DURATION,
-              ease: "easeInOut",
-            }}
-            style={{
-              position: "absolute",
-              bottom: 0,
-              left: 0,
-              right: 0,
-              height: "1px",
-              backgroundColor: textColor,
-              transformOrigin: "left",
-              pointerEvents: "none",
-            }}
-          />
         </span>
         <span
           style={{
+            color: "inherit",
             fontFamily: metaFont,
             fontSize: isMobile
               ? C.DATE_FONT_SIZE_MOBILE
@@ -510,17 +503,18 @@ const NewsItem = memo(function NewsItem({
         onMouseLeave={() => setIsHovered(false)}
         style={{
           textDecoration: "none",
-          color: textColor,
+          color: isHovered ? textColor : "#999999",
           display: "flex",
           flexDirection: isMobile ? "column" : "row",
           alignItems: isMobile ? "flex-start" : "baseline",
           gap: isMobile ? "2px" : "16px",
-          opacity: isHovered ? C.HOVER_OPACITY : C.CARD_OPACITY,
-          transition: `opacity ${C.TRANSITION_DURATION}s ease`,
+          opacity: 1,
+          transition: "color 0.2s ease",
         }}
       >
         <span
           style={{
+            color: "inherit",
             position: "relative",
             display: "inline-block",
             fontFamily: bioFont,
@@ -532,28 +526,10 @@ const NewsItem = memo(function NewsItem({
           }}
         >
           {title}
-          <motion.span
-            aria-hidden
-            initial={false}
-            animate={{ scaleX: isHovered ? 1 : 0 }}
-            transition={{
-              duration: CONFIG.RELATED.UNDERLINE_DURATION,
-              ease: "easeInOut",
-            }}
-            style={{
-              position: "absolute",
-              bottom: 0,
-              left: 0,
-              right: 0,
-              height: "1px",
-              backgroundColor: textColor,
-              transformOrigin: "left",
-              pointerEvents: "none",
-            }}
-          />
         </span>
         <span
           style={{
+            color: "inherit",
             fontFamily: metaFont,
             fontSize: isMobile
               ? C.DATE_FONT_SIZE_MOBILE
@@ -1045,20 +1021,22 @@ const RelatedArtworkCard = memo(function RelatedArtworkCard({
         <div
           style={{
             fontSize: cardFontSize,
-            color: textColor,
+            color: isHovered ? textColor : "#999999",
             lineHeight: R.CARD_LINE_HEIGHT,
             letterSpacing: R.CARD_LETTER_SPACING,
             display: "flex",
             flexDirection: "column",
             gap: "2px",
+            transition: "color 0.2s ease",
           }}
         >
-          <span style={{ fontFamily: captionFont, opacity: 0.9 }}>
+          <span style={{ color: "inherit", fontFamily: captionFont, opacity: 0.9 }}>
             {artistName}
           </span>
 
           <div
             style={{
+              color: "inherit",
               display: "inline-block",
               position: "relative",
               width: "fit-content",
@@ -1066,6 +1044,7 @@ const RelatedArtworkCard = memo(function RelatedArtworkCard({
           >
             <span
               style={{
+                color: "inherit",
                 fontFamily: captionFont,
                 fontStyle: "italic",
                 opacity: 0.85,
@@ -1073,28 +1052,14 @@ const RelatedArtworkCard = memo(function RelatedArtworkCard({
             >
               {artwork.title || (isCn ? "无题" : "Untitled")}
               {artwork.year && (
-                <span style={{ fontStyle: "normal" }}>, {artwork.year}</span>
+                <span style={{ color: "inherit", fontStyle: "normal" }}>, {artwork.year}</span>
               )}
             </span>
-            <motion.span
-              aria-hidden
-              initial={false}
-              animate={{ scaleX: isHovered ? 1 : 0 }}
-              transition={{ duration: R.UNDERLINE_DURATION, ease: "easeInOut" }}
-              style={{
-                position: "absolute",
-                bottom: 0,
-                left: 0,
-                right: 0,
-                height: "1px",
-                backgroundColor: textColor,
-                transformOrigin: "left",
-              }}
-            />
           </div>
 
           <span
             style={{
+              color: "inherit",
               fontFamily: metaFont,
               opacity: R.CARD_META_OPACITY,
               marginTop: "2px",

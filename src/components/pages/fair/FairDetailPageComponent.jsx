@@ -301,7 +301,6 @@ const METADATA_ORDER = [
 function HoverUnderlineLink({ label, href, index, isMobile, fontFamily, textColor }) {
   const [isHovered, setIsHovered] = useState(false);
   const C = TEXT_CONFIG.LINK;
-  const color = C.color || TEXT_CONFIG.BASE_COLOR || textColor;
   const fontSize = pickResponsive(C, isMobile, "fontSize");
 
   return (
@@ -317,36 +316,20 @@ function HoverUnderlineLink({ label, href, index, isMobile, fontFamily, textColo
         onMouseLeave={() => setIsHovered(false)}
         style={{
           textDecoration: "none",
-          color,
+          color: isHovered ? textColor : "#999999", // grey → black on hover
           display: "inline-block",
           position: "relative",
           fontFamily,
           fontSize,
           fontWeight: C.fontWeight,
           lineHeight: C.lineHeight,
-          opacity: isHovered ? C.hoverOpacity : C.idleOpacity,
+          opacity: 1,
           padding: "2px 0 4px",
-          transition: "opacity 0.2s ease",
+          transition: "color 0.2s ease",
           outline: "none",
         }}
       >
         {label}
-        <motion.span
-          aria-hidden
-          initial={false}
-          animate={{ scaleX: isHovered ? 1 : 0 }}
-          transition={{ duration: 0.25, ease: "easeInOut" }}
-          style={{
-            position: "absolute",
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: "1px",
-            backgroundColor: color,
-            transformOrigin: "left",
-            pointerEvents: "none",
-          }}
-        />
       </Link>
     </motion.div>
   );

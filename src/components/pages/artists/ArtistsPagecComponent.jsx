@@ -11,7 +11,6 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { LanguageContext } from "@/components/contexts/LanguageContext";
 import { DeviceContext } from "@/components/contexts/DeviceContext";
-import useFont from '@/hooks/useFont';
 import { useReverseTheme } from "@/hooks/useReverseTheme";
 import AlertInfo from "@/components/alerts/AlertInfo";
 import useArtistListData from "@/components/pages/artists/hooks/useArtistListData";
@@ -22,6 +21,9 @@ import { useRandomArtworkImage } from "@/components/pages/artists/hooks/useRando
 // UI CONFIGURATION
 // ============================================================================
 const CONFIG = {
+  // ── Single font family for the whole page — identical to the About page body ──
+  FONT_FAMILY: "'AvenirNext-Regular', 'PingFang-Regular', sans-serif",
+
   PAGE: {
     PADDING_HORIZONTAL: 50,
     PADDING_HORIZONTAL_MOBILE: 20,
@@ -56,10 +58,9 @@ const CONFIG = {
     ITEM_FONT_WEIGHT: 347,
     ITEM_LINE_HEIGHT: 1.4,
     ITEM_LETTER_SPACING: "0.02em",
-    ITEM_COLOR: null,
-    ITEM_COLOR_ACTIVE: null,
-    UNDERLINE_COLOR: null,
-    UNDERLINE_DURATION: 0.3,
+    // Grey by default, black on hover / active — no underline.
+    ITEM_COLOR: "#999999",
+    ITEM_COLOR_ACTIVE: null, // null → theme text colour (black)
   },
 
   PREVIEW: {
@@ -70,7 +71,10 @@ const CONFIG = {
     MAX_ASPECT_RATIO: 1.6,
     STICKY_TOP: 90,
     OFFSET_TOP: 0,
-    PLACEHOLDER_BG: "rgba(0,0,0,0.03)",
+    // Image-box background is the PAGE colour (white in the default light
+    // theme) — never a grey tint, so there is no grey box while a preview
+    // image loads. Overridden per-page via the `bgColor` prop when available.
+    PLACEHOLDER_BG: "#ffffff",
     RANDOM_ROTATE_INTERVAL_MS: 5000,
   },
 
@@ -109,10 +113,9 @@ const toSlug = (profile) =>
     .replace(/[^\p{L}\p{N}_-]/gu, "");
 
 const resolveListColors = (themeText) => {
-  const base = CONFIG.LIST.ITEM_COLOR || themeText;
-  const active = CONFIG.LIST.ITEM_COLOR_ACTIVE || base;
-  const underline = CONFIG.LIST.UNDERLINE_COLOR || active;
-  return { base, active, underline };
+  const base = CONFIG.LIST.ITEM_COLOR || themeText; // grey
+  const active = CONFIG.LIST.ITEM_COLOR_ACTIVE || themeText; // black (hover / active)
+  return { base, active };
 };
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
@@ -183,25 +186,6 @@ const ArtistNameRow = React.memo(function ArtistNameRow({
         }}
       >
         {profile.name}
-        <motion.span
-          aria-hidden
-          initial={false}
-          animate={{ scaleX: isActive ? 1 : 0 }}
-          transition={{
-            duration: CONFIG.LIST.UNDERLINE_DURATION,
-            ease: "easeInOut",
-          }}
-          style={{
-            position: "absolute",
-            left: 0,
-            right: 0,
-            bottom: 0,
-            height: "1px",
-            backgroundColor: listColors.underline,
-            transformOrigin: "left",
-            pointerEvents: "none",
-          }}
-        />
       </Link>
     </motion.li>
   );
@@ -256,6 +240,9 @@ const ArtistPreview = React.memo(function ArtistPreview({
   /** Diagnostics: how many slides the active artist's rolling sequence has. */
   rollingCount = 0,
   previewName = "",
+  /** Page background — the image box uses it so it is white (light theme),
+   *  never a grey placeholder, while the image is loading. */
+  bgColor = CONFIG.PREVIEW.PLACEHOLDER_BG,
   isCn,
 }) {
   const [imageFailed, setImageFailed] = useState(false);
@@ -303,7 +290,7 @@ const ArtistPreview = React.memo(function ArtistPreview({
           width: "100%",
           maxWidth: `${CONFIG.PREVIEW.MAX_WIDTH}px`,
           aspectRatio,
-          backgroundColor: CONFIG.PREVIEW.PLACEHOLDER_BG,
+          backgroundColor: bgColor,
           overflow: "hidden",
         }}
       >
@@ -397,9 +384,8 @@ const ArtistsListSkeleton = () => (
 export default function ArtistsPageComponent() {
   const { isCn } = useContext(LanguageContext);
   const { isMobile } = useContext(DeviceContext);
-  const { fontFamily } = useFont();
-  const { fontFamily: headingFont } = useFont("sectionTitle");
-  const { fontFamily: listFont } = useFont("artistListItem");
+  // One family everywhere — same as the About page body (no role lookups).
+  const fontFamily = CONFIG.FONT_FAMILY;
   const { colors } = useReverseTheme();
 
   const text = colors.text;
@@ -532,7 +518,7 @@ export default function ArtistsPageComponent() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
         style={{
-          fontFamily: headingFont,
+          fontFamily,
           fontSize: isMobile
             ? CONFIG.HEADING.FONT_SIZE_MOBILE
             : CONFIG.HEADING.FONT_SIZE_DESKTOP,
@@ -579,7 +565,7 @@ export default function ArtistsPageComponent() {
             activeName={activeName}
             isMobile={isMobile}
             listColors={listColors}
-            fontFamily={listFont}
+            fontFamily={fontFamily}
             onActivate={handleActivate}
           />
 
@@ -597,6 +583,7 @@ export default function ArtistsPageComponent() {
               previewSource={previewSource}
               rollingCount={rollingSlides.length}
               previewName={previewArtist?.name || ""}
+              bgColor={bg}
               isCn={isCn}
             />
           )}

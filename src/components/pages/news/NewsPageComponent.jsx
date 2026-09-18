@@ -1,10 +1,8 @@
 "use client";
 
 import React, {
-  useCallback,
   useContext,
   useMemo,
-  useState,
 } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -31,8 +29,8 @@ const CONFIG = {
   },
 
   HEADING: {
-    FONT_SIZE_DESKTOP: "25px",
-    FONT_SIZE_MOBILE: "18px",
+    FONT_SIZE_DESKTOP: "20px",
+    FONT_SIZE_MOBILE: "20px",
     FONT_WEIGHT: 500,
     LETTER_SPACING: "0.01em",
     OFFSET_LEFT: 0,
@@ -50,8 +48,10 @@ const CONFIG = {
     OFFSET_TOP: 50,
     ITEM_GAP_DESKTOP: 10,
     ITEM_GAP_MOBILE: 10,
-    ITEM_FONT_SIZE_DESKTOP: "14px",
-    ITEM_FONT_SIZE_MOBILE: "12px",
+    // ★ Font size matches the About page body (AboutPageComponent
+    //   CONFIG.text.body.size = "13px") on both breakpoints.
+    ITEM_FONT_SIZE_DESKTOP: "13px",
+    ITEM_FONT_SIZE_MOBILE: "13px",
     ITEM_FONT_WEIGHT: 347,
     ITEM_LINE_HEIGHT: 1.4,
     ITEM_LETTER_SPACING: "0.02em",
@@ -61,7 +61,7 @@ const CONFIG = {
     UNDERLINE_DURATION: 0.3,
     // 类型和关联艺术家的字体大小（与主标题相同或略小，此处统一）
     META_FONT_SIZE_DESKTOP: "13px",
-    META_FONT_SIZE_MOBILE: "12px",
+    META_FONT_SIZE_MOBILE: "13px",
     META_OPACITY: 0.7,
   },
 

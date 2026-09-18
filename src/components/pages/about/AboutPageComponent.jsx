@@ -10,7 +10,6 @@ import useGalleryContactData from "@/components/pages/about/hooks/useGalleryCont
 import AlertInfo from "@/components/alerts/AlertInfo";
 import ContactInfo from "@/components/lists/ContactInfo";
 import { renderArrayContent } from "@/utils/textFormatting";
-import useFont from '@/hooks/useFont';
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  ✦ CONFIG — 分区清晰，改哪块看哪块
@@ -33,15 +32,23 @@ const CONFIG = Object.freeze({
   text: {
     flex: 1.4,
     maxWidth: { xs: "100%", md: 520 },
+    // ★ Font family is set DIRECTLY here — no role lookup.
+    //   Same faces the Home page exhibition caption uses:
+    //   Latin → AvenirNext-Regular, CJK → PingFang-Regular.
     heading: {
+      fontFamily: "'AvenirNext-Regular', 'PingFang-Regular', sans-serif",
+      weight: "bold",
       size: "20px",
-      weight: 600,
       margin: "0 0 28px 0",
       letterSpacing: "0.1em",
     },
+    // ★ Body / caption text — same direct family as the heading (matches the
+    //   Home page caption). Applies to the caption AND every introduction.
     body: {
+      fontFamily: "'AvenirNext-Regular', 'PingFang-Regular', sans-serif",
+      weight: 347,              // → font weight (artist-list value)
+      letterSpacing: "0.02em",  // → letter spacing (artist-list value)
       size: "13px",
-      weight: 700,
       lineHeight: 1.7,
       opacity: 1, // ★ 加深正文颜色（原 0.62 偏灰）★
       gap: "1.2em",
@@ -239,8 +246,8 @@ const AboutPageComponent = () => {
     handleRetry: contactRetry,
   } = useGalleryContactData();
 
-  const { fontFamily } = useFont();
-  const { fontFamily: aboutFontFamily } = useFont("aboutBody");
+  const headingFontFamily = CONFIG.text.heading.fontFamily;
+  const bodyFontFamily = CONFIG.text.body.fontFamily;
   const isLoading = aboutLoading || contactLoading;
   const error = aboutError || contactError;
   const handleRetry = () => {
@@ -272,18 +279,19 @@ const AboutPageComponent = () => {
 
   // ── 样式 ──
   const headingStyle = {
-    fontFamily: aboutFontFamily, // ★ 与艺术家页同款 Iowan 字体
+    fontFamily: headingFontFamily, // ★ direct font-family (same faces as the Home exhibition caption)
     fontSize: CONFIG.text.heading.size,
-    fontWeight: CONFIG.text.heading.weight,
+    fontWeight: CONFIG.text.heading.weight, // ★ same weight as the Home page exhibition title
     color: colors.text,
     margin: CONFIG.text.heading.margin,
     letterSpacing: CONFIG.text.heading.letterSpacing,
   };
 
   const bodyStyle = {
-    fontFamily: aboutFontFamily, // ★ 与艺术家页同款 Iowan 字体
+    fontFamily: bodyFontFamily, // ★ direct font-family (same faces as the Home exhibition caption)
     fontSize: CONFIG.text.body.size,
-    fontWeight: CONFIG.text.body.weight,
+    fontWeight: CONFIG.text.body.weight, // ★ same weight as the Artists list
+    letterSpacing: CONFIG.text.body.letterSpacing, // ★ same tracking as the Artists list
     color: colors.text,
     lineHeight: CONFIG.text.body.lineHeight,
     opacity: CONFIG.text.body.opacity,
@@ -318,7 +326,11 @@ const AboutPageComponent = () => {
             sx={{
               display: { xs: "block", md: "flex" },
               alignItems: { md: "stretch" },
+              // Desktop: push the left text to the LEFT edge and the image to the
+              // RIGHT edge so both insets match the page padding (symmetric).
+              justifyContent: { md: "space-between" },
               gap: CONFIG.layout.columnGap,
+              width: "100%",
             }}
           >
             {/* ── 左侧文本列（About + 联系信息）── */}
@@ -338,7 +350,7 @@ const AboutPageComponent = () => {
                 <motion.div variants={itemVariants}>
                   <ContactInfo
                     contact={contact}
-                    fontFamily={aboutFontFamily}
+                    fontFamily={bodyFontFamily}
                     sx={{ mt: CONFIG.contact.topGap, color: colors.text }}
                   />
                 </motion.div>

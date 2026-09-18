@@ -95,7 +95,7 @@ export default function ArtworkDetailPageComponent({
               width: "100%",
               borderRadius: "12px",
               overflow: "hidden",
-              backgroundColor: "#f5f5f5",
+              backgroundColor: "#ffffff",
             }}
           >
             {cover_img_url ? (
@@ -218,7 +218,7 @@ export default function ArtworkDetailPageComponent({
                   href={video_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  sx={{ color: "primary.main", textDecoration: "underline" }}
+                  sx={{ color: "#999999", textDecoration: "none", transition: "color 0.2s ease", "&:hover": { color: "#000000" } }}
                 >
                   {isCn ? "观看视频" : "Watch Video"}
                 </Typography>
@@ -231,7 +231,7 @@ export default function ArtworkDetailPageComponent({
                   href={web_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  sx={{ color: "primary.main", textDecoration: "underline" }}
+                  sx={{ color: "#999999", textDecoration: "none", transition: "color 0.2s ease", "&:hover": { color: "#000000" } }}
                 >
                   {isCn ? "访问链接" : "Visit Website"}
                 </Typography>

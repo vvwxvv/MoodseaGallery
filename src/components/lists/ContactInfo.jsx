@@ -2,14 +2,20 @@
 
 import React from "react";
 import { Box } from "@mui/material";
-import { Phone, Mail, MapPin, Youtube, Instagram, Globe } from "lucide-react";
+import useFont from "@/hooks/useFont";
+import { MapPin, Youtube, Instagram, Globe } from "lucide-react";
+// Email + phone use Material icons to match the reference art:
+//   Email    → filled envelope
+//   PhoneIphone → smartphone with a home dot
+import EmailIcon from "@mui/icons-material/Email";
+import PhoneIphoneIcon from "@mui/icons-material/PhoneIphone";
 
 /**
  * ContactInfo — icon-based contact block (no text labels).
  *
- * Design note: the gallery replaced the old “Tel: / Email: / Address: …”
- * text labels with small circled icons — cleaner, younger and more
- * efficient. Same block is shared by the About page and the Contact page.
+ * Design note: bare glyph icons (no circle / border) keep the block clean,
+ * younger and more efficient. Same block is shared by the About page and the
+ * Contact page.
  *
  * Rows render in this order: phone → email → address → social media,
  * followed by the opening-hours line (bold).
@@ -21,68 +27,79 @@ import { Phone, Mail, MapPin, Youtube, Instagram, Globe } from "lucide-react";
 export const CONTACT_TOKENS = Object.freeze({
   rowGap: "12px", // vertical gap between rows
   icon: {
-    size: 17, // circle diameter (px)
-    glyph: 9, // glyph size inside the circle (px)
-    stroke: 1.25, // circle border width
-    glyphStroke: 2, // glyph stroke width
+    size: 16, // glyph size (px) — icons render bare, no circle
+    strokeWidth: 1.6, // glyph stroke width
     gap: "10px", // icon ↔ text gap
     opacity: 0.75, // resting icon opacity (→ 1 on hover)
   },
   text: {
-    size: "13px",
+    size: "12px",
     weight: 400,
     opacity: 0.72,
+    letterSpacing: "-0.01em",
   },
   hours: {
     weight: 700,
     opacity: 1,
     marginTop: "26px",
-    letterSpacing: "0.01em",
+    letterSpacing: "-0.01em",
   },
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  Icons
 // ─────────────────────────────────────────────────────────────────────────────
-const RedGlyph = ({ size }) => (
-  // RED / 小红书：圆角矩形（书页）＋ 底部横线
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth={2.2}
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    aria-hidden="true"
-  >
-    <rect x="4.5" y="5.5" width="15" height="13" rx="2.5" />
-    <path d="M8.5 14.5h7" />
-  </svg>
-);
+
+// Platforms we do NOT render. The 小红书 / RED logo is unreadable at this size
+// and the block is mostly for overseas visitors — YouTube + Instagram suffice.
+export const isHiddenPlatform = (platform) => {
+  const k = String(platform || "").toLowerCase();
+  return (
+    k.includes("xiaohong") ||
+    k.includes("小红书") ||
+    k.includes("小紅書") ||
+    k.trim() === "red"
+  );
+};
 
 // platform string → icon key (lenient: handles EN/CN and old/new naming)
 export const resolveIconKey = (platform) => {
   const k = String(platform || "").toLowerCase();
   if (k.includes("you")) return "youtube";
   if (k.includes("insta")) return "instagram";
-  if (k.includes("red") || k.includes("xiaohong") || k.includes("小紅書") || k.includes("小红书"))
-    return "red";
   return "globe";
 };
 
+// Per-glyph bounding box (in the shared 24-unit icon grid) used to normalise
+// each icon's OPTICAL size — otherwise a wide square glyph (Instagram) reads
+// bigger than a narrow one (YouTube / the phone) even though the boxes match.
+const GLYPH_BBOX = {
+  phone: [13, 22],
+  email: [20, 16],
+  address: [16, 20],
+  youtube: [20, 14.1],
+  instagram: [20, 20],
+  globe: [20, 20],
+};
+const OPTICAL_TARGET = 18; // target √(w·h) in the 24-unit grid (≈ 12px @ size 16)
+const opticalScale = (name) => {
+  const b = GLYPH_BBOX[name];
+  if (!b) return 1;
+  const geo = Math.sqrt(b[0] * b[1]);
+  return geo > 0 ? OPTICAL_TARGET / geo : 1;
+};
+
 export const ContactIcon = ({ name }) => {
-  const { size, glyph, stroke, glyphStroke, opacity } = CONTACT_TOKENS.icon;
-  const lucideProps = { size: glyph, strokeWidth: glyphStroke, absoluteStrokeWidth: true };
+  const { size, strokeWidth, opacity } = CONTACT_TOKENS.icon;
+  const lucideProps = { size, strokeWidth, absoluteStrokeWidth: true };
 
   let inner;
   switch (name) {
     case "phone":
-      inner = <Phone {...lucideProps} />;
+      inner = <PhoneIphoneIcon sx={{ fontSize: size }} />;
       break;
     case "email":
-      inner = <Mail {...lucideProps} />;
+      inner = <EmailIcon sx={{ fontSize: size }} />;
       break;
     case "address":
       inner = <MapPin {...lucideProps} />;
@@ -93,14 +110,13 @@ export const ContactIcon = ({ name }) => {
     case "instagram":
       inner = <Instagram {...lucideProps} />;
       break;
-    case "red":
-      inner = <RedGlyph size={glyph} />;
-      break;
     case "globe":
     default:
       inner = <Globe {...lucideProps} />;
       break;
   }
+
+  const scale = opticalScale(name);
 
   return (
     <Box
@@ -111,8 +127,6 @@ export const ContactIcon = ({ name }) => {
         flex: "0 0 auto",
         width: `${size}px`,
         height: `${size}px`,
-        borderRadius: "50%",
-        border: `${stroke}px solid currentColor`,
         opacity,
         display: "inline-flex",
         alignItems: "center",
@@ -120,7 +134,19 @@ export const ContactIcon = ({ name }) => {
         transition: "opacity 0.2s ease",
       }}
     >
-      {inner}
+      {/* optical-size normaliser — every glyph reads the same size */}
+      <Box
+        component="span"
+        sx={{
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          lineHeight: 0,
+          transform: `scale(${scale})`,
+        }}
+      >
+        {inner}
+      </Box>
     </Box>
   );
 };
@@ -138,6 +164,7 @@ export const ContactRow = React.memo(function ContactRow({ icon, children, href,
     fontFamily,
     fontSize: CONTACT_TOKENS.text.size,
     fontWeight: CONTACT_TOKENS.text.weight,
+    letterSpacing: CONTACT_TOKENS.text.letterSpacing,
     opacity: CONTACT_TOKENS.text.opacity,
     display: "flex",
     alignItems: "center",
@@ -161,7 +188,11 @@ export const ContactRow = React.memo(function ContactRow({ icon, children, href,
     );
   }
 
-  return <div style={rowStyle}>{content}</div>;
+  return (
+    <div className="moodsea-contact-row" style={rowStyle}>
+      {content}
+    </div>
+  );
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -185,13 +216,21 @@ export function normalizeContact(raw) {
 // ─────────────────────────────────────────────────────────────────────────────
 //  ContactInfo
 // ─────────────────────────────────────────────────────────────────────────────
-export default function ContactInfo({ contact, fontFamily, rowGap, hoursMarginTop, sx }) {
+export default function ContactInfo({ contact, fontFamily: fontFamilyProp, rowGap, hoursMarginTop, sx }) {
+  // Font family comes from the typography lib (lib/typography.js via useFont) —
+  // "exhibitionCaption", the same role the About body uses. A `fontFamily`
+  // prop may still override it.
+  const { fontFamily: libFontFamily } = useFont("exhibitionCaption");
+  const fontFamily = fontFamilyProp || libFontFamily;
+
   const info = React.useMemo(() => normalizeContact(contact), [contact]);
   if (!info) return null;
 
   const { phone, email, address, openingTime, socialMedia } = info;
   const gap = rowGap ?? CONTACT_TOKENS.rowGap;
-  const hasRows = phone || email || address || socialMedia.length;
+  // 小红书 / RED etc. are filtered out entirely (see isHiddenPlatform).
+  const visibleSocial = socialMedia.filter((s) => !isHiddenPlatform(s.platform));
+  const hasRows = phone || email || address || visibleSocial.length;
   if (!hasRows && !openingTime) return null;
 
   const hoursStyle = {
@@ -225,7 +264,7 @@ export default function ContactInfo({ contact, fontFamily, rowGap, hoursMarginTo
           {address}
         </ContactRow>
       )}
-      {socialMedia.map((s, i) => (
+      {visibleSocial.map((s, i) => (
         <ContactRow
           key={`${s.platform || "social"}-${i}`}
           icon={resolveIconKey(s.platform)}

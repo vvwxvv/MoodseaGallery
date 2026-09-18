@@ -88,7 +88,8 @@ const EXHIBITIONS_CONFIG = {
       fontWeight: 500,
       lineHeight: "34px",
       letterSpacing: "0px",
-      color: "theme",
+      color: "#999999",    // grey by default
+      colorHover: "theme", // black on hover
       opacity: 1,
     },
     CARD_DATE: {
@@ -175,9 +176,6 @@ const EXHIBITIONS_CONFIG = {
     HALF_WIDTH_MAX: "48%",
     TYPE_VERTICAL_ALIGN: "center",
     TYPE_GAP_FROM_TITLE: "16px",
-    UNDERLINE_HEIGHT: "1px",
-    UNDERLINE_OFFSET_BOTTOM: "-2px",
-    UNDERLINE_DURATION: 0.3,
   },
 
   // ── Entrance / page transitions ──
@@ -452,8 +450,16 @@ function ExhibitionCard({ exhibition, textColor, bgColor, isCn, isHalfWidth = fa
   const { TYPOGRAPHY, CARD, ANIMATION } = EXHIBITIONS_CONFIG;
 
   const titleStyle = useMemo(
-    () => buildTextStyle(TYPOGRAPHY.CARD_TITLE, captionFontFamily, textColor),
-    [TYPOGRAPHY.CARD_TITLE, captionFontFamily, textColor]
+    () => ({
+      ...buildTextStyle(TYPOGRAPHY.CARD_TITLE, captionFontFamily, textColor),
+      // grey by default → black on hover (no underline)
+      color: resolveColor(
+        isTextHovered ? TYPOGRAPHY.CARD_TITLE.colorHover : TYPOGRAPHY.CARD_TITLE.color,
+        textColor
+      ),
+      transition: "color 0.2s ease",
+    }),
+    [TYPOGRAPHY.CARD_TITLE, captionFontFamily, textColor, isTextHovered]
   );
   const dateStyle = useMemo(
     () => buildTextStyle(TYPOGRAPHY.CARD_DATE, captionFontFamily, textColor),
@@ -588,24 +594,6 @@ function ExhibitionCard({ exhibition, textColor, bgColor, isCn, isHalfWidth = fa
             onMouseLeave={() => setIsTextHovered(false)}
           >
             <p style={{ ...titleStyle, margin: 0, display: "inline-block" }}>{title}</p>
-
-            <motion.div
-              initial={false}
-              animate={{ scaleX: isTextHovered ? 1 : 0 }}
-              transition={{ duration: CARD.UNDERLINE_DURATION, ease: "easeInOut" }}
-              style={{
-                position: "absolute",
-                bottom: CARD.UNDERLINE_OFFSET_BOTTOM,
-                left: 0,
-                right: 0,
-                height: CARD.UNDERLINE_HEIGHT,
-                backgroundColor: resolveColor(
-                  EXHIBITIONS_CONFIG.TYPOGRAPHY.CARD_TITLE.color,
-                  textColor
-                ),
-                transformOrigin: isTextHovered ? "left center" : "right center",
-              }}
-            />
           </Link>
 
           {dateRange && <p style={{ ...dateStyle, margin: 0 }}>{dateRange}</p>}

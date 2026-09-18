@@ -18,6 +18,7 @@ import { DEFAULT_MENUS } from "@/utils/siteMetaDefaults";
 import useSiteMeta from "@/hooks/useSiteMeta";
 import useFont from '@/hooks/useFont';
 import MenuIconButton from "@/components/buttons/MenuIconButton";
+import LanguageSwitcherInMenu from "@/components/switchers/LanguageSwitcherInMenu";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 
 // ═════════════════════════════════════════════════════════════════════
@@ -80,14 +81,14 @@ const NAV_CONFIG = {
     LETTER_SPACING: "0.03em",
     TEXT_TRANSFORM: "none",
     GAP: "clamp(16px, 2.5vw, 32px)",
-    COLOR: null, // null → falls back to theme text color
-    COLOR_ACTIVE: null, // null → falls back to COLOR
-    OPACITY_DEFAULT: 0.7,
+    COLOR: "#999999", // grey — nav text when NOT hovered (see reference).
+    COLOR_ACTIVE: null, // null → theme text colour (black in light) on hover / active page
+    OPACITY_DEFAULT: 1,
     OPACITY_ACTIVE: 1,
     HOVER_TRANSITION: "opacity 0.2s ease, color 0.2s ease",
 
     UNDERLINE: {
-      ENABLED: true,
+      ENABLED: false, // no underline at all — hover AND active are text-colour only
       SHOW_ON_ACTIVE: true,
       HEIGHT: "1px",
       COLOR: null, // null → falls back to LINK.COLOR_ACTIVE
@@ -115,12 +116,10 @@ const NAV_CONFIG = {
     BACKDROP_Z_OFFSET: 100, // backdrop z-index = DRAWER.Z_INDEX - this
     BACKDROP_FADE_DURATION: 0.2,
 
-    LINK_FONT_SIZE: "23px",
-    LINK_FONT_WEIGHT: 600,
-    LINK_LETTER_SPACING: "0.02em",
-    LINK_LINE_HEIGHT: "1.4",
-    LINK_TEXT_TRANSFORM: "none",
-    LINK_COLOR: null, // null → falls back to theme text color
+    // Typography is inherited from the desktop nav (LINK.*) so the drawer
+    // matches exactly — same font size, weight and family.
+    LINK_COLOR: null,        // null → LINK.COLOR (grey)
+    LINK_COLOR_ACTIVE: null, // null → LINK active colour (black)
     LINK_PADDING: "14px 0",
     SHOW_ITEM_DIVIDER: true,
     DIVIDER_COLOR: null, // null → falls back to theme border color
@@ -170,16 +169,18 @@ function buildDesktopLinkStyle({ baseLinkStyle, isActiveOrHovered, linkColor, li
   };
 }
 
-function buildDrawerLinkStyle({ baseLinkStyle, drawerLinkColor, drawerDividerColor }) {
+function buildDrawerLinkStyle({ baseLinkStyle, drawerDividerColor }) {
+  // Typography copied from the desktop nav links (single source of truth: LINK.*)
+  // so the mobile drawer is identical in size / weight / family.
+  // Colour is applied per-item by DrawerLink (grey idle → black on hover/active).
   return {
     ...baseLinkStyle,
-    color: drawerLinkColor,
     opacity: 1,
-    fontSize: NAV_CONFIG.DRAWER.LINK_FONT_SIZE,
-    fontWeight: NAV_CONFIG.DRAWER.LINK_FONT_WEIGHT,
-    lineHeight: NAV_CONFIG.DRAWER.LINK_LINE_HEIGHT,
-    letterSpacing: NAV_CONFIG.DRAWER.LINK_LETTER_SPACING,
-    textTransform: NAV_CONFIG.DRAWER.LINK_TEXT_TRANSFORM,
+    fontSize: NAV_CONFIG.LINK.FONT_SIZE,
+    fontWeight: NAV_CONFIG.LINK.FONT_WEIGHT,
+    lineHeight: NAV_CONFIG.LINK.LINE_HEIGHT,
+    letterSpacing: NAV_CONFIG.LINK.LETTER_SPACING,
+    textTransform: NAV_CONFIG.LINK.TEXT_TRANSFORM,
     padding: NAV_CONFIG.DRAWER.LINK_PADDING,
     borderBottom: NAV_CONFIG.DRAWER.SHOW_ITEM_DIVIDER
       ? `1px solid ${drawerDividerColor}`
@@ -232,9 +233,11 @@ const DesktopNavLink = memo(function DesktopNavLink({
   underlineTransition,
   onLinkClick,
 }) {
+  // No hover underline — the underline only marks the ACTIVE page.
   const showUnderline =
     NAV_CONFIG.LINK.UNDERLINE.ENABLED &&
-    (isHovered || (isActive && NAV_CONFIG.LINK.UNDERLINE.SHOW_ON_ACTIVE));
+    isActive &&
+    NAV_CONFIG.LINK.UNDERLINE.SHOW_ON_ACTIVE;
 
   const linkStyle = useMemo(
     () =>
@@ -286,9 +289,10 @@ function DesktopNav({
   underlineColor,
   underlineTransition,
   onLinkClick,
+  navFontFamily,
 }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: NAV_CONFIG.LINK.GAP }}>
+    <div style={{ display: "flex", alignItems: "baseline", gap: NAV_CONFIG.LINK.GAP }}>
       {menuList.map((item) => (
         <DesktopNavLink
           key={item.href}
@@ -305,19 +309,65 @@ function DesktopNav({
           onLinkClick={onLinkClick}
         />
       ))}
+
+      {/* Language switcher — INSIDE the nav row, right after the last nav
+          item. Wrapped in the SAME column structure as a nav link (label +
+          reserved underline row) so its text sits on the exact same line.
+          All of its own spacing/font settings are overridden from LINK config. */}
+      <div style={{ display: "inline-flex", flexDirection: "column" }}>
+        <LanguageSwitcherInMenu
+          fontWeightActive={NAV_CONFIG.LINK.FONT_WEIGHT}
+          fontWeightInactive={NAV_CONFIG.LINK.FONT_WEIGHT}
+          sx={{
+            position: "static",
+            top: "auto",
+            right: "auto",
+            zIndex: "auto",
+            display: "block",
+            padding: 0,
+            margin: 0,
+            fontFamily: navFontFamily,
+            fontSize: NAV_CONFIG.LINK.FONT_SIZE,
+            fontWeight: NAV_CONFIG.LINK.FONT_WEIGHT,
+            lineHeight: NAV_CONFIG.LINK.LINE_HEIGHT,
+            letterSpacing: NAV_CONFIG.LINK.LETTER_SPACING,
+          }}
+        />
+        {/* Invisible spacer mirroring the nav-link underline row, so the
+            switcher's baseline lines up with the other nav labels. Only needed
+            while the underline is actually rendered. */}
+        {NAV_CONFIG.LINK.UNDERLINE.ENABLED && (
+          <div
+            aria-hidden="true"
+            style={{
+              marginTop: NAV_CONFIG.LINK.UNDERLINE.MARGIN_TOP,
+              height: NAV_CONFIG.LINK.UNDERLINE.HEIGHT,
+              width: "100%",
+            }}
+          />
+        )}
+      </div>
     </div>
   );
 }
 
-const DrawerLink = memo(function DrawerLink({ item, onClick, linkStyle }) {
+const DrawerLink = memo(function DrawerLink({ item, onClick, linkStyle, color, colorActive, isActive }) {
+  const [hover, setHover] = useState(false);
   return (
-    <Link href={item.href} onClick={onClick} style={linkStyle}>
+    <Link
+      href={item.href}
+      onClick={onClick}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      aria-current={isActive ? "page" : undefined}
+      style={{ ...linkStyle, color: hover || isActive ? colorActive : color }}
+    >
       {item.label}
     </Link>
   );
 });
 
-function MobileDrawer({ menuList, isOpen, onClose, colors, drawerLinkStyle, onLinkClick }) {
+function MobileDrawer({ menuList, isOpen, onClose, colors, drawerLinkStyle, linkColor, linkColorActive, pathname, navFontFamily, onLinkClick }) {
   const { DRAWER } = NAV_CONFIG;
   const panelTransition = useMemo(
     () => ({ type: DRAWER.ANIM_EASING, duration: DRAWER.ANIM_DURATION }),
@@ -369,6 +419,9 @@ function MobileDrawer({ menuList, isOpen, onClose, colors, drawerLinkStyle, onLi
               <DrawerLink
                 key={item.href}
                 item={item}
+                isActive={pathname === item.href}
+                color={linkColor}
+                colorActive={linkColorActive}
                 onClick={() => {
                   onClose();
                   onLinkClick();
@@ -376,6 +429,25 @@ function MobileDrawer({ menuList, isOpen, onClose, colors, drawerLinkStyle, onLi
                 linkStyle={drawerLinkStyle}
               />
             ))}
+
+            {/* Language switcher — same as desktop: sits INSIDE the nav, right
+                after the last menu item, with the same font/size/gap. */}
+            <LanguageSwitcherInMenu
+              fontWeightActive={NAV_CONFIG.LINK.FONT_WEIGHT}
+              fontWeightInactive={NAV_CONFIG.LINK.FONT_WEIGHT}
+              sx={{
+                position: "static",
+                top: "auto",
+                right: "auto",
+                zIndex: "auto",
+                padding: NAV_CONFIG.DRAWER.LINK_PADDING,
+                fontFamily: navFontFamily,
+                fontSize: NAV_CONFIG.LINK.FONT_SIZE,
+                fontWeight: NAV_CONFIG.LINK.FONT_WEIGHT,
+                lineHeight: NAV_CONFIG.LINK.LINE_HEIGHT,
+                letterSpacing: NAV_CONFIG.LINK.LETTER_SPACING,
+              }}
+            />
           </motion.div>
         </>
       )}
@@ -422,11 +494,15 @@ export default function MainNav() {
   }, [menuSource, isManager, languageKey]);
 
   // Resolve configured colors against the theme fallback once per render.
+  // Non-hover = grey (LINK.COLOR); hover / active page = theme text colour (black).
   const linkColor = NAV_CONFIG.LINK.COLOR ?? colors.text;
-  const linkColorActive = NAV_CONFIG.LINK.COLOR_ACTIVE ?? linkColor;
+  const linkColorActive = NAV_CONFIG.LINK.COLOR_ACTIVE ?? colors.text;
   const underlineColor = NAV_CONFIG.LINK.UNDERLINE.COLOR ?? linkColorActive;
   const barBorderColor = NAV_CONFIG.BAR.BORDER_COLOR ?? colors.border;
-  const drawerLinkColor = NAV_CONFIG.DRAWER.LINK_COLOR ?? colors.text;
+  // Drawer (mobile) links mirror the desktop colours: grey idle → black hover/active.
+  const drawerLinkColor = NAV_CONFIG.DRAWER.LINK_COLOR ?? linkColor;
+  const drawerLinkColorActive =
+    NAV_CONFIG.DRAWER.LINK_COLOR_ACTIVE ?? linkColorActive;
   const drawerDividerColor = NAV_CONFIG.DRAWER.DIVIDER_COLOR ?? colors.border;
 
   const underlineTransition = useMemo(
@@ -437,8 +513,8 @@ export default function MainNav() {
   const baseLinkStyle = useMemo(() => buildBaseLinkStyle(navFontFamily), [navFontFamily]);
 
   const drawerLinkStyle = useMemo(
-    () => buildDrawerLinkStyle({ baseLinkStyle, drawerLinkColor, drawerDividerColor }),
-    [baseLinkStyle, drawerLinkColor, drawerDividerColor]
+    () => buildDrawerLinkStyle({ baseLinkStyle, drawerDividerColor }),
+    [baseLinkStyle, drawerDividerColor]
   );
 
   const closeDrawer = useCallback(() => setDrawerOpen(false), []);
@@ -480,6 +556,7 @@ export default function MainNav() {
             underlineColor={underlineColor}
             underlineTransition={underlineTransition}
             onLinkClick={onLinkClick}
+            navFontFamily={navFontFamily}
           />
         )}
 
@@ -506,6 +583,10 @@ export default function MainNav() {
           onClose={closeDrawer}
           colors={colors}
           drawerLinkStyle={drawerLinkStyle}
+          linkColor={drawerLinkColor}
+          linkColorActive={drawerLinkColorActive}
+          pathname={pathname}
+          navFontFamily={navFontFamily}
           onLinkClick={onLinkClick}
         />
       )}

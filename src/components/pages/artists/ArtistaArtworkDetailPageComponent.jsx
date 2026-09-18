@@ -119,7 +119,8 @@ function RelatedArtworkThumb({ artwork, fontFamily, isCn, isMobile }) {
           fontWeight: 600,
           letterSpacing: "0.08em",
           textTransform: "uppercase",
-          color: DESIGN_TOKENS.colors.relatedText,
+          color: isHovered ? "#000000" : "#999999",
+          transition: "color 0.2s ease",
           margin: "0 0 4px",
         }}
       >
@@ -132,27 +133,14 @@ function RelatedArtworkThumb({ artwork, fontFamily, isCn, isMobile }) {
             fontFamily,
             fontSize: isMobile ? "11px" : "12px",
             fontStyle: "italic",
-            color: DESIGN_TOKENS.colors.relatedText,
+            color: isHovered ? "#000000" : "#999999",
+            transition: "color 0.2s ease",
             margin: "0 0 4px",
             lineHeight: 1.3,
           }}
         >
           {artwork.title || (isCn ? "无题" : "Untitled")}
         </p>
-        <motion.span
-          initial={{ scaleX: 0 }}
-          animate={{ scaleX: isHovered ? 1 : 0 }}
-          transition={{ duration: 0.25, ease: "easeInOut" }}
-          style={{
-            position: "absolute",
-            bottom: "2px",
-            left: 0,
-            right: 0,
-            height: "1px",
-            backgroundColor: DESIGN_TOKENS.colors.relatedText,
-            transformOrigin: "left",
-          }}
-        />
       </div>
 
       <p
@@ -693,13 +681,14 @@ export default function ArtistaArtworkDetailPageComponent({
                     href={artwork.video_url}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onMouseEnter={(e) => { e.currentTarget.style.color = "#000000"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.color = "#999999"; }}
                     style={{
                       fontFamily,
                       fontSize: "11px",
-                      color: primaryText,
-                      opacity: 0.6,
-                      textDecoration: "underline",
-                      textUnderlineOffset: "4px",
+                      color: "#999999",
+                      textDecoration: "none",
+                      transition: "color 0.2s ease",
                     }}
                   >
                     {isCn ? "视频" : "Video"}
@@ -710,13 +699,14 @@ export default function ArtistaArtworkDetailPageComponent({
                     href={artwork.web_url}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onMouseEnter={(e) => { e.currentTarget.style.color = "#000000"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.color = "#999999"; }}
                     style={{
                       fontFamily,
                       fontSize: "11px",
-                      color: primaryText,
-                      opacity: 0.6,
-                      textDecoration: "underline",
-                      textUnderlineOffset: "4px",
+                      color: "#999999",
+                      textDecoration: "none",
+                      transition: "color 0.2s ease",
                     }}
                   >
                     {isCn ? "网站" : "Website"}

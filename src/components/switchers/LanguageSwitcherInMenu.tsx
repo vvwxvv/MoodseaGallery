@@ -17,7 +17,7 @@ const SWITCHER_CONFIG = {
     Z_INDEX: 12000,
   },
 
-  GAP: "6px", // space between "中文", divider, and "EN"
+  GAP: "6px",
 
   // --- Top-level style knobs (easily accessible) ---
   FONT_SIZE: "12px",
@@ -39,23 +39,21 @@ const SWITCHER_CONFIG = {
     FONT_WEIGHT_INACTIVE: 400,
     TRANSITION: "color 0.2s ease",
   },
-
-  DIVIDER: {
-    CHAR: "|",
-    COLOR: "var(--border-color, #ccc)",
-    FONT_SIZE: "11px",
-    FONT_WEIGHT: 300,
-  },
 };
 
 type LangOption = "cn" | "en";
 
 const LABELS: Record<LangOption, string> = {
   cn: "中文",
-  en: "EN",
+  en: "English",
 };
 
-const LanguageSwitcherInMenu: React.FC<{ sx?: React.CSSProperties }> = ({ sx }) => {
+const LanguageSwitcherInMenu: React.FC<{
+  sx?: React.CSSProperties;
+  /** Optional font-weight overrides — e.g. to match nav links when inlined into the nav row. */
+  fontWeightActive?: number;
+  fontWeightInactive?: number;
+}> = ({ sx, fontWeightActive, fontWeightInactive }) => {
   const { isCn, toggleLanguage } = useContext(LanguageContext);
   const { fontFamily } = useFont("languageSwitcher");
 
@@ -77,7 +75,7 @@ const LanguageSwitcherInMenu: React.FC<{ sx?: React.CSSProperties }> = ({ sx }) 
   );
 
   const handleKeyDown = useCallback(
-    (event: React.KeyboardEvent<HTMLButtonElement>, lang: LangOption) => {
+    (event: React.KeyboardEvent<HTMLElement>, lang: LangOption) => {
       if (event.key === "Enter" || event.key === " ") {
         event.preventDefault();
         selectLanguage(lang);
@@ -95,8 +93,8 @@ const LanguageSwitcherInMenu: React.FC<{ sx?: React.CSSProperties }> = ({ sx }) 
     padding: 0,
     font: "inherit",
     fontWeight: isActive
-      ? SWITCHER_CONFIG.LABEL.FONT_WEIGHT_ACTIVE
-      : SWITCHER_CONFIG.LABEL.FONT_WEIGHT_INACTIVE,
+      ? (fontWeightActive ?? SWITCHER_CONFIG.LABEL.FONT_WEIGHT_ACTIVE)
+      : (fontWeightInactive ?? SWITCHER_CONFIG.LABEL.FONT_WEIGHT_INACTIVE),
     color: isActive ? SWITCHER_CONFIG.COLOR_ACTIVE : SWITCHER_CONFIG.COLOR_INACTIVE,
     transition: SWITCHER_CONFIG.LABEL.TRANSITION,
   });
@@ -112,9 +110,14 @@ const LanguageSwitcherInMenu: React.FC<{ sx?: React.CSSProperties }> = ({ sx }) 
         : SWITCHER_CONFIG.COLOR_INACTIVE;
 
     return (
-      <button
+      // Rendered as a span (not <button>): globals.css has a blanket
+      // `[data-theme] button { color: … !important }` rule that would force
+      // this control black. As a span, the grey-by-default / black-on-hover
+      // colours below apply (matches the nav + reference).
+      <span
         key={lang}
-        type="button"
+        role="button"
+        tabIndex={0}
         onClick={() => selectLanguage(lang)}
         onKeyDown={(e) => handleKeyDown(e, lang)}
         onMouseEnter={() => setHoveredLang(lang)}
@@ -123,11 +126,12 @@ const LanguageSwitcherInMenu: React.FC<{ sx?: React.CSSProperties }> = ({ sx }) 
         aria-label={`Switch to ${lang === "cn" ? "Chinese" : "English"}`}
         style={{
           ...labelStyle(isActive),
-          color, // 覆盖 labelStyle 中的颜色，实现悬停变色
+          display: "inline-block",
+          color, // grey when idle, black on hover
         }}
       >
         {LABELS[lang]}
-      </button>
+      </span>
     );
   };
 
@@ -164,20 +168,14 @@ const LanguageSwitcherInMenu: React.FC<{ sx?: React.CSSProperties }> = ({ sx }) 
         ...(sx || {}),
       }}
     >
-      {renderOption("cn")}
-
-      <span
-        aria-hidden="true"
-        style={{
-          color: SWITCHER_CONFIG.DIVIDER.COLOR,
-          fontSize: SWITCHER_CONFIG.DIVIDER.FONT_SIZE,
-          fontWeight: SWITCHER_CONFIG.DIVIDER.FONT_WEIGHT,
-        }}
-      >
-        {SWITCHER_CONFIG.DIVIDER.CHAR}
-      </span>
-
-      {renderOption("en")}
+      {/*
+        Single-button switcher: show ONLY the OTHER language, and clicking it
+        switches to that language.
+          • page is EN → show "中文"
+          • page is CN → show "EN"
+        (No divider, no active/inactive pair — mirrors the reference.)
+      */}
+      {renderOption(isCn ? "en" : "cn")}
     </motion.div>
   );
 };
