@@ -21,12 +21,13 @@ import PDFViewer from "@/components/others/PDFViewer";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 
 // ============================================================================
-// SHARED FONT (family + size) — matches the About page body
-//   AboutPageComponent CONFIG.text.body = AvenirNext-Regular / PingFang-Regular, 13px.
-//   Bio (intro) / featured caption / body text all route through these.
+// SHARED SIZE
+//   Body-family text size — matches the About page body (13px).
+//   Bio / featured caption / collection titles route through this.
+//   Font FAMILIES come from useFont() roles (artistBio / artworkCardCaption /
+//   artworkCardMeta) — see the page component below.
 //   (Artist-name H1 keeps its own larger size for hierarchy.)
 // ============================================================================
-const ABOUT_BODY_FONT_FAMILY = "'AvenirNext-Regular', 'PingFang-Regular', sans-serif";
 const BODY_TEXT_SIZE = "13px";
 
 const PDFViewerButton = ({
@@ -1137,10 +1138,10 @@ export default function ArtistDetailPageComponent({ artistSlug }) {
   const { colors } = useReverseTheme();
 
   const { fontFamily: headingFont } = useFont();
-  // Caption + intro (bio) + body text share the About body family + size.
-  const bioFont = ABOUT_BODY_FONT_FAMILY;
-  const captionFont = ABOUT_BODY_FONT_FAMILY;
-  const metaFont = ABOUT_BODY_FONT_FAMILY;
+  // ▸ Caption + intro (bio) + body text — previous role-based font families. ◂
+  const { fontFamily: bioFont } = useFont("artistBio");
+  const { fontFamily: captionFont } = useFont("artworkCardCaption");
+  const { fontFamily: metaFont } = useFont("artworkCardMeta");
 
   // ▸ Section-label font family — no role, so it MATCHES the News heading. ◂
   const labelFont = useFont().fontFamily;
